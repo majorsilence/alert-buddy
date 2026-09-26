@@ -17,7 +17,7 @@ framework problem (`docs/framework-findings.md`).
 | S4 `BeginInvoke` from a background thread | **Pass** | emulator |
 | S5 soft keyboard and safe area | **Partial.** Findings, rotation not run | emulator |
 | S6 emoji rendering | **Pass** (colour emoji render) | emulator, Headless |
-| S7 NDJSON streaming over Wi-Fi and mobile data | Not run | |
+| S7 NDJSON streaming over Wi-Fi and mobile data | **Partial.** Stream, full alert lifecycle and reconnect work over plain http; no real network, no device | emulator, FakeNtfy |
 | S8 does `net10.0-ios` restore | **Answered: no** | NuGet package contents |
 | S9 MVVM wiring | **Answered.** Helper wiring; not `DataBindings` | emulator, Headless |
 
@@ -73,7 +73,42 @@ stands, it is just no longer forced by a rendering problem. Noted on #271.
 
 ## S7 NDJSON streaming over Wi-Fi and mobile data
 
-Not run. It needs `FakeNtfy` (milestone 1) and a real network path, so it belongs to milestone 4.
+**Partial, on the emulator only.** The real composition root (`AlertBuddyApp`, the Core listener and engine, the view models) ran in
+a Release build of the Android head (trimmed and AOT compiled) against `tools/FakeNtfy` on the host, reached at `10.0.2.2` over
+plain http, with the platform services replaced by stand-ins that only log. The screen was throwaway labels bound to the view
+models; it was not committed. Observed, with FakeNtfy's keepalive set to 10 s:
+
+- It connected and the home screen read "Watching" and "Listening. Last heard a few seconds ago."
+- `POST /_scenario/home-alerts?step=6` gave, in order: a warning (one notification, one warning sound, "The workshop is getting
+  warm"), an alarm (the alarm screen took over, siren and vibration on, "Tell a grown-up now"), and an all clear (siren and
+  vibration off, back to the home screen, "The workshop is cool again").
+- With the server killed the app showed "Asleep" and "Can't reach the house. Trying again." Restarted, it was "Watching" again
+  within about 50 s, with no stray sound or notification. The restarted server had no history, so this does **not** show on a
+  device that replayed history stays silent; the unit and FakeNtfy tests cover that over real sockets.
+- The first connection stayed up for about two minutes. That is not a test of the 110 s watchdog against ntfy's real 45 s
+  keepalive.
+
+**What it found**
+
+- **A Release build has no `INTERNET` permission unless the manifest declares it.** Debug builds are given it, so it only fails in
+  the build that ships: the app ran and showed "Can't reach the house" with no exception logged and the server saw no request.
+  `AndroidManifest.xml` now declares it.
+- **Plain http to a private address worked with only that permission** on this API 36 emulator (targetSdk 36): no
+  `usesCleartextTraffic` and no network security config. Why was not investigated, and it is not established for other Android
+  versions or devices. The app's own rule (https, or http only to a private address) is what enforces the policy.
+- **One incremental Release build crashed at launch** with `Java.Lang.LinkageError: No implementation found for
+  AvaloniaAndroidApplication_1.n_onCreate()`, before any app code ran. The only change since a build that ran was one line in the
+  manifest. `dotnet build --no-incremental` of the same source ran. That is one occurrence, so the cause is not established;
+  use `--no-incremental` after manifest or resource changes and when an APK behaves oddly.
+- **`FakeNtfy` ignored SIGTERM while a client held a stream open.** The web host claims SIGTERM and only signals its own lifetime,
+  which `Program.cs` did not wait on. Reproduced against the emulator's open stream, fixed, and re-checked with a stream open
+  (stops in about a second); Ctrl+C still stops it.
+- **Method.** Twice the emulator showed a different app's screen when mine had exited, and the screenshot alone looked like a stale
+  build. Check `pidof` and the top resumed activity as well. A Debug APK installed with `adb install` did not reach my activity
+  either; not investigated, since Release is what ships.
+
+**Not covered, still to do:** a real Wi-Fi and mobile-data path, a real device, TLS, Doze and background delivery (milestone 4),
+and replayed history on a device.
 
 ## S8 Does `net10.0-ios` restore
 
@@ -125,5 +160,7 @@ The plan is the owner's document and is left as written; these are the places it
 3. **Section 3, safe area.** Docked layout is inset by the system bars; free placement is not (#281).
 4. **Section 7.5, `DataBindings`.** Confirmed as "do not use" for now; the helper wiring is what shipped code uses.
 5. **Section 4.1 / 5.4, emoji.** They render on Android; stripping is now a design choice, not a workaround.
-6. **Milestone 0 "done when".** Not met yet: no real phone, S2, S3 and S7 not run, and F1 is implemented but not released or
-   adopted (see `docs/framework-findings.md`).
+6. **Milestone 0 "done when".** Not met yet: no real phone, S2 and S3 not run, S7 run only on the emulator, and F1 is implemented
+   but not released or adopted (see `docs/framework-findings.md`).
+7. **Section 6.2 / M4, the Android manifest.** A Release build cannot open a socket without `INTERNET`. Milestone 4's permissions
+   (notifications, foreground service and the rest) extend the same file.

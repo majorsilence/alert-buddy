@@ -30,6 +30,8 @@ MF_HEADLESS_SCALE=2 dotnet test tests/AlertBuddy.Shared.Tests -c Release   # the
 # Android needs the SDK and a full JDK 21. On the author's machine the default JDK 25 has no `jar`, so set them per shell:
 export ANDROID_HOME=$HOME/Android/Sdk JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 dotnet build src/AlertBuddy.Android -c Release -p:AndroidSdkDirectory=$ANDROID_HOME
+# Add --no-incremental after a manifest or resource change: one incremental Release build gave an APK that crashed at launch with a
+# LinkageError in AvaloniaAndroidApplication.n_onCreate, and a full rebuild of the same source ran (docs/spikes.md, S7).
 
 ./tools/check-hygiene.sh && ./tools/check-shims.sh           # what CI's first job runs
 
