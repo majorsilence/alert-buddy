@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+
+  <!-- The browser / WebAssembly head. `dotnet build` compiles it; only `dotnet publish` runs the
+       wasm-tools pipeline that produces a servable bundle, so it needs that workload:
+       `dotnet workload install wasm-tools`. Serve bin/Release/net10.0-browser/publish/wwwroot with
+       any static file server. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Majorsilence.Forms.Avalonia" />
+    <PackageReference Include="Avalonia.Browser" />
+    <ProjectReference Include="..\AlertBuddy.Shared\AlertBuddy.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

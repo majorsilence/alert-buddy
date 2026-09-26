@@ -427,3 +427,15 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# --- Alert Buddy ---
+# Local override for developing against an unreleased, locally packed Majorsilence.Forms (PLAN.md 11.1, policy 8).
+Directory.Build.local.props
+# The local package feed used with the file above.
+.local-feed/
+# Signing material and secrets must never be committed (PLAN.md section 14). CI checks this too.
+*.jks
+*.keystore
+*.p12
+# Headless render output for design review. Golden images under tests/**/Golden are committed on purpose.
+render-out/

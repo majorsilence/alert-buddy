@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Avalonia 12's AvaloniaMainActivity is an AppCompatActivity, and its setContentView throws "You need to use a
+     Theme.AppCompat theme (or descendant) with this activity" under any other theme. The Majorsilence.Forms 26.3.0
+     template's "@android:style/Theme.NoTitleBar" is such a theme, so an app generated from it crashes on its first
+     frame. This is the AppCompat equivalent: no title bar, no action bar. Tracked upstream in docs/framework-findings.md. -->
+<resources>
+  <style name="AlertBuddyTheme" parent="Theme.AppCompat.NoActionBar">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+  </style>
+</resources>

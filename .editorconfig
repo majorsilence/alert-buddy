@@ -1,0 +1,31 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,json,yml,yaml,xml,css,html,js}]
+indent_size = 2
+
+# The framework's style, which this app follows (PLAN.md section 7.5 sketches are written in it):
+# a space before every parameter list, braces on a new line for types and methods only.
+[*.cs]
+csharp_new_line_before_open_brace = methods,types
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = true
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = true
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_around_binary_operators = before_and_after
+dotnet_diagnostic.IDE0130.severity = none

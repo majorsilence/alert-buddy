@@ -1,0 +1,16 @@
+<Project>
+  <!-- Local, git-ignored overrides first, so it can set MajorsilenceFormsVersion and add a restore source for a
+       locally packed framework build (PLAN.md section 11.1, policy 8). CI never has this file. -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.local.props"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.local.props')" />
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <!-- Release builds treat warnings as errors, as the framework does. -->
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <NuGetAudit>true</NuGetAudit>
+  </PropertyGroup>
+</Project>
