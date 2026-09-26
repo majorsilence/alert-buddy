@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <ProjectReference Include="..\AlertBuddy.Core\AlertBuddy.Core.csproj" />
   </ItemGroup>
 
 </Project>

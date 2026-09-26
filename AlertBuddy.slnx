@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/AlertBuddy.Core/AlertBuddy.Core.csproj" />
     <Project Path="src/AlertBuddy.ViewModels/AlertBuddy.ViewModels.csproj" />
     <Project Path="src/AlertBuddy.Shared/AlertBuddy.Shared.csproj" />
     <Project Path="src/AlertBuddy.Desktop/AlertBuddy.Desktop.csproj" />
@@ -7,7 +8,9 @@
     <Project Path="src/AlertBuddy.Wasm/AlertBuddy.Wasm.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AlertBuddy.Core.Tests/AlertBuddy.Core.Tests.csproj" />
     <Project Path="tests/AlertBuddy.Shared.Tests/AlertBuddy.Shared.Tests.csproj" />
+    <Project Path="tests/AlertBuddy.TestSupport/AlertBuddy.TestSupport.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />

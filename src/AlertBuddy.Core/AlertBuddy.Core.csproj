@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The logic: ntfy client, alert model, interpreter, store and hub. No UI, no Majorsilence.Forms, no CommunityToolkit,
+       no platform code (PLAN.md section 7.1). Trim- and AOT-safe, because iOS is full AOT: JSON goes through source
+       generation and nothing reflects over a type. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AlertBuddy.Core.Tests" />
+  </ItemGroup>
+
+</Project>
