@@ -10,6 +10,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/AlertBuddy.Core.Tests/AlertBuddy.Core.Tests.csproj" />
     <Project Path="tests/AlertBuddy.Shared.Tests/AlertBuddy.Shared.Tests.csproj" />
+    <Project Path="tests/AlertBuddy.ViewModels.Tests/AlertBuddy.ViewModels.Tests.csproj" />
     <Project Path="tests/AlertBuddy.TestSupport/AlertBuddy.TestSupport.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">

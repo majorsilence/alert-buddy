@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Every screen's behaviour, with fake services and a synchronous dispatcher: no UI, no framework (PLAN.md section 10). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3" />
+    <ProjectReference Include="..\..\src\AlertBuddy.ViewModels\AlertBuddy.ViewModels.csproj" />
+    <ProjectReference Include="..\AlertBuddy.TestSupport\AlertBuddy.TestSupport.csproj" />
+  </ItemGroup>
+
+</Project>

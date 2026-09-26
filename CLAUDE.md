@@ -8,12 +8,12 @@ first. `docs/spikes.md`, `docs/framework-findings.md` and `docs/framework-versio
 ## Layout
 
 ```
-src/AlertBuddy.Core/        (milestone 1)  ntfy client, alert model, interpreter, hub. No UI, no framework, no platform code
-src/AlertBuddy.ViewModels/  CommunityToolkit.Mvvm view models, one per screen. Never references Majorsilence.Forms
+src/AlertBuddy.Core/        ntfy client, alert model, interpreter, store, hub, listener. No UI, no framework, no platform code
+src/AlertBuddy.ViewModels/  CommunityToolkit.Mvvm view models, one per screen, and the composition root (AlertBuddyApp). Never references Majorsilence.Forms
 src/AlertBuddy.Shared/      Majorsilence.Forms views, custom controls, binder helpers, theme, platform adapters
 src/AlertBuddy.Desktop/     Avalonia desktop head        src/AlertBuddy.Android/  Android head
 src/AlertBuddy.Wasm/        browser head (a demo, not a live receiver)
-tests/                      xunit v3: Core.Tests, ViewModels.Tests (no UI), Shared.Tests (Headless backend)
+tests/                      xunit v3: Core.Tests, ViewModels.Tests (no UI), Shared.Tests (Headless backend), TestSupport (fakes)
 tools/                      hygiene and shim guards; FakeNtfy and SoundSynth arrive with their milestones
 ```
 
@@ -84,5 +84,8 @@ No lasting workarounds.
   control and never references a platform API.
 - Tests: assert mechanisms and relationships, not "something was drawn". **Prove a test can fail** before trusting it: break the
   code it covers and watch it go red.
+- Async tests never sleep for a fixed time and never wait without a bound. Time is a `ManualTimeProvider` (`TestClock`), and waits
+  are `Wait.UntilAsync` or `AlertEventsAsync`. Wait for the LAST subscriber to have run, not for a screen's own state: the hub updates
+  its snapshot before it raises an event, and a screen can be updated before the feedback service has run.
 - Copy is in one table so it can be translated; sentence case, plain verbs, one exclamation mark in the whole app (PLAN.md 8.10).
 - Do not commit or push unless asked. Design-review renders go to the git-ignored `render-out/`.
