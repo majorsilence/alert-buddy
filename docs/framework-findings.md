@@ -288,7 +288,7 @@ looping usage, alarm stream) builds on directly.
 
 ## Register item F9 (richer audio: volume, loop, usage, overlap, #273)
 
-Open as majorsilence/Majorsilence.Forms#304 (closes #273), branch `audio-player-usage`, stacked on F8.
+Merged as majorsilence/Majorsilence.Forms#304 (closed #273), branch `audio-player-usage`.
 
 - **What it is.** `Media.AudioPlayer`, SoundPlayer's richer sibling: `Volume` (clamped 0–1), `Loop`, `Usage` (`Effect`,
   `Notification`, `Alarm`, `Media`), a `Completed` event, `IsSupported`, and overlapping playback — repeated `Play` calls on
@@ -302,11 +302,11 @@ Open as majorsilence/Majorsilence.Forms#304 (closes #273), branch `audio-player-
   deliberately broken version of the source line. Two mutations (skipping the `Completed` handler's list-removal; skipping
   `Stop`'s list-clear) survived, and were confirmed genuinely equivalent rather than gaps: `Dispose` is idempotent, so neither
   omission changes anything observable through the public API, only internal list hygiene nothing asserts on.
-- **Verified for real on Android via the same emulator path as F8** — until a genuine `system_server` crash mid-session
-  (confirmed via logcat, caused by sustained local memory pressure, unrelated to this change) made the local run
-  inconclusive. `GalleryApplication.RunAudioPlayerSmokeTest` and `android-smoke-test.sh`'s matching check are already wired in
-  as a permanent, repeated-on-every-PR CI verification (the same mechanism that gave F8 a real, complete local pass earlier),
-  so CI's own `android-smoke` job is this item's definitive verification.
+- **Verified for real on Android — by CI, not the local emulator this time.** A local run hit a genuine `system_server` crash
+  mid-session (confirmed via logcat, caused by sustained local memory pressure on the dev machine, unrelated to this change),
+  so `GalleryApplication.RunAudioPlayerSmokeTest` and `android-smoke-test.sh`'s matching `F9_AUDIOPLAYER_SMOKE` check — wired
+  in as a permanent, repeated-on-every-PR verification, the same mechanism that gave F8 a real local pass earlier — got its
+  first real run on PR #304's own `android-smoke` CI job instead, on the first push: PASS.
 - **Gates.** Four gates pass (5683 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
 
 Effect on this app: the milestone 2 alarm/siren behaviour (a looping cue audible even with the phone's media volume turned
