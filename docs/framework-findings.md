@@ -121,6 +121,13 @@ Open as majorsilence/Majorsilence.Forms#301 (closes #269), branch `reduced-motio
 Effect on this app: milestone 2's motion (the beacon, section 8.6) can check this before animating, once released. Nothing in
 this repository depends on it yet.
 
+- **A real CI failure, corrected after the fact.** The iOS branch (no host, no workload here) had a genuine compile
+  error: `UIAccessibility.Notifications.ObserveReduceMotionStatusDidChange` does not exist. Confirmed against
+  Microsoft's dotnet/macios API docs that the notification is bound on `UIView.Notifications`, not `UIAccessibility`;
+  `UIAccessibility.IsReduceMotionEnabled` itself was right. Fixed in a follow-up commit; PR #301's `ios` and
+  `sample-ios` CI jobs are now green. The PR's own text already said this code was "written, not run" — this is why
+  that qualifier matters, and why it stays in the PR description rather than being quietly dropped once fixed.
+
 ## Register item F6 (easing, tweens and an Animator, #268)
 
 Open as majorsilence/Majorsilence.Forms#300 (closes #268), branch `animation-tween`, built on F5.
