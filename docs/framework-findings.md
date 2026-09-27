@@ -35,6 +35,31 @@ failed), the API-diff gate reports no new gaps, and seven deliberate breakages e
 before the merge. Still to do, by the owner: cut a release, then bump the pin here (`docs/framework-versions.md`). This app can use
 it earlier through a locally packed build (PLAN.md 11.1, policy 8).
 
+## Register item F2 (`Majorsilence.Forms.Mvvm`, #264)
+
+Open as majorsilence/Majorsilence.Forms#298 (closes #264), from a git worktree `../Majorsilence.Forms-f2` on branch `mvvm-package`.
+
+- **What it is.** A new package, `net8.0` and `net10.0`, with the trim and AOT analyzers on, no reflection, no expression trees, no toolkit
+  dependency. `Observe (nameof (...), vm => vm.X, x => ...)` pushes now and on every change of that property, on the UI thread, and
+  drops a push queued before disposal; `BindCommand` sets `Enabled` from `CanExecute` (marshalled) and runs the command on click, on any
+  `Control` or on a menu or tool strip item; `BindingScope` disposes a page's bindings latest first and survives one that throws;
+  `IUiDispatcher` (`CheckAccess`, `Post`) has a default over the platform backend and a fake for tests. `BindCommand` uses `Click` and
+  `Enabled`, not `Command`, so it works on this app's custom-painted cards and does not wait for F3.
+- **Tests.** 31 in `MvvmHelpersTests`. The tests were written after the code, so their proof is mutation: 22 mutations, and **one
+  survived** the first time. Leaving the click handler attached after dispose looked harmless, because a flag stops it running, but it
+  keeps the binding alive on the control, which is the leak a scope exists to prevent. `Bind` became internal so a test counts the
+  subscriptions, and that mutation is now killed. All 22 are caught and the files were restored identical.
+- **Gates.** Four gates 5545 passed, 0 failed, 4 skipped in each shape (5514 on `main` plus the 31); the API-diff gate reports no new
+  gaps; ControlGallery builds with the new `MvvmHelpersPanel`; `dotnet pack` gives `lib/net8.0` and `lib/net10.0` with the README.
+- **Limits, stated in the PR and `docs/mvvm.md`.** It is not in the NativeAOT smoke test. The default dispatcher is tested only for
+  `CheckAccess` on Headless. The async-command-disables-the-control behaviour is the command's own `CanExecute` and is not exercised
+  (no toolkit in the tests). Two-way text is not included.
+
+Effect on this app: PLAN.md 7.5 says to keep a minimal copy of these helpers in `Shared/Binding` marked `TEMP-SHIM (F2)` until the
+package is released. Prefer a locally packed build (`.local-feed/` and `Directory.Build.local.props`, which is git-ignored) over
+writing a shim: it is the same code, and there is then nothing to delete. `Majorsilence.Forms.Mvvm.IUiDispatcher` is the view layer's
+dispatcher; `AlertBuddy.ViewModels` keeps its own one-method `IUiDispatcher`, and `Shared` adapts between them.
+
 ## Register item F3 (`ICommand` on buttons and tool strip items, #265)
 
 Open as majorsilence/Majorsilence.Forms#295 (closes #265), from a git worktree `../Majorsilence.Forms-f3` on branch `command-icommand`.
