@@ -293,10 +293,12 @@ namespace AlertBuddy.Core.Tests.Store
             rig.Engine.Handle (Line (AppendixC.Resolved));
             Assert.Single (rig.Hub.Snapshot.History);
 
+            rig.Changes.Clear ();
             rig.Engine.ClearHistory ();
 
             Assert.Empty (rig.Hub.Snapshot.History);
             Assert.Empty (rig.State.Saved!.Alerts);
+            Assert.Equal ((AlertChangeKind.HistoryCleared, AlertSound.None), (Assert.Single (rig.Changes).Kind, rig.Changes[0].Sound));   // a screen showing the book must hear it
         }
 
         [Fact]

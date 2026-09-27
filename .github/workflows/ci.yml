@@ -31,6 +31,9 @@ jobs:
           dotnet restore src/AlertBuddy.Shared
           dotnet restore src/AlertBuddy.Desktop
           dotnet restore tests/AlertBuddy.Core.Tests
+          dotnet restore tests/AlertBuddy.ViewModels.Tests
+          dotnet restore tests/AlertBuddy.FakeNtfy.Tests
+          dotnet restore tools/Harness
           dotnet restore tests/AlertBuddy.Shared.Tests
       - name: Build
         run: |
@@ -38,9 +41,12 @@ jobs:
           dotnet build src/AlertBuddy.ViewModels -c Release --no-restore
           dotnet build src/AlertBuddy.Shared -c Release --no-restore
           dotnet build src/AlertBuddy.Desktop -c Release --no-restore
+          dotnet build tools/Harness -c Release --no-restore
       - name: Test
         run: |
           dotnet test tests/AlertBuddy.Core.Tests -c Release --no-restore
+          dotnet test tests/AlertBuddy.ViewModels.Tests -c Release --no-restore
+          dotnet test tests/AlertBuddy.FakeNtfy.Tests -c Release --no-restore
           dotnet test tests/AlertBuddy.Shared.Tests -c Release --no-restore
       - name: Test at a scaled display
         # The framework's own suite runs at MF_HEADLESS_SCALE=2 too, because scale is where custom painting goes wrong.

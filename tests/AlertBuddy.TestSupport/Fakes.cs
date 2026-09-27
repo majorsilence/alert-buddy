@@ -21,20 +21,31 @@ namespace AlertBuddy.TestSupport
         public void Advance (TimeSpan by) => Provider.Advance (by);
 
         /// <summary>
-        /// Waits until the code under test has stopped creating and cancelling timers, then returns how long until the soonest one is due.
-        /// That delay IS what the code chose (a backoff, a watchdog), so a test asserts it directly. Throws if nothing is waiting.
+        /// Waits until the code under test has scheduled a timer (one that satisfies <paramref name="match"/>, if given) and has stopped
+        /// creating and cancelling timers, then returns how long until the soonest such timer is due. That delay IS what the code chose (a
+        /// backoff, a watchdog), so a test asserts it directly. It keeps waiting, bounded, for a timer that has not been registered yet, so a
+        /// busy machine cannot make it read "nothing is waiting" or pick a different timer. When other timers are pending (a screen's
+        /// periodic refresh) say which one is meant with <paramref name="match"/>.
         /// </summary>
-        public async Task<TimeSpan> NextDelayAsync ()
+        public async Task<TimeSpan> NextDelayAsync (Func<TimeSpan, bool>? match = null)
         {
-            await SettleAsync ().ConfigureAwait (false);
-            var delays = Provider.PendingDelays;
-            return delays.Count > 0 ? delays[0] : throw new InvalidOperationException ("Nothing is waiting on a timer.");
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds (10);
+            while (true) {
+                await SettleAsync ().ConfigureAwait (false);
+                var delays = Provider.PendingDelays.Where (d => match is null || match (d)).ToList ();
+                if (delays.Count > 0)
+                    return delays[0];
+
+                if (DateTime.UtcNow > deadline)
+                    throw new TimeoutException ("No timer that matches is waiting.");
+                await Task.Delay (5).ConfigureAwait (false);
+            }
         }
 
-        /// <summary>Waits for the code under test to settle, then advances exactly to its next timer.</summary>
-        public async Task<TimeSpan> AdvanceToNextAsync ()
+        /// <summary>Waits for the code under test to settle, then advances exactly to its next (matching) timer.</summary>
+        public async Task<TimeSpan> AdvanceToNextAsync (Func<TimeSpan, bool>? match = null)
         {
-            var delay = await NextDelayAsync ().ConfigureAwait (false);
+            var delay = await NextDelayAsync (match).ConfigureAwait (false);
             Advance (delay);
             return delay;
         }

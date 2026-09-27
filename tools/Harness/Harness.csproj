@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Milestone 1's console harness: the whole alert lifecycle driven purely through view models, against the fake ntfy server over real HTTP.
+       It references no UI project (PLAN.md section 12). Run it with: dotnet run, in this folder. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AlertBuddy.ViewModels\AlertBuddy.ViewModels.csproj" />
+    <ProjectReference Include="..\FakeNtfy\FakeNtfy.csproj" />
+  </ItemGroup>
+
+</Project>

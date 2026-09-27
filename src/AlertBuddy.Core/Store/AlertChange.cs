@@ -54,6 +54,9 @@ namespace AlertBuddy.Core.Store
 
         /// <summary>A grown-up said "Got it".</summary>
         Handled,
+
+        /// <summary>The Alert Book was cleared. Announced so a screen showing it can refresh: the silent state load at startup is not this.</summary>
+        HistoryCleared,
     }
 
     /// <summary>The outcome of one thing happening to the store, published on the hub.</summary>

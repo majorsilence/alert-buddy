@@ -123,7 +123,9 @@ namespace AlertBuddy.Core.Store
             lock (gate) {
                 store.ClearHistory ();
                 Save ();
-                hub.SetAlerts (store.Active, store.History);
+
+                // Announced, unlike the silent load at startup, because a screen may be showing the Alert Book right now.
+                hub.Publish (new AlertChange (AlertChangeKind.HistoryCleared, null, AlertSound.None, MessageOrigin.Live), store.Active, store.History);
             }
         }
 

@@ -8,13 +8,14 @@ first. `docs/spikes.md`, `docs/framework-findings.md` and `docs/framework-versio
 ## Layout
 
 ```
-src/AlertBuddy.Core/        (milestone 1)  ntfy client, alert model, interpreter, hub. No UI, no framework, no platform code
-src/AlertBuddy.ViewModels/  CommunityToolkit.Mvvm view models, one per screen. Never references Majorsilence.Forms
+src/AlertBuddy.Core/        ntfy client, alert model, interpreter, store, hub, listener. No UI, no framework, no platform code
+src/AlertBuddy.ViewModels/  CommunityToolkit.Mvvm view models, one per screen, and the composition root (AlertBuddyApp). Never references Majorsilence.Forms
 src/AlertBuddy.Shared/      Majorsilence.Forms views, custom controls, binder helpers, theme, platform adapters
 src/AlertBuddy.Desktop/     Avalonia desktop head        src/AlertBuddy.Android/  Android head
 src/AlertBuddy.Wasm/        browser head (a demo, not a live receiver)
-tests/                      xunit v3: Core.Tests, ViewModels.Tests (no UI), Shared.Tests (Headless backend)
-tools/                      hygiene and shim guards; FakeNtfy and SoundSynth arrive with their milestones
+tests/                      xunit v3: Core.Tests, ViewModels.Tests (no UI), Shared.Tests (Headless backend), TestSupport (fakes)
+tools/                      hygiene and shim guards; FakeNtfy (a local ntfy-compatible server); Harness (the M1 console demo);
+                            SoundSynth arrives with milestone 6
 ```
 
 Dependency arrows point one way: Core <- ViewModels <- Shared <- heads. That is what keeps the logic testable without a UI.
@@ -31,6 +32,15 @@ export ANDROID_HOME=$HOME/Android/Sdk JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd
 dotnet build src/AlertBuddy.Android -c Release -p:AndroidSdkDirectory=$ANDROID_HOME
 
 ./tools/check-hygiene.sh && ./tools/check-shims.sh           # what CI's first job runs
+
+# A local ntfy server, so nothing needs a real one. From an Android emulator the host is 10.0.2.2.
+dotnet run --project tools/FakeNtfy -- --port 8080
+curl -X POST "http://127.0.0.1:8080/_scenario/home-alerts?step=5"      # a warning, an alarm and an all clear, 5 seconds apart
+# Options: --lan (reachable from a phone; anyone on the network can reach it), --keepalive N, --basic USER:PASS, --token TOKEN.
+# Control: POST /_control/drop ends every open stream, POST /_control/fail/503/2 fails the next two requests.
+
+# The whole alert lifecycle through view models only, against FakeNtfy over real HTTP:
+dotnet run --project tools/Harness -c Release
 ```
 
 Emulator workflow: create an AVD (`avdmanager create avd -n alertbuddy-phone -k "system-images;android-36;google_apis;x86_64" -d pixel_5`),
@@ -84,5 +94,8 @@ No lasting workarounds.
   control and never references a platform API.
 - Tests: assert mechanisms and relationships, not "something was drawn". **Prove a test can fail** before trusting it: break the
   code it covers and watch it go red.
+- Async tests never sleep for a fixed time and never wait without a bound. Time is a `ManualTimeProvider` (`TestClock`), and waits
+  are `Wait.UntilAsync` or `AlertEventsAsync`. Wait for the LAST subscriber to have run, not for a screen's own state: the hub updates
+  its snapshot before it raises an event, and a screen can be updated before the feedback service has run.
 - Copy is in one table so it can be translated; sentence case, plain verbs, one exclamation mark in the whole app (PLAN.md 8.10).
 - Do not commit or push unless asked. Design-review renders go to the git-ignored `render-out/`.
