@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 using AlertBuddy.FakeNtfy;
 
 // A local ntfy-compatible server for developing and demonstrating Alert Buddy with no real server. Everything it serves is invented.
@@ -39,6 +40,13 @@ Console.CancelKeyPress += (_, e) => {
     e.Cancel = true;
     stop.Cancel ();
 };
+
+// The web host claims SIGTERM and only signals its own lifetime, which nothing here waits on, so without this a plain `kill` (or a
+// container stop) left the server listening while any client held a stream open.
+using var terminate = PosixSignalRegistration.Create (PosixSignal.SIGTERM, context => {
+    context.Cancel = true;
+    stop.Cancel ();
+});
 
 try {
     await Task.Delay (Timeout.Infinite, stop.Token);
