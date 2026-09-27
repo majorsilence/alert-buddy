@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The shared UI: views, custom controls, binder helpers, theme and platform adapters, consumed by every head.
+       It references only the Majorsilence.Forms core (no backend), so each head brings its own. Targets plain
+       net10.0 so a desktop-only developer needs no mobile workload to build it. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Majorsilence.Forms" />
+    <ProjectReference Include="..\AlertBuddy.ViewModels\AlertBuddy.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>

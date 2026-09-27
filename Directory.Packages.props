@@ -1,0 +1,34 @@
+<Project>
+  <!-- Every package version in the solution is pinned here, exactly (PLAN.md section 11.1, policy 3).
+       Each Majorsilence.Forms bump is its own commit and adds a line to docs/framework-versions.md. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+    <!-- The committed value is always a published version. Directory.Build.local.props (git-ignored) may set
+         MajorsilenceFormsVersion first to develop against a locally packed framework build. -->
+    <MajorsilenceFormsVersion Condition="'$(MajorsilenceFormsVersion)' == ''">26.3.0</MajorsilenceFormsVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Majorsilence.Forms">
+    <PackageVersion Include="Majorsilence.Forms" Version="$(MajorsilenceFormsVersion)" />
+    <PackageVersion Include="Majorsilence.Forms.Avalonia" Version="$(MajorsilenceFormsVersion)" />
+    <PackageVersion Include="Majorsilence.Forms.Headless" Version="$(MajorsilenceFormsVersion)" />
+  </ItemGroup>
+
+  <!-- Same Avalonia line the framework's own Majorsilence.Forms.Avalonia package is built against. -->
+  <ItemGroup Label="Avalonia heads">
+    <PackageVersion Include="Avalonia.Android" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Browser" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="MVVM">
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <!-- The framework's own test stack, so the two repos read the same. -->
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+</Project>

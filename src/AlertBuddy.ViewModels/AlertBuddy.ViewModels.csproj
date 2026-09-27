@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- One view model per screen (PLAN.md section 7.5). No UI: it depends on CommunityToolkit.Mvvm only, never on
+       Majorsilence.Forms or a platform API, so every screen's behaviour is unit-tested without a UI. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <ProjectReference Include="..\AlertBuddy.Core\AlertBuddy.Core.csproj" />
+  </ItemGroup>
+
+</Project>

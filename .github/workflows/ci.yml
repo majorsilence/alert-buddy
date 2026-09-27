@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Patterns follow Majorsilence.Forms' own .github/workflows/dotnet.yml. CI builds against the published, pinned framework
+# version in Directory.Packages.props and never against a framework checkout.
+jobs:
+  hygiene:
+    # The repository is public: no signing material, no tokens (PLAN.md section 14), and no shim that outlived its fix.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tools/check-hygiene.sh
+      - run: ./tools/check-shims.sh
+
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore the projects that need no workload
+        run: |
+          dotnet restore src/AlertBuddy.Core
+          dotnet restore src/AlertBuddy.ViewModels
+          dotnet restore src/AlertBuddy.Shared
+          dotnet restore src/AlertBuddy.Desktop
+          dotnet restore tests/AlertBuddy.Core.Tests
+          dotnet restore tests/AlertBuddy.Shared.Tests
+      - name: Build
+        run: |
+          dotnet build src/AlertBuddy.Core -c Release --no-restore
+          dotnet build src/AlertBuddy.ViewModels -c Release --no-restore
+          dotnet build src/AlertBuddy.Shared -c Release --no-restore
+          dotnet build src/AlertBuddy.Desktop -c Release --no-restore
+      - name: Test
+        run: |
+          dotnet test tests/AlertBuddy.Core.Tests -c Release --no-restore
+          dotnet test tests/AlertBuddy.Shared.Tests -c Release --no-restore
+      - name: Test at a scaled display
+        # The framework's own suite runs at MF_HEADLESS_SCALE=2 too, because scale is where custom painting goes wrong.
+        run: MF_HEADLESS_SCALE=2 dotnet test tests/AlertBuddy.Shared.Tests -c Release --no-restore
+      - name: Upload design-review renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: render-out
+          path: render-out
+          if-no-files-found: ignore
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+      - run: dotnet build src/AlertBuddy.Wasm -c Release
+
+  android:
+    # The android workload's reference assemblies are needed just to compile against net10.0-android.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install android workload
+        run: dotnet workload install android
+      - name: Build the head
+        run: dotnet build src/AlertBuddy.Android -c Release

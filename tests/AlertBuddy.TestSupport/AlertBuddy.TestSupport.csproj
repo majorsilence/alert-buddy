@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Fakes shared by the test projects: clocks, secret stores, a scripted in-process ntfy server. Nothing under src/
+       references this project, so none of it can be selected in a release build (PLAN.md section 7.4). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AlertBuddy.Core\AlertBuddy.Core.csproj" />
+  </ItemGroup>
+
+</Project>

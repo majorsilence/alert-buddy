@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The desktop head: Windows, macOS and Linux, on the Avalonia backend. This is the project `dotnet run` starts. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>AlertBuddy</AssemblyName>
+    <RootNamespace>AlertBuddy.Desktop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Majorsilence.Forms.Avalonia" />
+    <ProjectReference Include="..\AlertBuddy.Shared\AlertBuddy.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
