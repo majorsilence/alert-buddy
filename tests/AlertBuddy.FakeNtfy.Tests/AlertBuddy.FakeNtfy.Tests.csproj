@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The fake server over real sockets, and the real subscription against it: streaming HTTP as it actually behaves (chunking, flushing,
+       a connection that dies), which an in-process handler cannot show. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3" />
+    <ProjectReference Include="..\..\tools\FakeNtfy\FakeNtfy.csproj" />
+    <ProjectReference Include="..\..\src\AlertBuddy.Core\AlertBuddy.Core.csproj" />
+    <ProjectReference Include="..\AlertBuddy.TestSupport\AlertBuddy.TestSupport.csproj" />
+  </ItemGroup>
+
+</Project>

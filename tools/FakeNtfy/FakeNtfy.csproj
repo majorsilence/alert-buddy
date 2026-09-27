@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- A tiny local ntfy-compatible server: streams NDJSON, accepts publishes, replays history, and can drop connections, refuse a sign-in or
+       run a scripted alert lifecycle. It exists so the app can be developed, tested and demonstrated with no real server (PLAN.md 4.4).
+       Everything it serves is invented. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+</Project>
