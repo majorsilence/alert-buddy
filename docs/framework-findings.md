@@ -198,3 +198,35 @@ covered; other properties, derived-type properties and `PublishTrimmed` (as oppo
 
 This app still wires view models by hand (`CLAUDE.md`). The rule can relax once F4 and #290 are released and a device build proves
 binding with roots, not before.
+
+## Register item F18 (colour emoji via VARIATION SELECTOR-16, #271/#281)
+
+Open as majorsilence/Majorsilence.Forms#302 (closes #271, evidence toward #281), branch `emoji-variation-selector`.
+
+- **What it is.** RichTextKit resolves one typeface per `Style` (a run), not per character, so it could not notice that one
+  codepoint inside a run was asking for a different presentation. `TextMeasurer.CreateTextBlock` now looks for a base character
+  followed by VARIATION SELECTOR-16 (U+FE0F, emoji presentation) and splits it into its own run, resolved through
+  `SKFontManager.MatchCharacter` hinted with the `und-Zsye` BCP-47 tag, instead of the run's normal style face. VARIATION
+  SELECTOR-15 (U+FE0E, text presentation) still gets its own run — so the invisible selector is never measured as a stray glyph
+  — but keeps the plain face.
+- **The case that exposed it.** WARNING SIGN (U+26A0): most text fonts, DejaVu Sans included, already ship a plain monochrome
+  triangle for it, so a font-coverage check alone never noticed anything was wrong — "⚠️" drew as a grayscale outline instead of
+  the coloured triangle a phone's own text field shows for the same string.
+- **Tests.** 14 in `EmojiVariationSelectorTests`: `FontSubstitution.SplitByCoverage` run-splitting (plain-face-unaffected,
+  switches-to-emoji-face, selector-never-starts-its-own-run, VS15-keeps-plain-face, an unambiguous emoji needing no selector at
+  all, mid-string and trailing placement, a PUA codepoint no installed font covers falling back the same way `Covering` does),
+  `TextMeasurer.CreateTextBlock` run-level assertions (typeface count and total covered length, so a run silently dropped at
+  either end of the string is caught), and two pixel-level tests proving the warning sign renders monochrome alone and with
+  real colour ink once the selector is appended.
+- **A mutation-testing false lead, resolved.** One deliberate mutation (forcing the "no selector" branch of an `if runStart==0
+  .. else if runStart<text.Length ..` pair to never run) appeared to survive against a correctly-populated `TextBlock`, which at
+  first looked like a caching or stale-build artefact. It was neither: for the no-selector case `runStart` stays `0` for the
+  whole method, so the `else if` branch's own guard (`0 < text.Length`) is also true, and `text.Slice(0)` is span-identical to
+  `text` — the two branches are provably equivalent for that input, an equivalent mutant rather than a real gap. Forcing *both*
+  conditions false does produce an empty `TextBlock` and is correctly caught, confirming the test suite itself needed no change.
+- **Gates.** Four gates pass (5639 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+  `fonts-noto-color-emoji` added to CI's Linux font-install step alongside the existing `fonts-noto-cjk`, so CI itself can
+  exercise the emoji path rather than only the Windows/macOS runners that ship a colour emoji face already.
+
+Effect on this app: alert alerts and interpreter copy that include emoji (PLAN.md 8.10 copy table) will render with the correct
+coloured presentation once this is released, rather than a plain-font substitute for whichever glyph the UI font happens to have.
