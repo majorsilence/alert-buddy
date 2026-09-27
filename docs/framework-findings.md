@@ -201,32 +201,59 @@ binding with roots, not before.
 
 ## Register item F18 (colour emoji via VARIATION SELECTOR-16, #271/#281)
 
-Open as majorsilence/Majorsilence.Forms#302 (closes #271, evidence toward #281), branch `emoji-variation-selector`.
+Merged as majorsilence/Majorsilence.Forms#302 (closed #271, evidence toward #281), branch `emoji-variation-selector`.
 
 - **What it is.** RichTextKit resolves one typeface per `Style` (a run), not per character, so it could not notice that one
   codepoint inside a run was asking for a different presentation. `TextMeasurer.CreateTextBlock` now looks for a base character
-  followed by VARIATION SELECTOR-16 (U+FE0F, emoji presentation) and splits it into its own run, resolved through
-  `SKFontManager.MatchCharacter` hinted with the `und-Zsye` BCP-47 tag, instead of the run's normal style face. VARIATION
+  followed by VARIATION SELECTOR-16 (U+FE0F, emoji presentation) and splits it into its own run, resolved through a small
+  per-platform list of known colour emoji font names (Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji) instead of the run's
+  normal style face, falling back to a hinted `SKFontManager.MatchCharacter` search for anything else installed. VARIATION
   SELECTOR-15 (U+FE0E, text presentation) still gets its own run — so the invisible selector is never measured as a stray glyph
   — but keeps the plain face.
 - **The case that exposed it.** WARNING SIGN (U+26A0): most text fonts, DejaVu Sans included, already ship a plain monochrome
   triangle for it, so a font-coverage check alone never noticed anything was wrong — "⚠️" drew as a grayscale outline instead of
   the coloured triangle a phone's own text field shows for the same string.
+- **A real macOS gap, found by running the tests on real CI, not assumed.** The first version resolved the emoji face purely
+  through `SKFontManager.MatchCharacter(null, ["und-Zsye"], codepoint)` — the documented "give me the emoji one" hint. On a
+  real macOS CI runner that resolved to **"Hiragino Sans"**, an ordinary CJK text font, not Apple Color Emoji — even with Apple
+  Color Emoji installed and listed by the same font manager. CoreText silently ignores the `und-Zsye` script hint; Windows
+  (DirectWrite) and Linux (fontconfig) both honour it correctly. Fixed by trying a short list of known emoji font family names
+  directly first (the same pattern this file's own cross-platform substitution table already uses, for the same reason: a
+  platform API that doesn't reliably answer "which face has X" is worked around with a known-name list instead), falling back
+  to the hint only if none of those names are installed.
+- **A second, separate macOS gap, found the same way — real, evidenced, and out of scope to fix here.** Even with the correct
+  face now selected (proven at the coverage level), Topten.RichTextKit's `TextBlock.Paint` still rasterises Apple Color Emoji's
+  `sbix` colour table as a *monochrome* shape on macOS specifically — a Skia/CoreGraphics colour-glyph rendering limitation in
+  a third-party dependency ([mono/SkiaSharp#3244](https://github.com/mono/SkiaSharp/issues/3244) is the same class of bug),
+  living inside RichTextKit's and Skia's own glyph rasteriser, not this repo's code. The pixel-level test is honest about this:
+  strict colour-ink assertion on Linux and Windows, where it demonstrably renders in colour, and a "something was drawn, not
+  silently dropped" check on macOS. No Majorsilence.Forms framework issue was filed for this one — it isn't the framework's
+  own code, and there's nothing in this repo's control to fix.
+- **Also found and fixed along the way: a hardcoded test font.** The original tests assumed "DejaVu Sans" was installed, which
+  is true on the `ubuntu-latest` CI runner but not on `windows-latest` or `macos-latest`. `SKTypeface.FromFamilyName` never
+  returns null, so every test in the file silently resolved to an unrelated substitute face there and failed on the setup
+  assertion, before ever reaching the actual emoji logic. Fixed by discovering whichever installed font actually has a plain,
+  monochrome U+26A0 glyph (and does not also cover the regression guard's U+1FAE0 MELTING FACE) rather than assuming one name;
+  confirmed by running the failure on real CI, then fixing it and confirming green.
 - **Tests.** 14 in `EmojiVariationSelectorTests`: `FontSubstitution.SplitByCoverage` run-splitting (plain-face-unaffected,
   switches-to-emoji-face, selector-never-starts-its-own-run, VS15-keeps-plain-face, an unambiguous emoji needing no selector at
-  all, mid-string and trailing placement, a PUA codepoint no installed font covers falling back the same way `Covering` does),
-  `TextMeasurer.CreateTextBlock` run-level assertions (typeface count and total covered length, so a run silently dropped at
-  either end of the string is caught), and two pixel-level tests proving the warning sign renders monochrome alone and with
-  real colour ink once the selector is appended.
+  all, mid-string and trailing placement, a PUA codepoint no installed font covers falling back exactly the way the ordinary
+  no-selector path does on that same platform — CoreText's own fallback for "nothing covers this" is its own `.LastResort`
+  box-glyph face rather than `null`, unlike Linux/Windows, so the test compares against the platform's own behaviour rather
+  than assuming one universal answer), `TextMeasurer.CreateTextBlock` run-level assertions (typeface count and total covered
+  length, so a run silently dropped at either end of the string is caught), and two pixel-level tests proving the warning sign
+  renders monochrome alone and with real colour ink (or, on macOS, at least a real glyph) once the selector is appended.
 - **A mutation-testing false lead, resolved.** One deliberate mutation (forcing the "no selector" branch of an `if runStart==0
   .. else if runStart<text.Length ..` pair to never run) appeared to survive against a correctly-populated `TextBlock`, which at
   first looked like a caching or stale-build artefact. It was neither: for the no-selector case `runStart` stays `0` for the
   whole method, so the `else if` branch's own guard (`0 < text.Length`) is also true, and `text.Slice(0)` is span-identical to
   `text` — the two branches are provably equivalent for that input, an equivalent mutant rather than a real gap. Forcing *both*
   conditions false does produce an empty `TextBlock` and is correctly caught, confirming the test suite itself needed no change.
-- **Gates.** Four gates pass (5639 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+- **Gates.** Four gates pass (5665 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
   `fonts-noto-color-emoji` added to CI's Linux font-install step alongside the existing `fonts-noto-cjk`, so CI itself can
-  exercise the emoji path rather than only the Windows/macOS runners that ship a colour emoji face already.
+  exercise the emoji path rather than only the Windows/macOS runners that ship a colour emoji face already. Full CI matrix
+  (Linux, Windows, macOS, Android, iOS, and every sample/pack job) green after the two real fixes above.
 
 Effect on this app: alert alerts and interpreter copy that include emoji (PLAN.md 8.10 copy table) will render with the correct
-coloured presentation once this is released, rather than a plain-font substitute for whichever glyph the UI font happens to have.
+coloured presentation once this is released, on every platform except macOS's own colour-glyph rendering — where the character
+still draws, correctly chosen, just not in colour until the upstream Skia/RichTextKit gap is fixed.
