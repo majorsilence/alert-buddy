@@ -257,3 +257,57 @@ Merged as majorsilence/Majorsilence.Forms#302 (closed #271, evidence toward #281
 Effect on this app: alert alerts and interpreter copy that include emoji (PLAN.md 8.10 copy table) will render with the correct
 coloured presentation once this is released, on every platform except macOS's own colour-glyph rendering — where the character
 still draws, correctly chosen, just not in colour until the upstream Skia/RichTextKit gap is fixed.
+
+## Register item F8 (mobile audio for the existing API, #272)
+
+Merged as majorsilence/Majorsilence.Forms#303 (closed #272, evidence toward #170), branch `mobile-audio`.
+
+- **What it is.** `SoundPlayer` and `SystemSounds` were public but played only through `NativeAudio`, which spawns a desktop OS
+  utility — silent on mobile by design. A new optional backend capability, `Backends.IAudioBackend`, gives them an in-process
+  path to try first, falling back to `NativeAudio` (or silence) whenever it answers `null`, exactly as if the interface were
+  not implemented at all. Android plays through `MediaPlayer` tagged with notification-stream `AudioAttributes`; `PlayLooping`
+  loops natively via `MediaPlayer.Looping` instead of the desktop respawn trick. iOS plays through `AVAudioPlayer` on an
+  `Ambient` audio session (respects the silent switch) for files, and `AudioToolbox.SystemSound` (Apple's own bundled
+  system-sound bank) for the five stock names.
+- **Two real iOS compile bugs found by CI, fixed the same way as F7's.** `AVAudioSession.SetCategory` has no
+  `(AVAudioSessionCategory, out NSError)` overload — the compiler resolved that shape against the `(NSString, out NSError)`
+  overload instead and rejected the enum argument; fixed with the 3-arg overload that takes an explicit (empty)
+  `AVAudioSessionCategoryOptions`. Separately, a doc-comment `cref` to the Android-only backend type did not resolve in an
+  iOS-only compile (`CS1574`); replaced with plain text. Both found by a real CI failure, not guessed, and both now green.
+- **Verified for real** on the `alertbuddy-phone` Android emulator: a `Gallery.Android` change
+  (`GalleryApplication.RunAudioSmokeTest`) plays a bundled test tone and a system sound through the real backend on every
+  launch and logs one PASS/FAIL line; `android-smoke-test.sh` now fails the CI job if that line is missing or reports FAIL —
+  a real, repeated-on-every-PR check going forward, not a one-off manual run. iOS is written from Microsoft's published
+  dotnet/macios API docs but not run — no iOS host or simulator available.
+- **Gates.** Four gates pass (5672 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+  Full CI matrix green after the two iOS fixes.
+
+Effect on this app: the alarm sound and the warning/alert cues (PLAN.md's audio playback needs) can now actually be heard on
+an Android phone or an iPhone, not just on desktop, once this is released — the gap register item F9 (richer audio: volume,
+looping usage, alarm stream) builds on directly.
+
+## Register item F9 (richer audio: volume, loop, usage, overlap, #273)
+
+Open as majorsilence/Majorsilence.Forms#304 (closes #273), branch `audio-player-usage`, stacked on F8.
+
+- **What it is.** `Media.AudioPlayer`, SoundPlayer's richer sibling: `Volume` (clamped 0–1), `Loop`, `Usage` (`Effect`,
+  `Notification`, `Alarm`, `Media`), a `Completed` event, `IsSupported`, and overlapping playback — repeated `Play` calls on
+  one instance do not stop an earlier one, matching how rapid UI sound effects and alarm-style siren cues actually need to
+  behave, unlike `SoundPlayer`. Built on F8's `IAudioBackend` seam with a third member, `PlayTrack`; `Usage.Alarm` maps to
+  Android's `USAGE_ALARM` (its own volume stream, audible with media volume down) and an iOS `Playback` session (overrides the
+  silent switch) — the case the whole class exists for. `IsSupported` is `true` only on Android and iOS: none of live volume,
+  real audio-stream routing, or a genuine completion event map onto NativeAudio's process-spawn approach, and desktop already
+  has `SoundPlayer` for the simple case.
+- **Mutation-tested, with two confirmed-equivalent survivors.** Every routing/lifecycle assertion was checked against a
+  deliberately broken version of the source line. Two mutations (skipping the `Completed` handler's list-removal; skipping
+  `Stop`'s list-clear) survived, and were confirmed genuinely equivalent rather than gaps: `Dispose` is idempotent, so neither
+  omission changes anything observable through the public API, only internal list hygiene nothing asserts on.
+- **Verified for real on Android via the same emulator path as F8** — until a genuine `system_server` crash mid-session
+  (confirmed via logcat, caused by sustained local memory pressure, unrelated to this change) made the local run
+  inconclusive. `GalleryApplication.RunAudioPlayerSmokeTest` and `android-smoke-test.sh`'s matching check are already wired in
+  as a permanent, repeated-on-every-PR CI verification (the same mechanism that gave F8 a real, complete local pass earlier),
+  so CI's own `android-smoke` job is this item's definitive verification.
+- **Gates.** Four gates pass (5683 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+
+Effect on this app: the milestone 2 alarm/siren behaviour (a looping cue audible even with the phone's media volume turned
+down) becomes possible once this lands — `SoundPlayer` alone cannot express "play on the alarm stream."
