@@ -92,6 +92,35 @@ Open as majorsilence/Majorsilence.Forms#295 (closes #265), from a git worktree `
 Effect on this app: once released, the command half of the planned binder helpers (PLAN.md 7.5, milestone 3, not written yet) is
 unnecessary, because a view assigns a view model's command to `Command` directly. Nothing in this repository depends on it yet.
 
+## Register item F7 (`SystemInformation.PrefersReducedMotion`, #269)
+
+Open as majorsilence/Majorsilence.Forms#301 (closes #269), branch `reduced-motion`.
+
+- **What it is.** `PrefersReducedMotion`/`PrefersReducedMotionChanged`, answered by `Backends.IReducedMotionSource` (the same
+  optional-interface shape F5's `IAnimationFrameSource` set), false when the active backend does not implement it. Headless is
+  settable directly; Avalonia answers per platform: Android (animator duration scale, a real `ContentObserver` push) and iOS
+  (`UIAccessibility.IsReduceMotionEnabled`, a real push) need no polling; Windows, macOS and Linux/GNOME share one desktop build,
+  told apart at run time, and are re-read every 2 s through a new reusable `PolledSetting` helper.
+- **Verified for real, twice.** Android: on the `alertbuddy-phone` emulator, toggling `adb shell settings put global
+  animator_duration_scale 0`/`1` while a probe app ran showed the value flip and the changed event fire twice, with no polling.
+  Linux/GNOME: toggled the real `gsettings` key on the dev machine three times and confirmed the read tracked each step, then
+  restored it. **Windows, macOS and iOS are written from documented APIs and were not run** — no host for any of the three; the
+  desktop OS-branch selection itself is unit-tested with the OS faked, so that part is covered everywhere regardless.
+- **Tests.** 26 in `ReducedMotionTests`; 21 mutations killed, two survived the first pass (an unsubscribe hidden by a redundant
+  guard, and OS-branch selection a "doesn't throw" test couldn't see) and are now killed by tightened tests. One mutation
+  (`AvaloniaPlatformBackend`'s lazy-cache) still survives, matching an existing gap: nothing in that framework unit-tests
+  `AvaloniaPlatformBackend` directly anywhere (it needs a live Avalonia `Application`).
+- **Gates.** Four gates 5647 passed, 0 failed, 4 skipped in each shape (5621 on `main`, with F6 merged, plus the 26 new); the
+  API-diff gate reports no new gaps; ControlGallery builds.
+- **A real build-configuration bug found and fixed along the way, unrelated to F7 itself:** a scratch verification app that
+  references `Majorsilence.Forms.Avalonia` without passing `-p:EnableAndroidHead=true` through to that ProjectReference builds
+  silently against the desktop row instead of the Android one, and crashes at launch with `WindowingPlatformStub.CreateWindow:
+  NotSupportedException` — no compile error, no warning. Worth remembering for any future scratch Android app in this app's own
+  spikes.
+
+Effect on this app: milestone 2's motion (the beacon, section 8.6) can check this before animating, once released. Nothing in
+this repository depends on it yet.
+
 ## Register item F6 (easing, tweens and an Animator, #268)
 
 Open as majorsilence/Majorsilence.Forms#300 (closes #268), branch `animation-tween`, built on F5.
