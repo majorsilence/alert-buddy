@@ -92,6 +92,28 @@ Open as majorsilence/Majorsilence.Forms#295 (closes #265), from a git worktree `
 Effect on this app: once released, the command half of the planned binder helpers (PLAN.md 7.5, milestone 3, not written yet) is
 unnecessary, because a view assigns a view model's command to `Command` directly. Nothing in this repository depends on it yet.
 
+## Register item F6 (easing, tweens and an Animator, #268)
+
+Open as majorsilence/Majorsilence.Forms#300 (closes #268), branch `animation-tween`, built on F5.
+
+- **What it is.** `Easing` (the easings.net set), `Tween<T>` (a value moving from one to another over a duration, no clock,
+  no state — `Tween.Of` for `float`, `PointF`, `Color`), and `Animator.Animate` which runs a tween on `RequestAnimationFrame`
+  on a `Control` **or** a `WindowBase` (a `Form` is not a `Control` in this framework, so the window overload matters for the
+  alarm takeover's own animation, not just a card's).
+- **Tests.** 32 in `AnimationTweenTests`, including exact values for the back/bounce constants, not just endpoints. 28
+  mutations (easing formulas, tween clamping/zero-duration/colour-clamping, animator start/elapsed/disposal/cancel-ordering/
+  exception-handling, the window overload) all killed; one test was tightened after a mutation exposed it comparing too
+  loosely (cancelling from inside `apply` was checked only for the immediate next frame, not a later one).
+- **Measured on a real Avalonia window.** Driving a `Label.Text` update every frame for 4 s showed one long start-up stall
+  (matching F5's own start-up finding) and otherwise steady ~16 ms frames; the same work on a `Timer` had no stall, which
+  narrows the cause to the first `RequestAnimationFrame` calls specifically, not per-frame UI cost. Not investigated further.
+- **Gates.** Four gates 5621 passed, 0 failed, 4 skipped in each shape (5589 on `main`, with F2/F3/F4/F5/F17 already merged,
+  plus the 32 new); the API-diff gate reports no new gaps; ControlGallery builds.
+
+Effect on this app: milestone 2's motion (the beacon's blink/breathe/sweep/spin, section 8.6) and page transitions
+(`PageHost`, section 8.5) can use this instead of a hand-rolled timer loop, once released. Nothing in this repository
+depends on it yet.
+
 ## Register item F17 (bundled fonts through CSS, #270)
 
 Spike S2 (`docs/spikes.md`) found that CSS `font-family` did not resolve a font registered with `PrivateFontCollection`, on Headless
