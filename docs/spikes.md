@@ -12,7 +12,7 @@ framework problem (`docs/framework-findings.md`).
 | Spike | Result | Run on |
 |---|---|---|
 | S1 hello world from published packages | **Partial.** Crashed as generated, passes after a fix | emulator |
-| S2 custom font through CSS | Not run | |
+| S2 custom font through CSS | **Answered: no.** The API draws a private font; CSS `font-family` does not resolve it | Headless (Linux), emulator |
 | S3 beacon frame time | Not run | |
 | S4 `BeginInvoke` from a background thread | **Pass** | emulator |
 | S5 soft keyboard and safe area | **Partial.** Findings, rotation not run | emulator |
@@ -37,8 +37,38 @@ Fix used here: `src/AlertBuddy.Android/Resources/values/styles.xml` (a `Theme.Ap
 
 ## S2 Custom font through CSS
 
-Not run. It needs the two OFL fonts bundled and the day theme written, which is the start of milestone 2 (framework item
-F17, #270). Run it there.
+**Answered: no.** A font registered with `PrivateFontCollection` is drawn when it is asked for through the API, and is **not**
+resolved when it is named in CSS `font-family`. Run on the Headless backend (Linux) and on the emulator, against Majorsilence.Forms
+26.3.0 (the emulator) and a framework checkout at `main` with only comment changes on top (Headless); the code involved
+is shared.
+
+**How it was measured.** The test font is an installed serif with its family renamed to "SpikeBuddy Serif", so no system font
+manager can find it by name. One form (a label and a status strip) was rendered per variant in its own process and the regions
+compared by pixel hash. Two controls make the comparison mean something: the same experiment with an installed font (DejaVu Serif),
+and a variant that names the private family in CSS **without registering it**.
+
+| Route | Installed font | Registered private font |
+|---|---|---|
+| `new Font (name, size, ..., GraphicsUnit.Pixel)` | draws | draws, by name or by `FontFamily` |
+| CSS `Form { font-family: ... }` | draws, pixel-identical to the API | **not resolved**: pixel-identical to the font not being registered |
+| CSS `--ui-font: ...` | `Theme.UIFont` becomes that family | **not resolved**: `Theme.UIFont` unchanged |
+
+Listing a fallback after the private family (`"SpikeBuddy Serif", sans-serif`) gave the same result: the fallback.
+
+**On the emulator** the font was registered with `PrivateFontCollection.AddMemoryFont` from a byte array read from an **embedded
+resource**, which needs no Android asset API and so works the same on every head. That worked, the API drew the private serif, and
+the CSS rule beside it drew sans-serif with `Theme.UIFont` reported as `sans-serif`.
+
+**Why.** Both CSS routes end in one function, `ThemeCssValues.GetTypeface`: the theme tokens call it, and a control rule sets
+`ControlStyle.Font` from it. It calls `SKTypeface.FromFamilyName`, the system font manager, which cannot know a private family, and
+caches the result by family list, so a font registered later would be hidden as well. `Font` and `CachingFontMapper` do consult
+`PrivateFontRegistry` first, which is why the API works. One fix in that function made both routes resolve (F17, below).
+
+**What it means for the app.** The design system cannot ship its own typeface through the CSS theme until this is fixed
+(framework item F17, #270). Custom-painted controls set their own `Font` and are not affected. Evidence is on #270.
+
+**Not covered:** a real device, iOS, more than one weight or font, the real Atkinson Hyperlegible files, and loading from Android
+assets or an iOS bundle (only the embedded-resource route was tried).
 
 ## S3 Beacon frame time
 
@@ -160,7 +190,10 @@ The plan is the owner's document and is left as written; these are the places it
 3. **Section 3, safe area.** Docked layout is inset by the system bars; free placement is not (#281).
 4. **Section 7.5, `DataBindings`.** Confirmed as "do not use" for now; the helper wiring is what shipped code uses.
 5. **Section 4.1 / 5.4, emoji.** They render on Android; stripping is now a design choice, not a workaround.
-6. **Milestone 0 "done when".** Not met yet: no real phone, S2 and S3 not run, S7 run only on the emulator, and F1 is implemented
-   but not released or adopted (see `docs/framework-findings.md`).
+6. **Milestone 0 "done when".** Not met yet: no real phone, S3 not run, S2 and S7 run only on the emulator (and Headless), and F1
+   is merged but not released or adopted (see `docs/framework-findings.md`).
 7. **Section 6.2 / M4, the Android manifest.** A Release build cannot open a socket without `INTERNET`. Milestone 4's permissions
    (notifications, foreground service and the rest) extend the same file.
+8. **Section 3, 8.7 and F17, bundled fonts.** "Whether CSS `font-family` resolves a private font" is answered: it does not. Until F17
+   lands the theme cannot name the app's typeface; register it with `AddMemoryFont` from an embedded resource and set `Font` in
+   code where a standard control needs it.
