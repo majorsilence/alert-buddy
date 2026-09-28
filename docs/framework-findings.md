@@ -455,3 +455,36 @@ Effect on this app: `IAlertNotifier` (PLAN.md Appendix A) and the notification h
 thin adapter over the framework's own `LocalNotifications` — channels, importance and a full-screen intent are exactly what
 an alarm-style "tell a grown-up now" notification needs, and this is real, CI-verified behaviour on Android, not an
 untested surface. iOS and desktop toasts remain open for a later framework PR before this register item is fully closed.
+
+## Register item F12 (keep screen awake, #278)
+
+Merged as majorsilence/Majorsilence.Forms#315, branch `keep-screen-awake`. First item of PLAN.md 11.4's batch 5 (tablet,
+bedside mode, iOS) — the owner chose to do all five platforms in one PR rather than split it, since the API itself is a
+single bool property, not a subsystem the way F14 was.
+
+- **What it is.** `Application.KeepScreenAwake` (new): real on Android (`Window.AddFlags`/`ClearFlags (WindowManagerFlags.KeepScreenOn)`,
+  reusing the same registered Activity F14 already established), iOS (`UIApplication.IdleTimerDisabled`), and — new territory
+  for this framework — all three desktop OSes via `Backends.DesktopKeepAwake`, a direct sibling of F7's `DesktopReducedMotion`:
+  Windows `SetThreadExecutionState`, a macOS IOKit power assertion (`IOPMAssertionCreateWithName`, `PreventUserIdleDisplaySleep`)
+  via raw CoreFoundation/IOKit P/Invoke (no Xamarin.Mac binding needed), and Linux `systemd-inhibit --what=idle:sleep ... sleep
+  infinity` held for exactly as long as that placeholder process runs (no D-Bus cookie parsing needed).
+- **Headless implements this one for real**, unlike F13/F14's `IsSupported false` there — a plain settable field, since
+  `KeepScreenAwake` is a stateful property an app's own view-model code turns on and off (a bedside/status-display screen),
+  exactly what a view-model test needs to assert against, matching the issue's own "fake-backend tests" wording.
+- **Verified for real on all five platforms, on the first CI push — no debugging cycles needed this time**, a first for this
+  register-item batch. Android: `MainActivity`'s own smoke test sets it true then false on a real Activity, confirmed via
+  `android-smoke-test.sh`. Linux: a unit test calls the real (non-injectable) `Set` directly, genuinely spawning and killing a
+  real `systemd-inhibit` child process — confirmed locally with `pgrep`/`pkill`. Windows and macOS: the *same* real-`Set` test
+  also runs on CI's `build (windows-latest)`/`build (macos-latest)` jobs, which run the full test suite rather than just a
+  compile check — both passed cleanly, for real P/Invoke correctness, not just "written from the documented API." iOS:
+  compiles clean via CI but not run on a simulator or device, the same honest gap F13/F14 already record.
+- **A real finding, caught mid-session, not in the shipped code.** Mutation-testing `Set`'s `IsEnabled` bookkeeping broke the
+  real-Linux test mid-run and left a genuine `systemd-inhibit` process running on the dev machine, because the test's own
+  cleanup trusted `IsEnabled`'s (now-wrong) tracked value to decide whether a real disable call was even needed. Caught with
+  `pgrep`, killed with `pkill`, and fixed by making the test's cleanup force a real disable unconditionally rather than trust
+  tracked state — a robustness lesson about test cleanup itself, not a bug in `DesktopKeepAwake`.
+- **Gates.** Four gates pass (5793 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+
+Effect on this app: `IKeepAwake` (PLAN.md Appendix A) can now be a thin adapter over the framework's own `KeepScreenAwake` —
+milestone 5's bedside mode (a status display that must not sleep) is what this exists for, and unlike F13/F14 this one is
+real, CI-verified behaviour on every platform the app could plausibly run on, not just Android.
