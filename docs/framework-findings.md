@@ -311,3 +311,39 @@ Merged as majorsilence/Majorsilence.Forms#304 (closed #273), branch `audio-playe
 
 Effect on this app: the milestone 2 alarm/siren behaviour (a looping cue audible even with the phone's media volume turned
 down) becomes possible once this lands — `SoundPlayer` alone cannot express "play on the alarm stream."
+
+## Register item F10 (app lifecycle events, #274)
+
+Merged as majorsilence/Majorsilence.Forms#305 (closed #274, evidence toward #170), branch `app-lifecycle-events`.
+
+- **What it is.** `Application.Suspended`/`Resumed` (new), and `Form.Activated`/`Deactivate` now firing on single-view hosts
+  (Android, iOS, browser) — every *other* window host already wired these from its own real activation signal, so the
+  single-view host was the one gap. `AvaloniaPlatformBackend.HookApplicationLifecycle` (idempotent, wired once from
+  `Initialize`/`InitializeAsync`) reaches Avalonia's `IActivatableLifetime` and forwards its `Background`-kind transitions to
+  both `Application.RaiseSuspended`/`RaiseResumed` and, on the single-view root host, `WindowBase.OnBackendActivated`/
+  `OnBackendDeactivated`.
+- **A real correction found by inspecting the actual shipped assembly, not guessed.** The issue itself flagged
+  "`Avalonia.Android` contains `IActivatableLifetime`... **(verify)**" — and the first version's straightforward reading of
+  that (`Application.Current.ApplicationLifetime as IActivatableLifetime`, the same pattern F7/F8's own optional-capability
+  checks use) silently never fired. Rather than guess further, inspected the real `Avalonia.Android.dll` (12.1.1) via
+  `MetadataLoadContext`: `Avalonia.Android.ApplicationLifetime` implements only `IActivityApplicationLifetime`/
+  `IApplicationLifetime`/`ISingleViewApplicationLifetime`, never `IActivatableLifetime` at all. That capability turned out to
+  be a *separate* object (`Avalonia.Android.Platform.AndroidActivatableLifetime`), reached instead through
+  `Application.TryGetFeature` — Avalonia's own optional-platform-capability lookup, a mechanism this register work hadn't
+  needed before F10.
+- **`RaiseSuspended`/`RaiseResumed` had to be made `public`, not `internal`.** Adding them tripped `UnraisedEventBaselineTests`
+  (a real static-analysis gate flagging a declared event whose raiser is unreachable within its own assembly) — the only
+  caller lives in `Majorsilence.Forms.Avalonia`, a different assembly, invisible to that gate at `internal` visibility. Fixed
+  by making both public, the same reason the existing `RaiseIdle` already has a public overload.
+- **Verified for real on Android — by CI, on the first push.** `GalleryApplication` logs `F10_LIFECYCLE:
+  Suspended`/`Resumed`/`Form.Activated`/`Form.Deactivate`; `android-smoke-test.sh` now sends `KEYCODE_HOME` and relaunches the
+  app, failing the job if any of the four lines is missing after a real background/foreground cycle. Two separate real local
+  emulator failures this session (a `system_server` crash, then a wedged `adbd`) made local verification of this specific
+  check inconclusive — both confirmed via logcat/process state to be infrastructure failures, not app issues — so this is the
+  second register item in a row (after F9) where CI's own dedicated runner gave the real, definitive pass this session's local
+  emulator could not. iOS is written from the same `IActivatableLifetime` contract but not run — no host available.
+- **Gates.** Four gates pass (5685 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+
+Effect on this app: the milestone 2 alarm takeover screen (section 8.6) and any future "app came back from the background"
+handling (re-checking notification state, refreshing the alert feed) now have a real signal to hook, on every platform this
+app targets, not just desktop.
