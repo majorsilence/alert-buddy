@@ -385,3 +385,33 @@ Merged as majorsilence/Majorsilence.Forms#306 (closed #275), branch `back-button
 Effect on this app: a sheet or dialog (the milestone 2 alarm takeover screen's dismiss action, any future filter/detail sheet)
 can now close itself on the Android/iOS back button/gesture instead of the press falling through and exiting the whole app —
 this is the last of the four Android-delivery register items from PLAN.md 11.4 before F13 (haptics) and F14 (notifications).
+
+## Register item F13 (haptics, #276)
+
+Merged as majorsilence/Majorsilence.Forms#307 (closed #276), branch `haptics`.
+
+- **What it is.** `Haptics.Tap`/`Impact`/`Vibrate`/`IsSupported` (new): real on Android (`Vibrator`, driven by `VibrationEffect`)
+  and iOS (`UISelectionFeedbackGenerator`/`UIImpactFeedbackGenerator` for `Tap`/`Impact`; `Vibrate` triggers iOS's own
+  fixed-length system buzz, since no public UIKit API takes an explicit duration), `false` everywhere else — explicitly
+  including Headless, unlike F8/F9's audio (real and test-hooked under Headless too): haptics has no desktop/browser
+  equivalent worth a "supported but does nothing" middle state, so `IHapticsBackend` is only declared on Android/iOS at all,
+  not implemented everywhere with a null body.
+- **The `android.permission.VIBRATE` manifest entry ships with the framework, not with each app** — an assembly-level
+  attribute on `Majorsilence.Forms.Avalonia` merges it into any consuming app's manifest automatically, confirmed by
+  grepping the built `Gallery.Android` APK's own merged manifest.
+- **Two real build failures, both caught by CI, neither guessed.** Android: the platform-compat analyzer (`CA1416`) flagged
+  `VibrationEffect.EffectClick`/`EffectHeavyClick` (API 29+ fields, this project floors at API 24) as reachable, because the
+  version-guard was one call frame away from the field access itself; fixed by moving the guard to wrap the field access
+  directly. iOS: `UIImpactFeedbackGenerator (UIImpactFeedbackStyle)` turned out to be obsoleted from iOS 17.5 in favour of a
+  view-scoped factory this backend has no view reference to feed — the old constructor still works, so the warning is
+  suppressed at that one call site rather than the API avoided.
+- **Verification is a real, permanent gap by the acceptance criterion's own words: "emulators have no vibrator."**
+  `GalleryApplication.RunHapticsSmokeTest` and `android-smoke-test.sh`'s `F13_HAPTICS_SMOKE` check (passed on Android via CI)
+  only prove the plumbing — `IsSupported` true, `Tap`/`Impact`/`Vibrate` all run with no exception — not that anything was
+  actually felt. iOS compiles clean (CI-confirmed after the fix above) but was not run on any simulator or device. **This
+  register item still needs a human on a real Android phone and a real iPhone** before it can be considered fully verified.
+- **Gates.** Four gates pass (5693 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+
+Effect on this app: `IHaptics`'s Android/iOS implementation (PLAN.md 6.4, Appendix A) can now be a thin adapter over the
+framework's own `Haptics`, matching `ISoundPlayer`'s adapter over `AudioPlayer` — but the milestone 2 alarm takeover's
+vibration cue is not something to ship on trust: it needs a real-phone check before that flow is called done.
