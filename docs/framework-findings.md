@@ -347,3 +347,41 @@ Merged as majorsilence/Majorsilence.Forms#305 (closed #274, evidence toward #170
 Effect on this app: the milestone 2 alarm takeover screen (section 8.6) and any future "app came back from the background"
 handling (re-checking notification state, refreshing the alert feed) now have a real signal to hook, on every platform this
 app targets, not just desktop.
+
+## Register item F11 (back button, #275)
+
+Merged as majorsilence/Majorsilence.Forms#306 (closed #275), branch `back-button`.
+
+- **What it is.** `WindowBase.BackRequested`/`RaiseBackRequested` (new): a cancellable event for the platform back
+  button/gesture, real on Android and iOS with no desktop equivalent to raise it from. Placed on `WindowBase` itself, not just
+  `Form`, so `PopupWindow` has it too — the acceptance criterion is specifically "closes a sheet without leaving the app", and
+  `PopupWindow` (a dropdown, a context menu, a filter grid) is exactly what a "sheet" is here. `AvaloniaPlatformBackend.RaiseBackRequested`
+  prefers `Application.ActivePopupWindow` (the same "which window is really active right now" check
+  `Application.ScheduleClosePopupsOnDeactivate` already uses), so an open sheet gets the back-press before the main screen.
+- **Not automatic — a host app has to forward it.** Unlike F10's `HookApplicationLifecycle`, `Avalonia.Android.AvaloniaActivity.BackRequested`
+  is declared directly on the Activity class, and nothing in `Majorsilence.Forms.Avalonia` can discover "the current Activity"
+  generically (confirmed by inspecting the real `Avalonia.Android.dll`, same technique as F10's finding). A host app's own
+  `MainActivity` (already required to subclass `AvaloniaMainActivity` and carry an AppCompat theme, #288) forwards its own
+  `BackRequested` to `AvaloniaPlatformBackend.RaiseBackRequested` — one added line, the same shape `Application.RunAndroid`
+  already requires.
+- **A second naming finding, found by reading the gate's own source, not by guessing.** The new raiser was first named
+  `OnBackendBackRequested`, matching F10's `OnBackendActivated`/`OnBackendDeactivated` convention, and made `public` (the F10
+  fix for the same `UnraisedEventBaselineTests` gate) — but it still failed. Reading `StubSurfaceScanner`'s actual
+  `NoNewUnraisedEvents` implementation (not the other, unused deep-reachability scanner also in that file) found the real
+  rule: a public method only counts as a safe "definitely a real entry point" bypass when its name does *not* start with
+  `On`, regardless of visibility — an `On`-prefixed method is treated as an internal framework convention (a backend
+  overriding a hook), not a cross-assembly entry point. Renamed to `RaiseBackRequested` (matching `RaiseIdle`/`RaiseSuspended`/
+  `RaiseResumed`) and the gate passed with no other change.
+- **Verified for real on Android — by CI, on the first push.** This session's local Android emulator infrastructure had
+  already failed twice earlier in the day (a `system_server` crash, then a wedged `adbd`), and swap was still fully exhausted
+  when this item was ready to verify, so local verification was not attempted this time — the same judgment call F9 and F10
+  already made. `Gallery.Android` shows a small `PopupWindow` ("sheet") right after `MainForm.Shown`; `android-smoke-test.sh`
+  now presses `KEYCODE_BACK` twice, checking the foreground activity via `dumpsys` rather than process liveness (Android can
+  leave a finished activity's process resident). PR #306's `android-smoke` job passed on the first push, with the exact
+  confirming lines: `"F11 back button (popup open): cancelled, app still foreground"` and `"F11 back button (no popup):
+  unhandled, app exited normally"`.
+- **Gates.** Four gates pass (5690 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+
+Effect on this app: a sheet or dialog (the milestone 2 alarm takeover screen's dismiss action, any future filter/detail sheet)
+can now close itself on the Android/iOS back button/gesture instead of the press falling through and exiting the whole app —
+this is the last of the four Android-delivery register items from PLAN.md 11.4 before F13 (haptics) and F14 (notifications).
