@@ -415,3 +415,43 @@ Merged as majorsilence/Majorsilence.Forms#307 (closed #276), branch `haptics`.
 Effect on this app: `IHaptics`'s Android/iOS implementation (PLAN.md 6.4, Appendix A) can now be a thin adapter over the
 framework's own `Haptics`, matching `ISoundPlayer`'s adapter over `AudioPlayer` — but the milestone 2 alarm takeover's
 vibration cue is not something to ship on trust: it needs a real-phone check before that flow is called done.
+
+## Register item F14 (notifications, Android half, #277)
+
+Merged as majorsilence/Majorsilence.Forms#308 (Android half of #277 — desktop `NotifyIcon.ShowBalloonTip` and iOS follow
+separately), branch `local-notifications-android`.
+
+- **What it is.** `Notifications.LocalNotifications` (new): `RegisterChannel`/`RequestPermission`/`Show`/`Cancel`/
+  `IsPermissionGranted`/`IsSupported`, real on Android (`NotificationManagerCompat`/`NotificationChannelCompat`, AndroidX
+  Core — already a transitive dependency via Avalonia.Android's own AppCompat requirement, #288, no new package needed),
+  `false`/no-op everywhere else including Headless. Two capabilities neither F8–F13 needed: a live `Activity` for
+  `RequestPermission` (API 33+ only) and the host's own `Intent` for the tap callback, both reached by extending F11's
+  "host app forwards to the framework" idiom (`MainActivity.OnCreate` registers itself via `RegisterAndroidActivity`;
+  `OnCreate`/`OnNewIntent` forward the Activity's own `Intent` to `ReportAndroidIntent`, which raises `Tapped` without the
+  host ever needing to know the extra key itself). The tap `PendingIntent` targets `PackageManager.GetLaunchIntentForPackage`
+  — the app's own launcher activity, found generically, no per-app registration needed.
+- **A five-round CI debugging chase, every one a real bug this session did not guess at, not flakiness (one exception: a
+  single unrelated `F8_AUDIO_SMOKE` flake, confirmed by a clean rerun).** In order: (1) `StoredOnlyPropertyBaselineTests` —
+  the backend interface had to take each `NotificationChannel`/`LocalNotification` field individually rather than the
+  object itself, the same shape `IAudioBackend.PlayTrack` already uses, since the gate only scans the core assembly and the
+  real field readers lived in a different, Android-gated one; (2) `CA1416` — `PendingIntentFlags.Immutable` needs API 23+
+  against this project's API 21 *library* floor; (3) the notification silently never posted — neither `Gallery.Android` nor
+  the project's own Android template declares an app icon at all, so `ApplicationInfo.Icon` was `0` and
+  `NotificationManager.notify` threw `IllegalArgumentException` inside a swallowed `catch`, fixed with a fallback to
+  Android's own `Resource.Drawable.IcDialogInfo`; (4) the full-screen intent was silently stripped by Android 14+ without
+  the normal, declare-only `USE_FULL_SCREEN_INTENT` permission; (5) the CI script's own tap-replay check needed
+  `--activity-single-top` (an already-foreground task is otherwise a no-op for `am start`) *and* explicit activity
+  resolution via `adb shell cmd package resolve-activity --brief` (the same command this repo's own CLAUDE.md documents),
+  since combining that flag with package-only resolution failed outright.
+- **Verified for real on Android — by CI, after all five fixes.** `android-smoke-test.sh` posts an ongoing, full-screen-intent
+  notification on a High-importance channel and independently confirms via `dumpsys notification` that it actually posted
+  (channel, title, full-screen intent all present — not just that `Show` didn't throw), then replays the exact launch intent
+  a real tap would send and confirms `LocalNotifications.Tapped` fires with the right id. `Ongoing`/`Sound` are covered by
+  the fake-backend unit tests (`LocalNotificationsTests`, 16 tests) instead of a second real-device signal — simple boolean
+  pass-throughs already asserted precisely there.
+- **Gates.** Four gates pass (5709 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+
+Effect on this app: `IAlertNotifier` (PLAN.md Appendix A) and the notification half of the alarm takeover flow can now be a
+thin adapter over the framework's own `LocalNotifications` — channels, importance and a full-screen intent are exactly what
+an alarm-style "tell a grown-up now" notification needs, and this is real, CI-verified behaviour on Android, not an
+untested surface. iOS and desktop toasts remain open for a later framework PR before this register item is fully closed.
