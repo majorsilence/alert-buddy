@@ -488,3 +488,25 @@ single bool property, not a subsystem the way F14 was.
 Effect on this app: `IKeepAwake` (PLAN.md Appendix A) can now be a thin adapter over the framework's own `KeepScreenAwake` —
 milestone 5's bedside mode (a status display that must not sleep) is what this exists for, and unlike F13/F14 this one is
 real, CI-verified behaviour on every platform the app could plausibly run on, not just Android.
+
+## Register item F19 (automation: custom control state, #279)
+
+Merged as majorsilence/Majorsilence.Forms#316, branch `automation-custom-control-state`.
+
+- **What it is.** `Automation.IAutomationStateProvider` (new): lets a custom-painted control publish its own `Value` and
+  extra `State` (a string dictionary) to the automation tree — role and name already worked for any control via the
+  existing `AccessibleRole`/`AccessibleName` WinForms-compat properties, but value and extra state had no such home. Each
+  state entry becomes its own `state-{key}` attribute in the automation XML page source (independently XPath-queryable,
+  not one opaque blob) and is readable through WebDriver's `getAttribute` under the same name.
+- **Verified with a real end-to-end WebDriver test, not just in-process tree assertions.** A test starts an actual
+  `WebDriverServer`, finds a sample "beacon indicator" custom control by XPath, and reads its `state-level`/`state-status`
+  through the real HTTP `getAttribute` endpoint — proving the framework's own documented promise ("`getAttribute` exposes
+  the same fields as the XML page source") holds for the new attributes too, not just the fixed built-in set.
+- **Gates.** Four gates pass (5797 tests, 0 failed, 4 skipped, in all four shapes); the API-diff gate reports no new gaps.
+  Backend-neutral, pure C# — no platform-specific code — so CI's `build (ubuntu-latest)`/`build (windows-latest)`/
+  `build (macos-latest)` jobs (full test suite) were the real verification, all green on the first push.
+
+Effect on this app: any custom-painted status control (the beacon/alert-level display the whole app is built around) can
+now publish its real level and state to the automation tree — the exact "status widget showing a level" example the
+framework issue itself used, drawn directly from what this app needs. M3's screens and flows can be driven and asserted
+through `AutomationSession`/WebDriver the same way a built-in control already can, not just visually inspected.
