@@ -13,6 +13,7 @@ app **found** that was not in the register.
 | #289 | M0, S9 | A `TextBox` whose `Text` is assigned after being parented to a window-less panel is drawn at scale 1 (half size at 2, a third at 2.75), permanently | Headless at `MF_HEADLESS_SCALE=2`, variant C in the issue | Set `Text` in the initializer or after the form is shown | Fixed: majorsilence/Majorsilence.Forms#293 merged 2026-09-26, not yet released |
 | #290 | M0, S9 | `DataBindings` silently does nothing for a missing or trimmed member; Android Release breaks reads (full trim) and write-back (default) | Spike on an emulator; three configurations in `docs/spikes.md` | Do not use `DataBindings`; helper wiring | Open |
 | #291 | M0, F1 work | Custom `OnPaint` draws in device pixels, undocumented; the gallery sample ignores it | 10x10 `FillRectangle` at scale 2 covers 10x10 device pixels | Scale by `e.Scaling` in every custom control | Open |
+| #317 | Desktop-viewable slice (this session) | `Control.ClientSize` reads back in device pixels outside `OnPaint`, while `Width`/`Height`/`Top`/`Bottom` stay logical -- undocumented, and the two families look interchangeable | `HomeView`/`AlarmView`'s manual layout centred children correctly reading `Width` at both `MF_HEADLESS_SCALE` 1 and 2, but drifted off-screen reading `ClientSize.Width` at scale 2 | Read `Width`/`Height`, never `ClientSize`, in manual child-control layout | Open |
 
 Evidence added to existing issues:
 

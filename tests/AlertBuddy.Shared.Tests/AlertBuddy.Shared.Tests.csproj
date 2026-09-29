@@ -16,6 +16,7 @@
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="Majorsilence.Forms.Headless" />
     <ProjectReference Include="..\..\src\AlertBuddy.Shared\AlertBuddy.Shared.csproj" />
+    <ProjectReference Include="..\AlertBuddy.TestSupport\AlertBuddy.TestSupport.csproj" />
   </ItemGroup>
 
 </Project>
