@@ -511,3 +511,54 @@ Effect on this app: any custom-painted status control (the beacon/alert-level di
 now publish its real level and state to the automation tree — the exact "status widget showing a level" example the
 framework issue itself used, drawn directly from what this app needs. M3's screens and flows can be driven and asserted
 through `AutomationSession`/WebDriver the same way a built-in control already can, not just visually inspected.
+
+## Register item F16 (secure storage, #283)
+
+Merged as majorsilence/Majorsilence.Forms#326, branch `secure-storage`. First item shipped in the new
+`Majorsilence.Forms.Essentials` package — the owner's own packaging decision for haptics, notifications, text to speech
+and secure storage (PLAN.md section 11.5), now actually followed for the first time since F13/F14 shipped in core instead
+(recorded there as an accepted inconsistency).
+
+- **What it is.** `Majorsilence.Forms.Essentials.SecureStorage.GetAsync`/`SetAsync`/`Remove`/`IsSupported` (new): a
+  password or token in the platform's own secure store, never a plain file. Real on Android (an AES-256/GCM key generated
+  inside the AndroidKeyStore encrypts each value, stored in a private-mode `SharedPreferences` file; `IsSupported` is a
+  real API-23 check, since this project's own library floor is API 21), iOS (`Security.SecKeyChain`/`SecRecord`, the
+  Keychain), and all three desktop OSes (Windows Credential Manager, macOS Keychain Services via the older
+  `SecKeychainAddGenericPassword` C API, Linux via `secret-tool`). Not routed through the `Backends.Platform` seam
+  Haptics/LocalNotifications/KeepScreenAwake use — which OS credential store exists has nothing to do with which UI
+  backend is active — so `Majorsilence.Forms.Essentials` has no reference to core `Majorsilence.Forms` at all.
+- **Linux's `IsSupported` is a real, load-bearing false, not a placeholder.** A missing `secret-tool` binary or no keyring
+  daemon running (true of this session's own sandbox and, it turned out, of the framework's own Linux CI runner too — the
+  desktop test suite ran there for real and confirmed it) means secrets genuinely cannot be stored securely, so this
+  never falls back to a plain file the way a lesser implementation might have.
+- **Two real bugs, both caught by CI, neither guessed.** (1) `KeyGenParameterSpec` (API 23+) tripped `CA1416` even behind
+  a version guard — a negated early-return guard, and a guard through a named constant rather than the literal, both
+  still failed the analyzer; only a literal-valued, positively-wrapping `if (OperatingSystem.IsAndroidVersionAtLeast
+  (23))` satisfied it, one step stricter than F13's own CA1416 fix needed. (2) The real one: `android-smoke`'s own
+  `F16_SECURESTORAGE_SMOKE` check failed for real on the first CI push — "expected the stored value back, got ''" — with
+  no exception anywhere in logcat, because every Android backend's catch block here is silent by design (matching
+  Haptics/Notifications). A temporary debug-logging commit found the actual cause on the next CI run:
+  `KeyStore.GetKey` returns the binding's `IKey`, and a plain C# `(ISecretKey)` cast on that managed peer throws
+  `InvalidCastException` at runtime — .NET-for-Android's JNI interop needs `JavaCast<T>()` to re-wrap the same underlying
+  Java object as a different bound interface, not a CLR cast. Fixed, and the debug logging reverted once the real cause
+  was found, back to the same silent-catch shape every other backend already uses.
+- **A real test gap, caught by mutation-testing the desktop dispatch logic.** Mutating away the short-circuit return
+  after a matched macOS branch (so execution falls through to also check `isLinux`) passed every existing test, because
+  the original test's throwing `isLinux` predicate had its own exception silently swallowed by `Dispatch`'s `catch`.
+  Fixed by tracking whether `isLinux` was called at all, not asserting on a side effect that never happens if the mutant
+  is present.
+- **Gates.** All four pass (5901 tests, 0 failed, 4 skipped, in all four shapes, after also merging in unrelated
+  concurrent work from the same repo); the API-diff gate reports no new gaps (a net-new capability, not a WinForms-parity
+  surface, the same as F12/F13/F14). Verified for real on every row: Android via `MainActivity.RunSecureStorageSmokeTest`
+  and `android-smoke-test.sh`'s `F16_SECURESTORAGE_SMOKE` check (round-trips and confirms `Remove` actually removes it);
+  Linux via `SecureStorageTests` running the real, non-injected desktop backend on this session's own sandbox and on
+  CI's Linux runner, both reporting `IsSupported` false and every member degrading gracefully; Windows and macOS via the
+  same test suite running for real on CI's `build (windows-latest)`/`build (macos-latest)` jobs (full test suite, not
+  just a compile check); iOS compiles clean via CI's `ios`/`sample-ios` jobs but was not run on a simulator or device —
+  the same honest gap F12/F13/F14 already have for iOS.
+
+Effect on this app: `ISecretStore`'s desktop implementation — currently `InMemorySecretStore`, TEMP-SHIM (F16), holding
+the password/token only for the process's lifetime — can now become a thin adapter over `SecureStorage` once this
+release is adopted, on every desktop OS except a Linux box with no keyring daemon running (which stays honest about it
+rather than silently degrading to memory-only, unlike today's shim). Android and iOS get the same real secure storage
+the moment their own heads wire it in.
