@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using AlertBuddy.Core.Ntfy;
 using AlertBuddy.Core.Security;
@@ -37,6 +38,7 @@ namespace AlertBuddy.ViewModels.Screens
         private readonly IListenerControl listener;
         private readonly INavigator navigator;
         private readonly IBackgroundListener background;
+        private readonly IPermissionGuide? permissions;
         private CancellationTokenSource? testing;
 
         [ObservableProperty]
@@ -82,7 +84,9 @@ namespace AlertBuddy.ViewModels.Screens
             IConnectionTester tester,
             IListenerControl listener,
             INavigator navigator,
-            IBackgroundListener background)
+            IBackgroundListener background,
+            IPermissionGuide? permissions = null,
+            ILifecycle? lifecycle = null)
         {
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
@@ -90,6 +94,40 @@ namespace AlertBuddy.ViewModels.Screens
             this.listener = listener ?? throw new ArgumentNullException (nameof (listener));
             this.navigator = navigator ?? throw new ArgumentNullException (nameof (navigator));
             this.background = background ?? throw new ArgumentNullException (nameof (background));
+            this.permissions = permissions;
+
+            // The person leaves for system settings and comes back: ask again, so the steps show what they just did.
+            if (lifecycle is not null) {
+                lifecycle.Resumed += RefreshPermissions;
+                Own (new Unsubscribe (() => lifecycle.Resumed -= RefreshPermissions));
+            }
+
+            RefreshPermissions ();
+        }
+
+        /// <summary>The permission steps, in order. Empty on a platform with nothing to allow.</summary>
+        public ObservableCollection<PermissionRowViewModel> Permissions { get; } = [];
+
+        /// <summary>Asks the platform again which permissions are allowed, and updates the rows.</summary>
+        public void RefreshPermissions ()
+        {
+            if (IsDisposed || permissions is null)
+                return;
+
+            var items = permissions.Items;
+            for (var i = 0; i < items.Count; i++) {
+                if (i < Permissions.Count && Permissions[i].Kind == items[i].Kind)
+                    Permissions[i].Update (items[i]);
+                else if (i < Permissions.Count)
+                    Permissions[i] = new PermissionRowViewModel (items[i], permissions);
+                else
+                    Permissions.Add (new PermissionRowViewModel (items[i], permissions));
+            }
+
+            while (Permissions.Count > items.Count)
+                Permissions.RemoveAt (Permissions.Count - 1);
+
+            OnPropertyChanged (nameof (PermissionsProblem));
         }
 
         /// <summary>The step as a number, for "Step 3 of 5".</summary>
@@ -123,6 +161,10 @@ namespace AlertBuddy.ViewModels.Screens
         protected override void OnPropertyChanged (PropertyChangedEventArgs e)
         {
             base.OnPropertyChanged (e);
+
+            // What was allowed may have changed while an earlier step was open, so the steps are asked again on arriving at them.
+            if (e.PropertyName == nameof (Step) && Step == FirstRunStep.Permissions)
+                RefreshPermissions ();
 
             if (e.PropertyName is nameof (Step) or nameof (BuddyName) or nameof (Pin) or nameof (PinConfirm) or nameof (ServerUrl)
                 or nameof (Topic) or nameof (Auth) or nameof (Username) or nameof (Secret) or nameof (IsTesting)) {

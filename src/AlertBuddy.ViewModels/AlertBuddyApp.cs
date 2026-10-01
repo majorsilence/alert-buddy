@@ -41,6 +41,9 @@ namespace AlertBuddy.ViewModels
         /// <summary>The app lifecycle and back button; null on a platform with neither.</summary>
         public ILifecycle? Lifecycle { get; init; }
 
+        /// <summary>The permissions a grown-up can allow so alarms are heard; null where there is nothing to allow.</summary>
+        public IPermissionGuide? Permissions { get; init; }
+
         /// <summary>Keeps the screen on for bedside mode; null where unavailable.</summary>
         public IKeepAwake? KeepAwake { get; init; }
 
@@ -140,7 +143,7 @@ namespace AlertBuddy.ViewModels
             navigator.Register (() => new AlertBookViewModel (engine, hub, navigator, screens, clock, platform.Dispatcher, platform.Zone));
             navigator.Register (() => new PracticeViewModel (settings, clock, platform.Dispatcher, scheduler, platform.Sound, navigator));
             navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version));
-            navigator.Register (() => new FirstRunViewModel (settings, platform.Secrets, tester, listener, navigator, platform.Background));
+            navigator.Register (() => new FirstRunViewModel (settings, platform.Secrets, tester, listener, navigator, platform.Background, platform.Permissions, platform.Lifecycle));
 
             screens.Wire (
                 alert => new AlertDetailViewModel (alert, engine, hub, navigator, clock, platform.Dispatcher, platform.Zone),

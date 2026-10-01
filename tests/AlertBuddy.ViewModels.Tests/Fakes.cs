@@ -94,6 +94,20 @@ namespace AlertBuddy.ViewModels.Tests
         public bool Enabled { get; set; }
     }
 
+    internal sealed class FakePermissionGuide : IPermissionGuide
+    {
+        public List<PermissionItem> Current { get; } = [
+            new (PermissionKind.Notifications, "Notifications", "So an alarm can be shown.", false),
+            new (PermissionKind.AlarmVolume, "Alarm volume", "So it is loud enough.", null),
+        ];
+
+        public List<PermissionKind> Opened { get; } = [];
+
+        public IReadOnlyList<PermissionItem> Items => Current;
+
+        public void Open (PermissionKind kind) => Opened.Add (kind);
+    }
+
     internal sealed class FakeLifecycle : ILifecycle
     {
         public event Action? Resumed;
@@ -129,6 +143,7 @@ namespace AlertBuddy.ViewModels.Tests
         public FakeTester Tester { get; } = new ();
         public FakeLifecycle Lifecycle { get; } = new ();
         public FakeKeepAwake KeepAwake { get; } = new ();
+        public FakePermissionGuide Permissions { get; } = new ();
         public InMemorySecretStore Secrets { get; } = new ();
         public InMemorySettingsStore SettingsStore { get; } = new ();
         public InMemoryAlertStateStore AlertState { get; } = new ();
@@ -164,6 +179,7 @@ namespace AlertBuddy.ViewModels.Tests
                 AlertState = AlertState,
                 Lifecycle = Lifecycle,
                 KeepAwake = KeepAwake,
+                Permissions = Permissions,
                 HttpHandler = Server,
                 Time = Clock.Provider,
                 Zone = TimeZoneInfo.Utc,

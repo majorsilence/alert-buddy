@@ -185,10 +185,5 @@ namespace AlertBuddy.ViewModels.Screens
             if (IsBedside && keepAwake is not null)
                 keepAwake.Enabled = false;
         }
-
-        private sealed class Unsubscribe (Action undo) : IDisposable
-        {
-            public void Dispose () => undo ();
-        }
     }
 }

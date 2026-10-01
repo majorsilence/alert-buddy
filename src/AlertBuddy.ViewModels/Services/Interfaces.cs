@@ -159,4 +159,44 @@ namespace AlertBuddy.ViewModels.Services
         /// <summary>Returns to Home, dropping every screen above it.</summary>
         void GoHome ();
     }
+
+    /// <summary>What a grown-up may need to allow so an alarm is heard (PLAN.md section 6.2's onboarding wizard).</summary>
+    public enum PermissionKind
+    {
+        /// <summary>Showing notifications at all.</summary>
+        Notifications,
+
+        /// <summary>Letting an alarm take over the screen.</summary>
+        FullScreenAlarm,
+
+        /// <summary>Checking the alarm volume, with a test sound. Not a permission: it has no granted state.</summary>
+        AlarmVolume,
+
+        /// <summary>Not being stopped by the battery manager while the screen is off.</summary>
+        BatteryOptimisation,
+
+        /// <summary>Letting an alarm ring through Do Not Disturb.</summary>
+        DoNotDisturb,
+    }
+
+    /// <summary>One thing the wizard can ask about.</summary>
+    /// <param name="Kind">Which one.</param>
+    /// <param name="Title">What it is, in a few words.</param>
+    /// <param name="Why">Why it matters, in a sentence a grown-up can act on.</param>
+    /// <param name="Granted">Whether it is done, or null for a step that is a check rather than a permission.</param>
+    public sealed record PermissionItem (PermissionKind Kind, string Title, string Why, bool? Granted);
+
+    /// <summary>
+    /// What the platform lets a grown-up allow, and the way to its settings. Android has several; desktop and the browser have none and
+    /// pass nothing. The answers can change while the app is away (the person went to system settings), so the view model asks again when
+    /// the app comes back.
+    /// </summary>
+    public interface IPermissionGuide
+    {
+        /// <summary>The steps, in the order to do them, with their present state.</summary>
+        IReadOnlyList<PermissionItem> Items { get; }
+
+        /// <summary>Asks for it, or opens the system screen where it is allowed. Never throws.</summary>
+        void Open (PermissionKind kind);
+    }
 }
