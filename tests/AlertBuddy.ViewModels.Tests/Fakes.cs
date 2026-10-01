@@ -89,6 +89,11 @@ namespace AlertBuddy.ViewModels.Tests
         }
     }
 
+    internal sealed class FakeKeepAwake : IKeepAwake
+    {
+        public bool Enabled { get; set; }
+    }
+
     internal sealed class FakeLifecycle : ILifecycle
     {
         public event Action? Resumed;
@@ -123,6 +128,7 @@ namespace AlertBuddy.ViewModels.Tests
         public FakeBackground Background { get; } = new ();
         public FakeTester Tester { get; } = new ();
         public FakeLifecycle Lifecycle { get; } = new ();
+        public FakeKeepAwake KeepAwake { get; } = new ();
         public InMemorySecretStore Secrets { get; } = new ();
         public InMemorySettingsStore SettingsStore { get; } = new ();
         public InMemoryAlertStateStore AlertState { get; } = new ();
@@ -157,6 +163,7 @@ namespace AlertBuddy.ViewModels.Tests
                 SettingsStore = SettingsStore,
                 AlertState = AlertState,
                 Lifecycle = Lifecycle,
+                KeepAwake = KeepAwake,
                 HttpHandler = Server,
                 Time = Clock.Provider,
                 Zone = TimeZoneInfo.Utc,

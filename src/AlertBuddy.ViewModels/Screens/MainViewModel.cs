@@ -21,6 +21,7 @@ namespace AlertBuddy.ViewModels.Screens
         private readonly IBackgroundListener background;
         private readonly IScheduler scheduler;
         private readonly TimeZoneInfo zone;
+        private readonly IKeepAwake? keepAwake;
         private readonly Dictionary<string, AlertItemViewModel> items = new ();
         private AllClearInfo? allClear;
         private DateTimeOffset allClearUntil;
@@ -57,7 +58,8 @@ namespace AlertBuddy.ViewModels.Screens
             IScheduler scheduler,
             SettingsService settings,
             IBackgroundListener background,
-            TimeZoneInfo? zone = null)
+            TimeZoneInfo? zone = null,
+            IKeepAwake? keepAwake = null)
         {
             this.hub = hub ?? throw new ArgumentNullException (nameof (hub));
             this.navigator = navigator ?? throw new ArgumentNullException (nameof (navigator));
@@ -67,6 +69,7 @@ namespace AlertBuddy.ViewModels.Screens
             this.background = background ?? throw new ArgumentNullException (nameof (background));
             this.scheduler = scheduler ?? throw new ArgumentNullException (nameof (scheduler));
             this.zone = zone ?? TimeZoneInfo.Local;
+            this.keepAwake = keepAwake;
 
             Own (new HubSubscription (hub, dispatcher, OnChange));
 
@@ -79,6 +82,25 @@ namespace AlertBuddy.ViewModels.Screens
 
             Refresh ();
         }
+
+        /// <summary>
+        /// Bedside mode (PLAN.md sections 6.3 and 8.7): the device is a status display on a stand, so the screen stays on and the look goes
+        /// to Night. The view applies the look; this keeps the screen awake, and lets go of it when bedside mode ends or Home is left for good.
+        /// </summary>
+        [ObservableProperty]
+        private bool isBedside;
+
+        /// <summary>Whether this device can keep its screen on, so the view only offers bedside mode where it works.</summary>
+        public bool CanBedside => keepAwake is not null;
+
+        partial void OnIsBedsideChanged (bool value)
+        {
+            if (keepAwake is not null)
+                keepAwake.Enabled = value;
+        }
+
+        [RelayCommand (CanExecute = nameof (CanBedside))]
+        private void ToggleBedside () => IsBedside = !IsBedside;
 
         [RelayCommand]
         private void OpenBook () => navigator.GoTo<AlertBookViewModel> ();
@@ -157,7 +179,12 @@ namespace AlertBuddy.ViewModels.Screens
             }
         }
 
-        protected override void OnDisposed () => allClearTimer?.Dispose ();
+        protected override void OnDisposed ()
+        {
+            allClearTimer?.Dispose ();
+            if (IsBedside && keepAwake is not null)
+                keepAwake.Enabled = false;
+        }
 
         private sealed class Unsubscribe (Action undo) : IDisposable
         {

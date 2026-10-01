@@ -134,7 +134,7 @@ namespace AlertBuddy.ViewModels
 
             var navigator = new Navigator ();
             var screens = new ScreenFactory ();
-            var main = new MainViewModel (hub, navigator, screens, clock, platform.Dispatcher, scheduler, settings, platform.Background, platform.Zone);
+            var main = new MainViewModel (hub, navigator, screens, clock, platform.Dispatcher, scheduler, settings, platform.Background, platform.Zone, platform.KeepAwake);
             navigator.SetRoot (main);
 
             navigator.Register (() => new AlertBookViewModel (engine, hub, navigator, screens, clock, platform.Dispatcher, platform.Zone));
