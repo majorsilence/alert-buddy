@@ -33,8 +33,13 @@ activity opened later finds it already listening, with no IPC.
 - **No full-screen takeover seen.** The notification asks for one (`FullScreen`) and the manifest declares `USE_FULL_SCREEN_INTENT`, but the
   emulator's `dumpsys` did not show the intent and nothing took over the screen. Android 14 and later restrict it; the allow step
   belongs to the permission wizard, which is not built.
-- **The permission wizard is not built.** Notifications are asked for once when the activity starts. The alarm volume step, the
-  battery-optimisation exemption guide and the Do Not Disturb override are still to do.
+- **The permission wizard is built, and was run on the emulator.** First run's fourth step lists notifications, the alarm taking over the
+  screen (Android 14 and later), the alarm volume with a two-second test sound, battery optimisation and Do Not Disturb. Each shows
+  "Done" or "Not yet" in words, has an Allow or Change button, and reads Android's answer again on arriving at the step, on returning
+  from system settings and after a permission answer. On the emulator: pressing Allow showed the system's notification question and the
+  step turned to Done by itself; Change opened the app's own notification settings. Not run: the battery, Do Not Disturb and full-screen
+  screens (the emulator reports full-screen as already allowed), and nothing asks again once First run is finished, so Settings does not
+  yet offer these steps.
 - **The honest banner is partly real.** `AndroidBackgroundListener.WhyNot` names, in order: notifications off, battery optimisation
   on (the emulator is always in this state, so Home always shows it), and no network. The text on Home is generic ("can't listen in the
   background") and does not yet say which one.

@@ -41,6 +41,7 @@ namespace AlertBuddy.Android
                     Secrets = new InMemorySecretStore (),
                     KeepAwake = new DesktopKeepAwake (),
                     Lifecycle = Lifecycle,
+                    Permissions = new AndroidPermissionGuide (appContext, sound),
                     SettingsStore = Settings,
                     AlertState = new JsonFileAlertStateStore (System.IO.Path.Combine (data, "alerts.json")),
                     Version = typeof (AppHost).Assembly.GetName ().Version?.ToString (3) ?? "0.0.0",

@@ -5,7 +5,6 @@ using Android.OS;
 using Android.Runtime;
 using Avalonia.Android;
 using Majorsilence.Forms.Backends;
-using Majorsilence.Forms.Notifications;
 
 namespace AlertBuddy.Android
 {
@@ -29,10 +28,6 @@ namespace AlertBuddy.Android
             AvaloniaPlatformBackend.RegisterAndroidActivity (this);
             AvaloniaPlatformBackend.ReportAndroidIntent (Intent);
 
-            // Until the First run permissions step asks, in words, why it needs this (PLAN.md section 6.2's wizard), ask once here.
-            if (!LocalNotifications.IsPermissionGranted)
-                LocalNotifications.RequestPermission ();
-
             ListenerService.Start (this);
         }
 
@@ -46,6 +41,9 @@ namespace AlertBuddy.Android
         {
             base.OnRequestPermissionsResult (requestCode, permissions, grantResults);
             AvaloniaPlatformBackend.ReportNotificationPermissionResult ();
+
+            // The system's own question does not bring the app back from the background, so tell the wizard to read the answer.
+            AppHost.Lifecycle.RaiseResumed ();
         }
     }
 }
