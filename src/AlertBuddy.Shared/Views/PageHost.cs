@@ -24,12 +24,18 @@ namespace AlertBuddy.Shared.Views
 
             Register<MainViewModel> (vm => new HomeView (vm));
             Register<AlarmViewModel> (vm => new AlarmView (vm));
+            Register<AlertDetailViewModel> (vm => new AlertDetailView (vm));
+            Register<AlertBookViewModel> (vm => new AlertBookView (vm));
+            Register<PracticeViewModel> (vm => new PracticeView (vm));
+            Register<GateViewModel> (vm => new GateView (vm));
+            Register<SettingsViewModel> (vm => new SettingsView (vm));
+            Register<FirstRunViewModel> (vm => new FirstRunView (vm));
 
             navigator.CurrentChanged += ShowCurrentScreen;
             ShowCurrentScreen ();
         }
 
-        /// <summary>Says how to build the view for a screen type. Home and the alarm takeover are wired in already.</summary>
+        /// <summary>Says how to build the view for a screen type. Home, the alarm takeover, detail, the Alert book, Practice, the gate, Settings and First run are wired in already.</summary>
         public void Register<T> (Func<T, Control> factory) where T : ObservableObject
             => factories[typeof (T)] = vm => factory ((T)vm);
 
@@ -55,7 +61,7 @@ namespace AlertBuddy.Shared.Views
                         AutoSize = true,
                         Location = new System.Drawing.Point (24, 24),
                         Text = $"{screen.GetType ().Name} is on the way.",
-                        ForeColor = AlertPalette.GrapeInk,
+                        ForeColor = AlertPalette.OnGround,
                     },
                 },
             };

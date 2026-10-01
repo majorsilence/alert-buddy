@@ -30,22 +30,22 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             // A neutral ground, not a Cherry wash: state colour is the beacon's job (PLAN.md section 8.2's "colour is never
             // decoration"), and a Cherry background would also swallow the beacon's own Cherry lamp and Paper ring whole.
-            BackColor = AlertPalette.Paper;
+            BackColor = AlertPalette.Ground;
 
             beacon = new BeaconBuddy { Size = new Size (200, 200), Level = BeaconMood.Alarm };
             Controls.Add (beacon);
 
-            heading = new Label { AutoSize = true, Text = vm.Heading, ForeColor = AlertPalette.GrapeInk };
+            heading = new Label { AutoSize = true, Text = vm.Heading, ForeColor = AlertPalette.OnGround };
             Controls.Add (heading);
 
-            detail = new Label { AutoSize = true, ForeColor = AlertPalette.GrapeInk };
+            detail = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };
             Controls.Add (detail);
 
             toldButton = new ChunkyButton { Text = vm.ToldButtonText, Height = 72, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper };
             toldButton.Click += (_, _) => vm.ToldAGrownUpCommand.Execute (null);
             Controls.Add (toldButton);
 
-            thankYou = new Label { AutoSize = true, ForeColor = AlertPalette.GrapeInk, Visible = false, Text = vm.ThankYouText };
+            thankYou = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround, Visible = false, Text = vm.ThankYouText };
             Controls.Add (thankYou);
 
             gotItButton = new HoldButton { Text = vm.GotItButtonText, Size = new Size (140, 48) };

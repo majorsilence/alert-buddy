@@ -26,13 +26,15 @@ namespace AlertBuddy.Shared.Views
         private readonly Panel alertList;
         private readonly ChunkyButton openBookButton;
         private readonly ChunkyButton practiceButton;
+        private readonly ChunkyButton bedsideButton;
+        private readonly Label rightNow;
 
         /// <summary>Builds Home for <paramref name="vm"/>. Disposed with the view when the page is left.</summary>
         public HomeView (MainViewModel vm)
         {
             this.vm = vm ?? throw new ArgumentNullException (nameof (vm));
             Dock = DockStyle.Fill;
-            BackColor = AlertPalette.Paper;
+            BackColor = AlertPalette.Ground;
 
             gear = new HoldButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48), HoldDuration = TimeSpan.FromSeconds (2) };
             gear.Held += (_, _) => vm.OpenSettingsCommand.Execute (null);
@@ -44,10 +46,10 @@ namespace AlertBuddy.Shared.Views
             bubble = new SpeechBubble { Size = new Size (340, 120) };
             Controls.Add (bubble);
 
-            connectionLine = new Label { AutoSize = true, ForeColor = AlertPalette.GrapeInk };
+            connectionLine = new Label { AutoSize = false, Height = 26, ForeColor = AlertPalette.OnGround };
             Controls.Add (connectionLine);
 
-            bannerLine = new Label { AutoSize = true, ForeColor = AlertPalette.Cherry, Visible = false };
+            bannerLine = new Label { AutoSize = false, Height = 52, ForeColor = AlertPalette.Notice, Visible = false };
             Controls.Add (bannerLine);
 
             alertList = new Panel { AutoScroll = true };
@@ -60,6 +62,21 @@ namespace AlertBuddy.Shared.Views
             practiceButton = new ChunkyButton { Text = "Practice" };
             practiceButton.Click += (_, _) => vm.StartPracticeCommand.Execute (null);
             Controls.Add (practiceButton);
+
+            rightNow = new Label { AutoSize = true, Text = "Right now", ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (20), Visible = false };
+            Controls.Add (rightNow);
+
+            bedsideButton = new ChunkyButton { Size = new Size (144, 48), Visible = vm.CanBedside };
+            scope.Add (bedsideButton.BindCommand (vm.ToggleBedsideCommand));
+            Controls.Add (bedsideButton);
+
+            scope.Add (vm.Observe (nameof (MainViewModel.IsBedside), v => v.IsBedside, bedside => {
+                // Bedside forces Night while it is on (PLAN.md section 8.7). The look is global, so every screen built from now on follows
+                // it, and this one is restyled in place.
+                AlertBuddyTheme.SetBedside (bedside);
+                bedsideButton.Text = bedside ? "Day" : "Bedside";
+                Restyle ();
+            }));
 
             scope.Add (vm.Observe (nameof (MainViewModel.Mood), v => v.Mood, mood => { beacon.Level = mood; beacon.Invalidate (); }));
             scope.Add (vm.Observe (nameof (MainViewModel.StatusText), v => v.StatusText, text => bubble.Text = text));
@@ -119,29 +136,63 @@ namespace AlertBuddy.Shared.Views
             }
         }
 
-        // Manual, compact-only layout (PLAN.md section 7.3's adaptive widths are not built yet).
+        private void Restyle ()
+        {
+            BackColor = AlertPalette.Ground;
+            foreach (var label in new[] { connectionLine, rightNow })
+                label.ForeColor = AlertPalette.OnGround;
+            bannerLine.ForeColor = AlertPalette.Notice;
+            Invalidate ();
+        }
+
+        // Manual layout for the three widths of PLAN.md section 7.3. Width/Height are logical, like every bound set below.
         private void PerformCustomLayout ()
         {
+            var mode = LayoutModes.For (Width, Height);
             var w = Width;
-            var centerX = w / 2;
+            rightNow.Visible = mode == LayoutMode.Expanded;
 
+            // The gear stays top-left and bedside top-right, whatever the mode.
+            bedsideButton.Location = new Point (w - bedsideButton.Width - 16, 16);
+
+            // The left pane (or the whole window, when there is one column): where the buddy, the sentence and the buttons live.
+            var paneLeft = 0;
+            var paneWidth = w;
+            if (mode == LayoutMode.Expanded)
+                paneWidth = Math.Clamp (w * 2 / 5, 320, 520);
+            else if (mode == LayoutMode.Medium) {
+                paneWidth = Math.Min (w, LayoutModes.ColumnMax);
+                paneLeft = (w - paneWidth) / 2;
+            }
+
+            var centerX = paneLeft + paneWidth / 2;
             beacon.Location = new Point (centerX - beacon.Width / 2, 56);
             bubble.Location = new Point (centerX - bubble.Width / 2, beacon.Bottom + 8);
-
-            connectionLine.Location = new Point (24, bubble.Bottom + 12);
-
-            var listTop = connectionLine.Bottom + (bannerLine.Visible ? 32 : 8);
+            // Wrapped to the pane, not left to run off the edge of a phone: the honest banner is the one line that must be readable whole.
+            connectionLine.Width = paneWidth - 48;
+            bannerLine.Width = paneWidth - 48;
+            connectionLine.Location = new Point (paneLeft + 24, bubble.Bottom + 12);
             if (bannerLine.Visible)
-                bannerLine.Location = new Point (24, connectionLine.Bottom + 4);
+                bannerLine.Location = new Point (paneLeft + 24, connectionLine.Bottom + 4);
 
             const int buttonsHeight = 88;
-            openBookButton.Size = new Size (w / 2 - 32, 64);
-            openBookButton.Location = new Point (16, Height - buttonsHeight);
-            practiceButton.Size = new Size (w / 2 - 32, 64);
-            practiceButton.Location = new Point (w / 2 + 16, Height - buttonsHeight);
+            var half = paneWidth / 2 - 32;
+            openBookButton.Size = new Size (half, 64);
+            openBookButton.Location = new Point (paneLeft + 16, Height - buttonsHeight);
+            practiceButton.Size = new Size (half, 64);
+            practiceButton.Location = new Point (paneLeft + paneWidth / 2 + 16, Height - buttonsHeight);
 
-            alertList.Location = new Point (16, listTop);
-            alertList.Size = new Size (w - 32, Math.Max (0, openBookButton.Top - 12 - listTop));
+            if (mode == LayoutMode.Expanded) {
+                // The list gets the whole right pane, top to bottom, under its own heading.
+                var listLeft = paneWidth + 16;
+                rightNow.Location = new Point (listLeft + 8, 24);
+                alertList.Location = new Point (listLeft, rightNow.Bottom + 12);
+                alertList.Size = new Size (Math.Max (0, w - listLeft - 16), Math.Max (0, Height - alertList.Top - 16));
+            } else {
+                var listTop = (bannerLine.Visible ? bannerLine.Bottom : connectionLine.Bottom) + 8;
+                alertList.Location = new Point (paneLeft + 16, listTop);
+                alertList.Size = new Size (paneWidth - 32, Math.Max (0, openBookButton.Top - 12 - listTop));
+            }
 
             LayoutCards ();
         }
