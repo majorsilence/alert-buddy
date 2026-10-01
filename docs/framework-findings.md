@@ -11,9 +11,9 @@ app **found** that was not in the register.
 |---|---|---|---|---|---|
 | #288 | M0, S1 | The Android head from the 26.3.0 template crashes on its first frame: `Theme.AppCompat` required | Generate with `--IncludeAndroid`, run on an API 36 emulator | `Resources/values/styles.xml` and `Theme = "@style/AlertBuddyTheme"` | Fixed: majorsilence/Majorsilence.Forms#294 merged 2026-09-26, not yet released |
 | #289 | M0, S9 | A `TextBox` whose `Text` is assigned after being parented to a window-less panel is drawn at scale 1 (half size at 2, a third at 2.75), permanently | Headless at `MF_HEADLESS_SCALE=2`, variant C in the issue | Set `Text` in the initializer or after the form is shown | Fixed: majorsilence/Majorsilence.Forms#293 merged 2026-09-26, not yet released |
-| #290 | M0, S9 | `DataBindings` silently does nothing for a missing or trimmed member; Android Release breaks reads (full trim) and write-back (default) | Spike on an emulator; three configurations in `docs/spikes.md` | Do not use `DataBindings`; helper wiring | Open |
-| #291 | M0, F1 work | Custom `OnPaint` draws in device pixels, undocumented; the gallery sample ignores it | 10x10 `FillRectangle` at scale 2 covers 10x10 device pixels | Scale by `e.Scaling` in every custom control | Open |
-| #317 | Desktop-viewable slice (this session) | `Control.ClientSize` reads back in device pixels outside `OnPaint`, while `Width`/`Height`/`Top`/`Bottom` stay logical -- undocumented, and the two families look interchangeable | `HomeView`/`AlarmView`'s manual layout centred children correctly reading `Width` at both `MF_HEADLESS_SCALE` 1 and 2, but drifted off-screen reading `ClientSize.Width` at scale 2 | Read `Width`/`Height`, never `ClientSize`, in manual child-control layout | Open |
+| #290 | M0, S9 | `DataBindings` silently does nothing for a missing or trimmed member; Android Release breaks reads (full trim) and write-back (default) | Spike on an emulator; three configurations in `docs/spikes.md` | Do not use `DataBindings`; helper wiring | Fixed: majorsilence/Majorsilence.Forms#333 merged 2026-10-01, not yet released |
+| #291 | M0, F1 work | Custom `OnPaint` draws in device pixels, undocumented; the gallery sample ignores it | 10x10 `FillRectangle` at scale 2 covers 10x10 device pixels | Scale by `e.Scaling` in every custom control | Fixed: majorsilence/Majorsilence.Forms#332 merged 2026-10-01, not yet released |
+| #317 | Desktop-viewable slice (this session) | `Control.ClientSize` reads back in device pixels outside `OnPaint`, while `Width`/`Height`/`Top`/`Bottom` stay logical -- undocumented, and the two families look interchangeable | `HomeView`/`AlarmView`'s manual layout centred children correctly reading `Width` at both `MF_HEADLESS_SCALE` 1 and 2, but drifted off-screen reading `ClientSize.Width` at scale 2 | Read `Width`/`Height`, never `ClientSize`, in manual child-control layout | Fixed: majorsilence/Majorsilence.Forms#331 merged 2026-09-30, not yet released |
 
 Evidence added to existing issues:
 
@@ -600,3 +600,34 @@ Merged as majorsilence/Majorsilence.Forms#329, branch `speech`. Second capabilit
 
 Effect on this app: milestone 6's optional text-to-speech (an early reader hearing a line alongside seeing it) can now
 be a thin adapter over `Speech`, on every platform the app runs on, once this release is adopted.
+
+## Register item F23 (CSS `:active`, `:disabled`, `:focus` and `box-shadow`, #285)
+
+Merged as majorsilence/Majorsilence.Forms#334, branch `css-states-and-shadow`. Owner decision recorded on the issue before
+implementation (PLAN.md section 11.5, decision 3): yes for the three pseudo-classes and a hard, no-blur `box-shadow`; no
+for gradients and images.
+
+- **What it is.** `Control.CurrentStyle` now resolves `:disabled` > `:hover` > `:active` > `:focus` > plain `Style`
+  (hover kept exactly where it already was, so nothing already themed changes), on the same three controls that already
+  had `:hover` (`Button`, `LinkLabel`, `TrackBar`). `box-shadow` is a new control-rule property on any selector -- exactly
+  `<horizontal-offset> <vertical-offset> <color>`, no blur/spread/`inset`, rejected with a diagnostic rather than silently
+  dropped -- painted as a hard offset rectangle behind the control's own shape.
+- **Four real CI gate failures found and fixed on top of the PR as received, none guessed.** (1) A new worked doc example
+  was nested under its bullet point (2-space indent); the doc-example test's closing-fence scan only matches an
+  unindented fence, so it silently swallowed the next section's heading into the "CSS" it tried to parse -- every other
+  example in the doc is unindented, now this one is too. (2) The three new `Control` members (`StyleActive`,
+  `StyleDisabled`, `StyleFocus`) had no `WindowBase`/`Form` counterpart and tripped the Control/window parity gate;
+  baselined alongside the pre-existing `StyleHover` entry, same reasoning. (3) A new test asserted
+  `Button.DefaultStyleHover.BackgroundColor` is null after loading a `:active`-only rule; it never is, by long-standing
+  design -- `Button.cs` gives hover its own accent-coloured background directly in C#, independent of any theme CSS --
+  confirmed by running the test alone, before touching anything else, and getting the identical value. Rewrote the
+  assertion to check what it actually meant to: that the accent-coloured hover look survives an unrelated `:active`
+  rule untouched. (4) A pre-existing diagnostics test still expected the message from before `:active` was a recognised
+  pseudo-class at all; generalising pseudo-class support changed the part-specific message to something more precise
+  ("a part only supports ':hover'"), and the old test's expectation hadn't been updated to match.
+- **Gates.** All four pass (5938 tests after the fixes above, 0 failed, 4 skipped); the API-diff gate reports no new
+  gaps. The WinForms/Avalonia theming-support docs (Windows-only generators) were hand-traced rather than run locally,
+  the same constraint F17's own WinForms doc hit -- CI's own doc-sync tests are what actually proved them correct.
+
+Effect on this app: once this release is adopted, a tactile pressed/disabled/focus look and a hard drop shadow are
+available in CSS on `Button`, `LinkLabel` and `TrackBar` without any code-side styling.
