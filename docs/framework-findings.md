@@ -562,3 +562,41 @@ the password/token only for the process's lifetime — can now become a thin ada
 release is adopted, on every desktop OS except a Linux box with no keyring daemon running (which stays honest about it
 rather than silently degrading to memory-only, unlike today's shim). Android and iOS get the same real secure storage
 the moment their own heads wire it in.
+
+## Register item F15 (text to speech, #282)
+
+Merged as majorsilence/Majorsilence.Forms#329, branch `speech`. Second capability shipped in
+`Majorsilence.Forms.Essentials`, alongside F16.
+
+- **What it is.** `Speech.SpeakAsync`/`IsSupported` (new): reads a line aloud with the platform's own voice. Real on
+  Android (`TextToSpeech`, its own async engine init shared across calls), iOS (`AVSpeechSynthesizer`), and all three
+  desktop OSes via the owner's own "spawn an OS utility" policy: macOS's `say`, Linux's `espeak-ng`/`espeak`, Windows via
+  a short PowerShell script over `System.Speech.Synthesis`. The text always travels over the spawned process's stdin on
+  desktop, never a command-line argument, so nothing needs escaping. Cancellation kills the process (desktop) or calls
+  the platform's own stop API. Not routed through the `Backends.Platform` seam, same reasoning as F16.
+- **Two real Android build findings, neither guessed.** This binding's `UtteranceProgressListener` still only declares
+  the deprecated string-only `OnError` abstract (no separate `OnError(string, int)` exists to implement instead), so an
+  `[Obsolete]` override is required; and `Java.Util.Locale` itself is flagged obsolete from API 36 with no other way to
+  build the value `SetLanguage` takes, suppressed at that one call site the same way F13's own iOS CA1422 finding was.
+- **A real, much bigger finding along the way, not specific to Speech at all.** Getting this PR green on CI surfaced a
+  pre-existing, repo-wide test-isolation gap: 74 test files (on top of 104 that already had it) were missing
+  `[Collection ("Headless")]`, filed as majorsilence/Majorsilence.Forms#330 and fixed in the same PR. That fix alone did
+  **not** actually resolve the flake that found it (`MvvmHelpersTests.The_default_dispatcher_runs_on_the_active_backends_ui_thread`
+  failing intermittently on Windows/macOS CI, never Linux) — the test assembly already disables parallelization
+  assembly-wide, so it was never a concurrency race. The real cause: `HeadlessRenderer.Use ()` only replaces the active
+  backend if it isn't already `HeadlessPlatformBackend`, and that backend pins its own "UI thread" once per instance,
+  never again — so the shared instance's UI thread stayed wherever the *first* test in the whole run happened to
+  construct a window, and any later test's assertion of "am I on the UI thread" was down to whether xUnit's pooled
+  worker threads happened to schedule it back onto that same physical thread. Fixed by giving that one test its own
+  freshly-initialised backend, the same explicit-pin idiom an existing test (`InvalidatedEventTests.cs`) already used
+  for the identical underlying reason. Recorded as a correction on #330, which stays open for the broader "any other
+  test with the same footgun" gap.
+- **Gates.** All four pass (5912 tests, 0 failed, 4 skipped); the API-diff gate reports no new gaps. Verified for real:
+  Android via `MainActivity.RunSpeechSmokeTest`/CI's `android-smoke` (`F15_SPEECH_SMOKE`, passed first try once the
+  Android-specific findings above were fixed); Linux via the real desktop backend on this session's own sandbox (no
+  `espeak`/`espeak-ng` installed, `IsSupported` false, everything degrades gracefully, including under cancellation);
+  Windows and macOS via the same test suite running for real on CI's own runners; iOS compiles clean but was not run on
+  a simulator or device, the same honest gap F12/F13/F14/F16 already have.
+
+Effect on this app: milestone 6's optional text-to-speech (an early reader hearing a line alongside seeing it) can now
+be a thin adapter over `Speech`, on every platform the app runs on, once this release is adopted.
