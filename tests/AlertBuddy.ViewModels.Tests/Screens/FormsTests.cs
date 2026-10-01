@@ -40,6 +40,23 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
+        public async Task TheBackButton_StepsBackThroughSetup_AndNeverOutOfIt ()
+        {
+            await using var rig = new AppRig (new AppSettings ());
+            var first = rig.Current<FirstRunViewModel> ();
+            first.BuddyName = "Pip";
+            await first.NextCommand.ExecuteAsync (null);
+            Assert.Equal (FirstRunStep.GrownUpGate, first.Step);
+
+            Assert.True (rig.Navigator.HandleBack ());
+            Assert.Equal (FirstRunStep.NameBuddy, first.Step);
+
+            // On the first step it is swallowed: Home cannot work before setup is done, so the screen stays.
+            Assert.True (rig.Navigator.HandleBack ());
+            Assert.Same (first, rig.Navigator.Current);
+        }
+
+        [Fact]
         public async Task TheBuddyNeedsAName_OfUpToSixteenLetters ()
         {
             var vm = new FormRig ().FirstRun ();

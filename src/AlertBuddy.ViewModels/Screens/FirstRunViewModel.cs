@@ -29,7 +29,7 @@ namespace AlertBuddy.ViewModels.Screens
     }
 
     /// <summary>First run: name the buddy, then a grown-up sets the PIN, the server and the permissions (PLAN.md sections 4.3 and 9).</summary>
-    public sealed partial class FirstRunViewModel : ScreenViewModel
+    public sealed partial class FirstRunViewModel : ScreenViewModel, IHandlesBack
     {
         private readonly SettingsService settings;
         private readonly ISecretStore secrets;
@@ -136,6 +136,18 @@ namespace AlertBuddy.ViewModels.Screens
                 BackCommand.NotifyCanExecuteChanged ();
                 TestConnectionCommand.NotifyCanExecuteChanged ();
             }
+        }
+
+        /// <summary>
+        /// The back button steps back through the setup and never out of it: before setup is finished Home has nothing to listen to, so
+        /// leaving would drop a grown-up onto a screen that cannot work. On the first step it is simply swallowed.
+        /// </summary>
+        public bool HandleBack ()
+        {
+            if (CanGoBack)
+                Step--;
+
+            return true;
         }
 
         /// <summary>Goes to the next step, or finishes on the last one.</summary>
