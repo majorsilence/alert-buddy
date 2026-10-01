@@ -53,6 +53,8 @@ namespace AlertBuddy.Shared.Theme
             """;
 
         private static bool registered;
+        private static bool bedside;
+        private static LookPreference chosen;
 
         /// <summary>Registers both themes, once, and applies the one <paramref name="look"/> resolves to for a system in Day right now.</summary>
         /// <remarks>
@@ -61,13 +63,28 @@ namespace AlertBuddy.Shared.Theme
         /// </remarks>
         public static void Apply (LookPreference look)
         {
+            chosen = look;
+            Show ();
+        }
+
+        /// <summary>Bedside mode forces Night while it is on, and puts back the grown-up's choice when it is off (PLAN.md section 8.7).</summary>
+        public static void SetBedside (bool on)
+        {
+            bedside = on;
+            Show ();
+        }
+
+        private static void Show ()
+        {
             if (!registered) {
                 Majorsilence.Forms.Theme.RegisterThemeCss (DayCss);
                 Majorsilence.Forms.Theme.RegisterThemeCss (NightCss);
                 registered = true;
             }
 
-            Majorsilence.Forms.Theme.ApplyTheme (look == LookPreference.Night ? Night : Day);
+            var night = bedside || chosen == LookPreference.Night;
+            AlertPalette.Night = night;
+            Majorsilence.Forms.Theme.ApplyTheme (night ? Night : Day);
         }
     }
 }
