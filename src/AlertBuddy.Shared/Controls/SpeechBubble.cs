@@ -33,10 +33,9 @@ namespace AlertBuddy.Shared.Controls
 
             var g = e.Graphics;
             g.ResetTransform ();
-            g.ScaleTransform ((float)e.Scaling, (float)e.Scaling);
 
-            var w = ClientSize.Width / (float)e.Scaling;
-            var h = ClientSize.Height / (float)e.Scaling;
+            var w = ClientSize.Width;
+            var h = ClientSize.Height;
             var body = GetSurfaceBounds (w, h);
 
             // The tail: a small triangle under the bubble, pointing up at the buddy above it.

@@ -77,8 +77,8 @@ No lasting workarounds.
 
 ## Rules learned the hard way (each has a framework issue)
 
-- **Custom `OnPaint` draws in device pixels.** Start with `e.Graphics.ScaleTransform ((float)e.Scaling, (float)e.Scaling)` and draw
-  in logical units (#291). Test custom controls at scale 1 and 2.
+- **Custom `OnPaint` draws in logical units** (framework 26.5.0, #339): `ClientSize` and `e.Graphics` match `Width`/`Height`. Do not
+  `ScaleTransform` by `e.Scaling`; that now draws at twice the size. Test custom controls at scale 1 and 2.
 - **Set a `TextBox`'s `Text` in its initializer, or after the form is shown**, never after parenting it to a panel that is not
   yet on a form (#289).
 - **Do not use `DataBindings`.** Wire view models with `PropertyChanged` and `ICommand` through the binder helpers; anything

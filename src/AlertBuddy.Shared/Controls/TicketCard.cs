@@ -59,10 +59,9 @@ namespace AlertBuddy.Shared.Controls
 
             var g = e.Graphics;
             g.ResetTransform ();
-            g.ScaleTransform ((float)e.Scaling, (float)e.Scaling);
 
-            var w = ClientSize.Width / (float)e.Scaling;
-            var h = ClientSize.Height / (float)e.Scaling;
+            var w = ClientSize.Width;
+            var h = ClientSize.Height;
             var bounds = GetSurfaceBounds (w, h);
 
             // The state-coloured left edge, inset from the outline so it reads as a stripe, not an overpaint of it.
@@ -80,7 +79,7 @@ namespace AlertBuddy.Shared.Controls
             g.DrawString (source, sourceFont, textBrush, new PointF (textLeft, bounds.Y + 10));
 
             using (var format = new StringFormat { Alignment = StringAlignment.Far })
-                g.DrawString (timeAgo, bodyFont, mutedBrush, new RectangleF (textLeft, bounds.Y + 12, bounds.Right - textLeft - 8, 20), format);
+                g.DrawString (timeAgo, bodyFont, mutedBrush, new RectangleF (textLeft, bounds.Y + 12, bounds.Right - textLeft - 8, 28), format);
 
             var glyphWidth = temperature is not null ? DrawThermoGlyph (g, bounds, textLeft) : 0f;
             g.DrawString (sentence, bodyFont, textBrush, new RectangleF (textLeft + glyphWidth, bounds.Y + 42, bounds.Width - (textLeft - bounds.X) - glyphWidth - 8, bounds.Height - 50));

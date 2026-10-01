@@ -110,10 +110,9 @@ namespace AlertBuddy.Shared.Controls
 
             var g = e.Graphics;
             g.ResetTransform ();
-            g.ScaleTransform ((float)e.Scaling, (float)e.Scaling);
 
-            var w = ClientSize.Width / (float)e.Scaling;
-            var h = ClientSize.Height / (float)e.Scaling;
+            var w = ClientSize.Width;
+            var h = ClientSize.Height;
             var bounds = new RectangleF (0, Pressed ? ShadowOffset : 0, w - ShadowOffset, h - ShadowOffset);
 
             if (progress > 0) {

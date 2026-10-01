@@ -1,9 +1,9 @@
 using System.Drawing;
-using AlertBuddy.Shared.Binding;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms;
+using Majorsilence.Forms.Mvvm;
 
 namespace AlertBuddy.Shared.Views
 {
@@ -67,8 +67,6 @@ namespace AlertBuddy.Shared.Views
 
         private void PerformCustomLayout ()
         {
-            // Width, not ClientSize.Width: ClientSize reports the live device-pixel surface, while Width (like every bound this sets on
-            // a child below) stays in the logical pixels the rest of the layout is authored in.
             var w = Width;
             var centerX = w / 2;
 

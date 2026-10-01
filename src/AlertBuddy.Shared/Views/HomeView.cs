@@ -1,10 +1,10 @@
 using System.Collections.Specialized;
 using System.Drawing;
-using AlertBuddy.Shared.Binding;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms;
+using Majorsilence.Forms.Mvvm;
 
 namespace AlertBuddy.Shared.Views
 {
@@ -122,8 +122,6 @@ namespace AlertBuddy.Shared.Views
         // Manual, compact-only layout (PLAN.md section 7.3's adaptive widths are not built yet).
         private void PerformCustomLayout ()
         {
-            // Width/Height, not ClientSize: ClientSize reports the live device-pixel surface, while Width/Height (like every bound this
-            // sets on a child below) stay in the logical pixels the rest of the layout is authored in.
             var w = Width;
             var centerX = w / 2;
 

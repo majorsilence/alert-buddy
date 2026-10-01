@@ -6,7 +6,8 @@ line here: the version, the date, what it unlocked, what it broke. CI never uses
 | Version | Date | Unlocked | Broke or still wrong | Shims removed |
 |---|---|---|---|---|
 | 26.3.0 | 2026-09-26 | The initial pin. Headless backend for UI tests, the Android and browser heads | Template Android head crashes (#288); text scale (#289); binding under trimming (#290); custom `OnPaint` units undocumented (#291) | none |
+| 26.5.0 | 2026-10-01 | Everything in 26.4.0 (rounded rectangles, `Majorsilence.Forms.Mvvm`, `ICommand` on buttons, animation, reduced motion, audio, lifecycle, back button, haptics, Android notifications, keep-awake, F19 automation) plus `:active`/`:disabled`/`:focus` and a hard box-shadow (F23) and the `ClientSize` docs (#331). `SecureStorage` (F16) and `Speech` (F15) are merged but live in `Majorsilence.Forms.Essentials`, which is not published | **Breaking:** `OnPaint`, `ClientRectangle` and `ClientSize` are now logical units (#339), so the `ScaleTransform (e.Scaling, e.Scaling)` in every custom control drew at twice the size; removed, and `SmokeTests.CustomControls_StayInsideTheirOwnBounds_AtAnyScale` guards it | F2 (`Shared/Binding` replaced by `Majorsilence.Forms.Mvvm`) |
 
-Released items: none
+Released items: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F17, F18, F19, F23
 
-Implemented but not yet released: F1 (#263, PR #292), see `docs/framework-findings.md`. `tools/check-shims.sh` reads the "Released items:" line above.
+Merged but not yet released: F15 and F16 (the unpublished `Majorsilence.Forms.Essentials` package), see `docs/framework-findings.md`. `tools/check-shims.sh` reads the "Released items:" line above.

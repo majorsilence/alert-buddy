@@ -80,10 +80,9 @@ namespace AlertBuddy.Shared.Controls
             base.OnPaint (e);
 
             var g = e.Graphics;
-            g.ScaleTransform ((float)e.Scaling, (float)e.Scaling);
 
-            var w = ClientSize.Width / (float)e.Scaling;
-            var h = ClientSize.Height / (float)e.Scaling;
+            var w = ClientSize.Width;
+            var h = ClientSize.Height;
             var domeRadius = Math.Min (w, h) * 0.30f;
             var domeCenter = new PointF (w / 2f, h * 0.55f);
             var lampRadius = domeRadius * 0.34f;
