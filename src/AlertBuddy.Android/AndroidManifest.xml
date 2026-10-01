@@ -3,5 +3,20 @@
   <!-- Debug builds are given this permission automatically and Release builds are not, so without it a shipped build cannot open a
        socket at all. -->
   <uses-permission android:name="android.permission.INTERNET" />
-  <application android:allowBackup="true" android:label="AlertBuddy"></application>
+  <!-- Alert notifications (a runtime permission from Android 13). -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- The listener runs as a foreground service, of the special-use type: see docs/android-background.md. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <!-- Start listening again after a restart. -->
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <!-- Let an alarm take over the screen where Android allows it. -->
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+  <uses-permission android:name="android.permission.VIBRATE" />
+  <application android:allowBackup="true" android:label="AlertBuddy">
+    <service android:name="alertbuddy.ListenerService" android:exported="false" android:foregroundServiceType="specialUse">
+      <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps one connection to the family's own ntfy server open so a temperature alarm is heard with the screen off. It is not a media, location or data-sync task." />
+    </service>
+  </application>
 </manifest>

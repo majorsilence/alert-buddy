@@ -45,7 +45,8 @@ curl -X POST "http://127.0.0.1:8080/_scenario/home-alerts?step=5"      # a warni
 dotnet run --project tools/Harness -c Release
 ```
 
-Emulator workflow: create an AVD (`avdmanager create avd -n alertbuddy-phone -k "system-images;android-36;google_apis;x86_64" -d pixel_5`),
+Emulator workflow (KVM works on the author's machine, and boots in about a minute; `-no-window -gpu swiftshader_indirect` is enough, and
+`adb exec-out screencap` shows it; the recorded runs are in `docs/android-background.md`): create an AVD (`avdmanager create avd -n alertbuddy-phone -k "system-images;android-36;google_apis;x86_64" -d pixel_5`),
 boot it with `emulator -avd alertbuddy-phone -no-audio`, `adb install -r` the `*-Signed.apk` from
 `src/AlertBuddy.Android/bin/Release/net10.0-android/`, and launch `com.majorsilence.alertbuddy/<activity>` (find the generated
 activity name with `adb shell cmd package resolve-activity --brief com.majorsilence.alertbuddy`). Screenshots:
