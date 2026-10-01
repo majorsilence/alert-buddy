@@ -13,8 +13,8 @@ namespace AlertBuddy.Shared.Views
     {
         private const int Gap = 10;
         private const int Inset = 8;
-        private const float CharWidth = 8.5f;
-        private const int LineHeight = 22;
+        private const float CharWidth = 9f;
+        private const int LineHeight = 26;
 
         private readonly List<Control> rows = [];
 
@@ -56,6 +56,20 @@ namespace AlertBuddy.Shared.Views
             Controls.Add (control);
             Relayout ();
             return control;
+        }
+
+        /// <summary>How many rows there are, so a screen can later <see cref="TrimTo"/> back to this point.</summary>
+        public int RowCount => rows.Count;
+
+        /// <summary>Removes and disposes every row after the first <paramref name="count"/>, for a part of the form that is rebuilt.</summary>
+        public void TrimTo (int count)
+        {
+            while (rows.Count > count) {
+                var row = rows[^1];
+                rows.RemoveAt (rows.Count - 1);
+                Controls.Remove (row);
+                row.Dispose ();
+            }
         }
 
         /// <summary>Stacks the rows again, after a row's text or visibility changed.</summary>

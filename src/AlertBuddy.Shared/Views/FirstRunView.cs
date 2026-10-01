@@ -123,9 +123,38 @@ namespace AlertBuddy.Shared.Views
         private void BuildPermissionsStep ()
         {
             var column = NewStep (FirstRunStep.Permissions, "Letting the buddy listen");
-            column.AddParagraph (vm.PermissionsProblem ?? "Nothing more is needed on this device.");
-            var later = column.Add (new ChunkyButton { Text = "Later", Height = 56 });
-            scope.Add (later.BindCommand (vm.LaterCommand));
+            var problem = column.AddParagraph ("");
+            var fixedRows = column.RowCount;
+
+            // The steps change when the person comes back from system settings, so this part is built again each time the view model
+            // refreshes them. Its own scope keeps the buttons it binds from outliving the rows they were made for.
+            BindingScope? rowScope = null;
+            void Rebuild ()
+            {
+                rowScope?.Dispose ();
+                rowScope = new BindingScope ();
+                column.TrimTo (fixedRows);
+
+                problem.Text = vm.PermissionsProblem ?? (vm.Permissions.Count == 0 ? "Nothing more is needed on this device." : "");
+                foreach (var row in vm.Permissions) {
+                    column.AddLabel (row.StatusText.Length > 0 ? $"{row.Title}: {row.StatusText}" : row.Title);
+                    column.AddParagraph (row.Why);
+                    var button = column.Add (new ChunkyButton { Text = row.ButtonText, Height = 56 });
+                    rowScope.Add (button.BindCommand (row.OpenCommand));
+                }
+
+                var later = column.Add (new ChunkyButton { Text = "Later", Height = 56 }, extraTop: 10);
+                rowScope.Add (later.BindCommand (vm.LaterCommand));
+                column.Relayout ();
+            }
+
+            scope.Add (vm.Observe (nameof (FirstRunViewModel.PermissionsProblem), v => v.PermissionsProblem, _ => Rebuild ()));
+            scope.Add (new Disposer (() => rowScope?.Dispose ()));
+        }
+
+        private sealed class Disposer (Action dispose) : IDisposable
+        {
+            public void Dispose () => dispose ();
         }
 
         private void BuildPracticeStep ()

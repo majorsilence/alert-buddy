@@ -44,6 +44,17 @@ namespace AlertBuddy.Shared.Tests
         public bool Enabled { get; set; }
     }
 
+    internal sealed class SomePermissions : IPermissionGuide
+    {
+        public IReadOnlyList<PermissionItem> Items { get; } = [
+            new (PermissionKind.Notifications, "Notifications", "So an alarm can show up on the screen.", true),
+            new (PermissionKind.AlarmVolume, "Alarm volume", "Turn it up with the buttons while the test sound plays.", null),
+            new (PermissionKind.BatteryOptimisation, "Keep listening with the screen off", "Some phones stop apps they think are idle.", false),
+        ];
+
+        public void Open (PermissionKind kind) { }
+    }
+
     internal sealed class AlwaysListening : IBackgroundListener
     {
         public bool CanListenInBackground => true;
@@ -65,6 +76,7 @@ namespace AlertBuddy.Shared.Tests
             Notifier = new NoOpNotifier (),
             Background = new AlwaysListening (),
             KeepAwake = new NoOpKeepAwake (),
+            Permissions = new SomePermissions (),
             Dispatcher = new SynchronousDispatcher (),
             Secrets = new InMemorySecretStore (),
             SettingsStore = new InMemorySettingsStore {
@@ -185,6 +197,12 @@ namespace AlertBuddy.Shared.Tests
                 firstRun.NextCommand.Execute (null);
                 Assert.Equal (AlertBuddy.ViewModels.Screens.FirstRunStep.Server, firstRun.Step);
                 AssertInked (HeadlessRenderer.CapturePng (form, 420, 720), "smoke-firstrun-3.png");
+
+                firstRun.ServerUrl = "https://ntfy.example.com";
+                firstRun.Topic = "home-alerts";
+                firstRun.NextCommand.Execute (null);
+                Assert.Equal (AlertBuddy.ViewModels.Screens.FirstRunStep.Permissions, firstRun.Step);
+                AssertInked (HeadlessRenderer.CapturePng (form, 420, 720), "smoke-firstrun-4.png");
             } finally {
                 await app.DisposeAsync ();
             }
