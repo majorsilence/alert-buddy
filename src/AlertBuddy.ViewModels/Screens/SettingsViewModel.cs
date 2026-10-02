@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using AlertBuddy.Core.Interpretation;
 using AlertBuddy.Core.Ntfy;
@@ -37,6 +38,7 @@ namespace AlertBuddy.ViewModels.Screens
         private readonly IListenerControl listener;
         private readonly AlertEngine engine;
         private readonly INavigator navigator;
+        private readonly PermissionRows permissionRows;
         private CancellationTokenSource? testing;
 
         [ObservableProperty] private string serverUrl = "";
@@ -75,7 +77,9 @@ namespace AlertBuddy.ViewModels.Screens
             IListenerControl listener,
             AlertEngine engine,
             INavigator navigator,
-            string version = "")
+            string version = "",
+            IPermissionGuide? permissions = null,
+            ILifecycle? lifecycle = null)
         {
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
@@ -84,8 +88,32 @@ namespace AlertBuddy.ViewModels.Screens
             this.engine = engine ?? throw new ArgumentNullException (nameof (engine));
             this.navigator = navigator ?? throw new ArgumentNullException (nameof (navigator));
             Version = version;
+            permissionRows = new PermissionRows (permissions);
+
+            // The person goes to system settings to allow something and comes back: show what they did.
+            if (lifecycle is not null) {
+                lifecycle.Resumed += RefreshPermissions;
+                Own (new Unsubscribe (() => lifecycle.Resumed -= RefreshPermissions));
+            }
 
             LoadFrom (settings.Current);
+        }
+
+        /// <summary>The permission steps, so a grown-up can still reach them after first run. Empty where there is nothing to allow.</summary>
+        public ObservableCollection<PermissionRowViewModel> Permissions => permissionRows.Items;
+
+        /// <summary>Raised by <see cref="PermissionsRefreshed"/> changing: the rows were asked for again, so a view rebuilds them.</summary>
+        [ObservableProperty]
+        private int permissionsRefreshed;
+
+        /// <summary>Asks the platform again which permissions are allowed.</summary>
+        public void RefreshPermissions ()
+        {
+            if (IsDisposed)
+                return;
+
+            permissionRows.Refresh ();
+            PermissionsRefreshed++;
         }
 
         /// <summary>The app version.</summary>
@@ -133,7 +161,7 @@ namespace AlertBuddy.ViewModels.Screens
             base.OnPropertyChanged (e);
 
             if (e.PropertyName is nameof (ServerProblem) or nameof (TopicProblem) or nameof (SignInProblem) or nameof (PinProblem) or nameof (NameProblem)
-                or nameof (CanSave) or nameof (ServerIsUnencrypted) or nameof (InterpretationProblems) or nameof (SavedMessage) or nameof (TestResult) or nameof (IsTesting))
+                or nameof (CanSave) or nameof (ServerIsUnencrypted) or nameof (InterpretationProblems) or nameof (SavedMessage) or nameof (TestResult) or nameof (IsTesting) or nameof (PermissionsRefreshed))
                 return;
 
             OnPropertyChanged (nameof (ServerProblem));

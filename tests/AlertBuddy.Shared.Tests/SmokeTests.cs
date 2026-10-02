@@ -186,6 +186,9 @@ namespace AlertBuddy.Shared.Tests
                 app.Navigator.GoTo<AlertBuddy.ViewModels.Screens.SettingsViewModel> ();
                 AssertInked (HeadlessRenderer.CapturePng (form, 420, 720), "smoke-settings.png");
 
+                // The permission steps sit part-way down the form: a tall window shows the whole of it.
+                AssertInked (HeadlessRenderer.CapturePng (form, 420, 2400), "smoke-settings-tall.png");
+
                 app.Navigator.GoTo<AlertBuddy.ViewModels.Screens.FirstRunViewModel> ();
                 var firstRun = Assert.IsType<AlertBuddy.ViewModels.Screens.FirstRunViewModel> (app.Navigator.Current);
                 AssertInked (HeadlessRenderer.CapturePng (form, 420, 720), "smoke-firstrun-1.png");

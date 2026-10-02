@@ -81,5 +81,36 @@ namespace AlertBuddy.ViewModels.Tests.Screens
 
             Assert.Empty (first.Permissions);
         }
+
+        [Fact]
+        public async Task Settings_OffersTheSameSteps_AndFollowsTheSystem ()
+        {
+            await using var rig = new AppRig ();
+            rig.Navigator.GoTo<SettingsViewModel> ();
+            var settings = rig.Current<SettingsViewModel> ();
+            Assert.Equal (["Notifications", "Alarm volume"], settings.Permissions.Select (p => p.Title));
+            Assert.Equal ("Not yet", settings.Permissions[0].StatusText);
+
+            rig.Permissions.Current[0] = rig.Permissions.Current[0] with { Granted = true };
+            var before = settings.PermissionsRefreshed;
+            rig.Lifecycle.Resume ();
+
+            Assert.Equal ("Done", settings.Permissions[0].StatusText);
+            Assert.Equal (before + 1, settings.PermissionsRefreshed);
+        }
+
+        [Fact]
+        public async Task AskingAgainAboutPermissions_DoesNotWipeTheSavedMessage ()
+        {
+            await using var rig = new AppRig ();
+            rig.Navigator.GoTo<SettingsViewModel> ();
+            var settings = rig.Current<SettingsViewModel> ();
+            await settings.SaveCommand.ExecuteAsync (null);
+            Assert.Equal ("Saved.", settings.SavedMessage);
+
+            rig.Lifecycle.Resume ();
+
+            Assert.Equal ("Saved.", settings.SavedMessage);
+        }
     }
 }

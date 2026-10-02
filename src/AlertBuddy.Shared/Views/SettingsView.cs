@@ -75,6 +75,19 @@ namespace AlertBuddy.Shared.Views
             column.AddLabel ("New PIN again");
             Field (nameof (SettingsViewModel.NewPinConfirm), v => v.NewPinConfirm, (v, t) => v.NewPinConfirm = t, secret: true);
 
+            if (vm.Permissions.Count > 0) {
+                column.AddHeading ("Letting the buddy listen");
+                var steps = column.AddSection ();
+                BindingScope? stepScope = null;
+                scope.Add (vm.Observe (nameof (SettingsViewModel.PermissionsRefreshed), v => v.PermissionsRefreshed, _ => {
+                    stepScope?.Dispose ();
+                    stepScope = new BindingScope ();
+                    PermissionStepsView.Fill (steps, vm.Permissions, stepScope);
+                    column.Relayout ();
+                }));
+                scope.Add (new Disposer (() => stepScope?.Dispose ()));
+            }
+
             column.AddHeading ("Reading alerts");
             column.AddLabel ("Priority that means an alarm");
             Number (nameof (SettingsViewModel.AlarmPriority), 1, 5, v => v.AlarmPriority, (v, n) => v.AlarmPriority = n);
@@ -103,6 +116,11 @@ namespace AlertBuddy.Shared.Views
 
             Resize += (_, _) => PerformCustomLayout ();
             PerformCustomLayout ();
+        }
+
+        private sealed class Disposer (Action dispose) : IDisposable
+        {
+            public void Dispose () => dispose ();
         }
 
         private TextBox Field (string property, Func<SettingsViewModel, string> get, Action<SettingsViewModel, string> set, bool secret = false)

@@ -142,7 +142,7 @@ namespace AlertBuddy.ViewModels
 
             navigator.Register (() => new AlertBookViewModel (engine, hub, navigator, screens, clock, platform.Dispatcher, platform.Zone));
             navigator.Register (() => new PracticeViewModel (settings, clock, platform.Dispatcher, scheduler, platform.Sound, navigator));
-            navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version));
+            navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version, platform.Permissions, platform.Lifecycle));
             navigator.Register (() => new FirstRunViewModel (settings, platform.Secrets, tester, listener, navigator, platform.Background, platform.Permissions, platform.Lifecycle));
 
             screens.Wire (

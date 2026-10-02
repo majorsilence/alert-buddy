@@ -38,7 +38,7 @@ namespace AlertBuddy.ViewModels.Screens
         private readonly IListenerControl listener;
         private readonly INavigator navigator;
         private readonly IBackgroundListener background;
-        private readonly IPermissionGuide? permissions;
+        private readonly PermissionRows permissionRows;
         private CancellationTokenSource? testing;
 
         [ObservableProperty]
@@ -94,7 +94,7 @@ namespace AlertBuddy.ViewModels.Screens
             this.listener = listener ?? throw new ArgumentNullException (nameof (listener));
             this.navigator = navigator ?? throw new ArgumentNullException (nameof (navigator));
             this.background = background ?? throw new ArgumentNullException (nameof (background));
-            this.permissions = permissions;
+            permissionRows = new PermissionRows (permissions);
 
             // The person leaves for system settings and comes back: ask again, so the steps show what they just did.
             if (lifecycle is not null) {
@@ -106,27 +106,15 @@ namespace AlertBuddy.ViewModels.Screens
         }
 
         /// <summary>The permission steps, in order. Empty on a platform with nothing to allow.</summary>
-        public ObservableCollection<PermissionRowViewModel> Permissions { get; } = [];
+        public ObservableCollection<PermissionRowViewModel> Permissions => permissionRows.Items;
 
         /// <summary>Asks the platform again which permissions are allowed, and updates the rows.</summary>
         public void RefreshPermissions ()
         {
-            if (IsDisposed || permissions is null)
+            if (IsDisposed)
                 return;
 
-            var items = permissions.Items;
-            for (var i = 0; i < items.Count; i++) {
-                if (i < Permissions.Count && Permissions[i].Kind == items[i].Kind)
-                    Permissions[i].Update (items[i]);
-                else if (i < Permissions.Count)
-                    Permissions[i] = new PermissionRowViewModel (items[i], permissions);
-                else
-                    Permissions.Add (new PermissionRowViewModel (items[i], permissions));
-            }
-
-            while (Permissions.Count > items.Count)
-                Permissions.RemoveAt (Permissions.Count - 1);
-
+            permissionRows.Refresh ();
             OnPropertyChanged (nameof (PermissionsProblem));
         }
 

@@ -17,12 +17,32 @@ namespace AlertBuddy.Shared.Views
         private const int LineHeight = 26;
 
         private readonly List<Control> rows = [];
+        private bool laying;
+        private bool layAgain;
 
-        public FormColumn ()
+        private readonly bool isSection;
+
+        /// <param name="isSection">True for a part of another column: it does not scroll, and takes the height its rows need.</param>
+        public FormColumn (bool isSection = false)
         {
-            AutoScroll = true;
+            this.isSection = isSection;
+            AutoScroll = !isSection;
             Resize += (_, _) => Relayout ();
         }
+
+        /// <summary>
+        /// A part of this column that can be rebuilt on its own (the permission steps, which change when the person returns from system
+        /// settings) without disturbing the fields around it.
+        /// </summary>
+        public FormColumn AddSection ()
+        {
+            var section = new FormColumn (isSection: true);
+            section.HeightChanged += Relayout;
+            Add (section);
+            return section;
+        }
+
+        private event Action? HeightChanged;
 
         /// <summary>A heading for a group of fields.</summary>
         public Label AddHeading (string text)
@@ -75,6 +95,25 @@ namespace AlertBuddy.Shared.Views
         /// <summary>Stacks the rows again, after a row's text or visibility changed.</summary>
         public void Relayout ()
         {
+            // A section's height changing relays out its parent, which sets the section's width, which relays the section out again.
+            if (laying) {
+                layAgain = true;
+                return;
+            }
+
+            laying = true;
+            try {
+                do {
+                    layAgain = false;
+                    LayRowsOut ();
+                } while (layAgain);
+            } finally {
+                laying = false;
+            }
+        }
+
+        private void LayRowsOut ()
+        {
             var width = Math.Max (160, Width - Inset * 2 - 16);
             var top = Inset;
             foreach (var row in rows) {
@@ -89,7 +128,11 @@ namespace AlertBuddy.Shared.Views
                 row.Left = Inset;
                 row.Top = top;
 
-                if (row is Label { AutoSize: false } paragraph) {
+                if (row is FormColumn) {
+                    // A section's own inset lines its rows up with this column's, so it spans the column and starts at its edge.
+                    row.Left = 0;
+                    row.Width = Math.Max (160, Width - 16);
+                } else if (row is Label { AutoSize: false } paragraph) {
                     paragraph.Width = width;
                     var perLine = Math.Max (10, (int)(width / CharWidth));
                     paragraph.Height = Math.Max (1, (paragraph.Text.Length + perLine - 1) / perLine) * LineHeight;
@@ -102,6 +145,11 @@ namespace AlertBuddy.Shared.Views
                 }
 
                 top += row.Height + Gap;
+            }
+
+            if (isSection && Height != top) {
+                Height = top;
+                HeightChanged?.Invoke ();
             }
         }
     }
