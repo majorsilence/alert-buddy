@@ -54,8 +54,10 @@ namespace AlertBuddy.ViewModels.Copy
         /// <summary>The Alert Book with nothing in it: an invitation, not a dead end.</summary>
         public const string AlertBookEmpty = "No alerts yet. When something needs a look, it shows up here.";
 
-        /// <summary>The honest banner when the app cannot listen in the background.</summary>
-        public static string CannotListenInBackground (string buddy) => $"{buddy} can't listen in the background. A grown-up can fix this in settings.";
+        /// <summary>The honest banner when the app cannot listen in the background: it says which thing is wrong, not just that something is.</summary>
+        /// <param name="buddy">The buddy's name.</param>
+        /// <param name="reason">What is wrong, as a sentence that ends with a full stop.</param>
+        public static string CannotListenInBackground (string buddy, string reason) => $"{buddy} may miss an alert. {reason} A grown-up can fix this in settings.";
 
         /// <summary>The safety note, on About and on first run.</summary>
         public const string SafetyNote = "Alert Buddy is a helper. It does not replace smoke or heat alarms.";

@@ -152,10 +152,10 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             rig.GoLive ();
             Assert.Null (rig.Main.Banner);
 
-            rig.Background.WhyNot = "notifications are turned off";
+            rig.Background.WhyNot = "Notifications are turned off.";
             rig.Clock.Advance (TimeSpan.FromSeconds (15));
 
-            Assert.Equal ("Pip can't listen in the background. A grown-up can fix this in settings.", rig.Main.Banner);
+            Assert.Equal ("Pip may miss an alert. Notifications are turned off. A grown-up can fix this in settings.", rig.Main.Banner);
         }
 
         [Fact]

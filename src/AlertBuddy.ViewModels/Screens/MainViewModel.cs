@@ -148,7 +148,7 @@ namespace AlertBuddy.ViewModels.Screens
             ConnectionText = HomeStatusCalculator.ConnectionSentence (snapshot.Connection, now, configured);
 
             // The honest banner: if the app cannot listen with the screen off, it says so plainly (PLAN.md principle 5).
-            Banner = background.WhyNot is null ? null : Words.CannotListenInBackground (current.BuddyName);
+            Banner = background.WhyNot is { } reason ? Words.CannotListenInBackground (current.BuddyName, reason) : null;
 
             SyncAlerts (snapshot.Active);
         }

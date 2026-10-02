@@ -172,7 +172,7 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             var sentences = new[] {
                 Words.AllQuiet ("Pip"), Words.CannotHear ("Pip"), Words.GettingWarm ("Workshop"), Words.SeveralWarm (2), Words.NeedsALook ("Door"),
                 Words.TellAGrownUpNow, Words.TooHot ("Workshop"), Words.ToldAGrownUp, Words.ThankYou, Words.GotIt, Words.AllClear ("Workshop"),
-                Words.PracticeBanner, Words.AlertBookEmpty, Words.CannotListenInBackground ("Pip"), Words.SafetyNote, Words.CannotReachTheHouse,
+                Words.PracticeBanner, Words.AlertBookEmpty, Words.CannotListenInBackground ("Pip", "There is no network."), Words.SafetyNote, Words.CannotReachTheHouse,
                 Words.SignInRefused, Words.TopicNotFound, Words.CertificateProblem, Words.AddressProblem, Words.NotSetUp, Words.GateLocked,
             };
 
