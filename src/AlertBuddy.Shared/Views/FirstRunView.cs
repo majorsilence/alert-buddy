@@ -1,6 +1,5 @@
 using System.Drawing;
 using AlertBuddy.Core.Settings;
-using AlertBuddy.Shared.Binding;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
@@ -77,7 +76,7 @@ namespace AlertBuddy.Shared.Views
             var colour = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 40 });
             foreach (var option in Enum.GetNames<BuddyColour> ())
                 colour.Items.Add (option);
-            scope.Add (colour.BindIndex (vm, nameof (FirstRunViewModel.BuddyColour), v => (int)v.BuddyColour, (v, i) => v.BuddyColour = (BuddyColour)i));
+            scope.Add (colour.BindSelectedIndex (vm, nameof (FirstRunViewModel.BuddyColour), v => (int)v.BuddyColour, (v, i) => v.BuddyColour = (BuddyColour)i));
         }
 
         private void BuildPinStep ()
@@ -106,7 +105,7 @@ namespace AlertBuddy.Shared.Views
             var auth = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 40 });
             foreach (var option in new[] { "No sign-in", "Username and password", "Access token" })
                 auth.Items.Add (option);
-            scope.Add (auth.BindIndex (vm, nameof (FirstRunViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
+            scope.Add (auth.BindSelectedIndex (vm, nameof (FirstRunViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
             column.AddLabel ("Username");
             var user = column.Add (new TextBox { Height = 40 });
             scope.Add (user.BindText (vm, nameof (FirstRunViewModel.Username), v => v.Username, (v, t) => v.Username = t));

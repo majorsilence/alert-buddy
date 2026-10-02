@@ -1,6 +1,5 @@
 using System.Drawing;
 using AlertBuddy.Core.Settings;
-using AlertBuddy.Shared.Binding;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
@@ -39,7 +38,7 @@ namespace AlertBuddy.Shared.Views
 
             column.AddLabel ("Sign in");
             var auth = Choice ("No sign-in", "Username and password", "Access token");
-            scope.Add (auth.BindIndex (vm, nameof (SettingsViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
+            scope.Add (auth.BindSelectedIndex (vm, nameof (SettingsViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
             column.AddLabel ("Username");
             Field (nameof (SettingsViewModel.Username), v => v.Username, (v, t) => v.Username = t);
             column.AddLabel ("Password or token (leave blank to keep the saved one)");
@@ -56,10 +55,10 @@ namespace AlertBuddy.Shared.Views
             Field (nameof (SettingsViewModel.BuddyName), v => v.BuddyName, (v, t) => v.BuddyName = t);
             column.AddLabel ("Look");
             var look = Choice ("Follow the device", "Day", "Night");
-            scope.Add (look.BindIndex (vm, nameof (SettingsViewModel.Look), v => (int)v.Look, (v, i) => v.Look = (LookPreference)i));
+            scope.Add (look.BindSelectedIndex (vm, nameof (SettingsViewModel.Look), v => (int)v.Look, (v, i) => v.Look = (LookPreference)i));
             column.AddLabel ("Movement");
             var motion = Choice ("Follow the device", "Calmer", "Full");
-            scope.Add (motion.BindIndex (vm, nameof (SettingsViewModel.Motion), v => (int)v.Motion, (v, i) => v.Motion = (MotionPreference)i));
+            scope.Add (motion.BindSelectedIndex (vm, nameof (SettingsViewModel.Motion), v => (int)v.Motion, (v, i) => v.Motion = (MotionPreference)i));
 
             column.AddHeading ("Sounds and quiet time");
             var sounds = column.Add (new CheckBox { Text = "Play sounds" });
@@ -135,7 +134,7 @@ namespace AlertBuddy.Shared.Views
         private NumericUpDown Number (string property, int min, int max, Func<SettingsViewModel, int> get, Action<SettingsViewModel, int> set)
         {
             var box = column.Add (new NumericUpDown { Minimum = min, Maximum = max, Height = 40 });
-            scope.Add (box.BindNumber (vm, property, get, set));
+            scope.Add (box.BindValue (vm, property, v => get (v), (v, n) => set (v, (int)n)));
             return box;
         }
 

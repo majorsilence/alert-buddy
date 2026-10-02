@@ -7,7 +7,6 @@ records as released.
 
 | Item | Where | Why | Removed when |
 |---|---|---|---|
-| F26 | `src/AlertBuddy.Shared/Binding/FormBindings.cs` (`BindText`, `BindChecked`, `BindIndex`, `BindNumber`) | `Majorsilence.Forms.Mvvm` has no two-way text binding (majorsilence/Majorsilence.Forms#352) | The framework releases it and this repo adopts it instead |
 | F16 | `src/AlertBuddy.Shared/Platform/InMemorySecretStore.cs` | No desktop OS credential store exists in the framework yet, so the password/token live only for the process's lifetime | F16 releases a real desktop secret store and this repo swaps to it |
 
 If Android delivery starts before the framework's release, expect the sound, lifecycle and back-button forwarding in the Android

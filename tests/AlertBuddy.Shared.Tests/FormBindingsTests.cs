@@ -1,4 +1,4 @@
-using AlertBuddy.Shared.Binding;
+using Majorsilence.Forms.Mvvm;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Majorsilence.Forms;
 using Xunit;
@@ -75,13 +75,13 @@ namespace AlertBuddy.Shared.Tests
         }
 
         [Fact]
-        public void BindChecked_AndBindNumber_GoBothWays ()
+        public void BindChecked_AndBindValue_GoBothWays ()
         {
             var vm = new Model ();
             var check = new CheckBox ();
             var number = new NumericUpDown { Minimum = 1, Maximum = 240 };
             using var a = check.BindChecked (vm, nameof (Model.On), v => v.On, (v, c) => v.On = c);
-            using var b = number.BindNumber (vm, nameof (Model.Count), v => v.Count, (v, n) => v.Count = n);
+            using var b = number.BindValue (vm, nameof (Model.Count), v => v.Count, (v, n) => v.Count = (int)n);
 
             check.Checked = true;
             Assert.True (vm.On);
