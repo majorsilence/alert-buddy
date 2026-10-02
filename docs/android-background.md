@@ -45,4 +45,4 @@ activity opened later finds it already listening, with no IPC.
   background") and does not yet say which one.
 - **`InMemorySecretStore` still holds the password.** A grown-up with a signed-in server loses the password when the process is killed
   (TEMP-SHIM F16, waiting on the unpublished `Majorsilence.Forms.Essentials`).
-- **Fonts.** Grandstander and Atkinson did not load on Android; the emulator drew Roboto. Not yet investigated.
+- **Fonts are bundled but not yet seen on a device.** Grandstander (Bold) and Atkinson Hyperlegible Next (Regular, Bold) are embedded in `AlertBuddy.Shared` with their SIL OFL licences and registered through `PrivateFontCollection`, the route spike S2 ran on the emulator. A Headless test proves the bundled family draws differently from an unknown one; the new APK has not been run to look at it.

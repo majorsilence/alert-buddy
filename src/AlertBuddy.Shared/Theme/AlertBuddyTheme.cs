@@ -77,6 +77,8 @@ namespace AlertBuddy.Shared.Theme
         private static void Show ()
         {
             if (!registered) {
+                // Before the CSS is loaded, so a rule can name the bundled families.
+                AlertFonts.Register ();
                 Majorsilence.Forms.Theme.RegisterThemeCss (DayCss);
                 Majorsilence.Forms.Theme.RegisterThemeCss (NightCss);
                 registered = true;

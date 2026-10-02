@@ -70,7 +70,14 @@ namespace AlertBuddy.Shared.Tests
     /// </summary>
     public class SmokeTests
     {
-        private static AlertBuddyApp CreateApp () => AlertBuddyApp.Create (new PlatformServices {
+        // The heads apply the theme before they build a window; so do the renders, or they show the framework's default look.
+        private static AlertBuddyApp CreateApp ()
+        {
+            AlertBuddy.Shared.Theme.AlertBuddyTheme.Apply (AlertBuddy.Core.Settings.LookPreference.Day);
+            return CreateAppCore ();
+        }
+
+        private static AlertBuddyApp CreateAppCore () => AlertBuddyApp.Create (new PlatformServices {
             Sound = new NoOpSound (),
             Haptics = new NoOpHaptics (),
             Notifier = new NoOpNotifier (),
@@ -143,6 +150,26 @@ namespace AlertBuddy.Shared.Tests
             } finally {
                 await app.DisposeAsync ();
             }
+        }
+
+        [Theory]
+        [InlineData (false)]
+        [InlineData (true)]
+        public void TheBundledFonts_AreWhatIsDrawn_NotTheFallback (bool display)
+        {
+            // Two labels with the same words: one in a bundled family and one in a family that exists nowhere, which draws the fallback.
+            // If the bundled font were not registered the two would be pixel-identical.
+            byte[] Render (Func<Majorsilence.Forms.Drawing.Font> font)
+            {
+                var form = new Majorsilence.Forms.Form { ClientSize = new System.Drawing.Size (420, 80), BackColor = System.Drawing.Color.White, FormBorderStyle = Majorsilence.Forms.FormBorderStyle.None };
+                form.Controls.Add (new Majorsilence.Forms.Label { AutoSize = true, Text = "Pip is keeping watch", Font = font (), Location = new System.Drawing.Point (10, 10) });
+                return HeadlessRenderer.CapturePng (form, 420, 80);
+            }
+
+            var bundled = Render (() => display ? AlertBuddy.Shared.Theme.AlertFonts.Display (24) : AlertBuddy.Shared.Theme.AlertFonts.Body (24));
+            var fallback = Render (() => new Majorsilence.Forms.Drawing.Font ("NoSuchFamilyAnywhere", 24, bold: display));
+
+            Assert.False (bundled.AsSpan ().SequenceEqual (fallback), "the bundled family drew exactly what an unknown family draws");
         }
 
         [Fact]
