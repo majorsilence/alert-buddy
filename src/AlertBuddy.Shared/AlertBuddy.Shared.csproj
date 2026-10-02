@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Majorsilence.Forms" />
+    <PackageReference Include="Majorsilence.Forms.Essentials" />
     <PackageReference Include="Majorsilence.Forms.Mvvm" />
     <ProjectReference Include="..\AlertBuddy.ViewModels\AlertBuddy.ViewModels.csproj" />
   </ItemGroup>

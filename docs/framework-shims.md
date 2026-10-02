@@ -7,7 +7,6 @@ records as released.
 
 | Item | Where | Why | Removed when |
 |---|---|---|---|
-| F16 | `src/AlertBuddy.Shared/Platform/InMemorySecretStore.cs` | No desktop OS credential store exists in the framework yet, so the password/token live only for the process's lifetime | F16 releases a real desktop secret store and this repo swaps to it |
 
 If Android delivery starts before the framework's release, expect the sound, lifecycle and back-button forwarding in the Android
 head (F8, F10, F11) to need shims here too.

@@ -38,7 +38,7 @@ namespace AlertBuddy.Android
                     Notifier = new AndroidAlertNotifier (),
                     Background = new AndroidBackgroundListener (appContext),
                     Dispatcher = new AndroidUiDispatcher (),
-                    Secrets = new InMemorySecretStore (),
+                    Secrets = new PlatformSecretStore (),
                     KeepAwake = new DesktopKeepAwake (),
                     Lifecycle = Lifecycle,
                     Permissions = new AndroidPermissionGuide (appContext, sound),

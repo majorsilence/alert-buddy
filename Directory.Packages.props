@@ -12,6 +12,7 @@
   <ItemGroup Label="Majorsilence.Forms">
     <PackageVersion Include="Majorsilence.Forms" Version="$(MajorsilenceFormsVersion)" />
     <PackageVersion Include="Majorsilence.Forms.Avalonia" Version="$(MajorsilenceFormsVersion)" />
+    <PackageVersion Include="Majorsilence.Forms.Essentials" Version="$(MajorsilenceFormsVersion)" />
     <PackageVersion Include="Majorsilence.Forms.Headless" Version="$(MajorsilenceFormsVersion)" />
     <PackageVersion Include="Majorsilence.Forms.Mvvm" Version="$(MajorsilenceFormsVersion)" />
   </ItemGroup>

@@ -27,7 +27,7 @@ namespace AlertBuddy.Desktop
                 Notifier = new DesktopAlertNotifier (),
                 Background = new DesktopBackgroundListener (),
                 Dispatcher = new DesktopUiDispatcher (() => form ?? throw new InvalidOperationException ("The window has not been created yet.")),
-                Secrets = new InMemorySecretStore (),
+                Secrets = new PlatformSecretStore (),
                 SettingsStore = settingsStore,
                 AlertState = new JsonFileAlertStateStore (Path.Combine (appData, "alerts.json")),
                 KeepAwake = new DesktopKeepAwake (),

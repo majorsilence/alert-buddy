@@ -23,7 +23,7 @@ namespace AlertBuddy.Wasm
                 Notifier = new QuietNotifier (),
                 Background = new ForegroundOnlyListener ("This is a demo in a browser. It does not receive real alerts."),
                 Dispatcher = new DesktopUiDispatcher (() => form ?? throw new InvalidOperationException ("The window has not been created yet.")),
-                Secrets = new InMemorySecretStore (),
+                Secrets = PlatformSecretStore.MemoryOnly (),
                 SettingsStore = new MemorySettingsStore (new AppSettings { FirstRunComplete = true, Pin = null }),
                 AlertState = new MemoryAlertStateStore (),
                 Version = "demo",
