@@ -48,6 +48,16 @@ namespace AlertBuddy.ViewModels.Copy
         /// <summary>The all clear.</summary>
         public static string AllClear (string source) => $"All clear. The {Room (source)} is cool again.";
 
+        /// <summary>What a screen reader says for the buddy: its state in words, because the picture is not read.</summary>
+        public static string BeaconDescription (Screens.BeaconMood mood) => mood switch {
+            Screens.BeaconMood.Asleep => "Asleep. Not listening right now.",
+            Screens.BeaconMood.Watching => "Watching. All quiet.",
+            Screens.BeaconMood.Warning => "Something needs a look.",
+            Screens.BeaconMood.Alarm => "Alarm. Tell a grown-up now.",
+            Screens.BeaconMood.Reassured => "A grown-up is on it.",
+            _ => "",
+        };
+
         /// <summary>Practice mode's banner.</summary>
         public const string PracticeBanner = "Practice. Nothing is really hot.";
 

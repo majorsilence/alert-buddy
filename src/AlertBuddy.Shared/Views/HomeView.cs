@@ -36,14 +36,15 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            gear = new HoldButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48), HoldDuration = TimeSpan.FromSeconds (2) };
+            gear = new HoldButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48), HoldDuration = TimeSpan.FromSeconds (2) }
+                .Named ("home.settings", "Settings, for grown-ups", AccessibleNames.HoldHint);
             gear.Held += (_, _) => vm.OpenSettingsCommand.Execute (null);
             Controls.Add (gear);
 
-            beacon = new BeaconBuddy { Size = new Size (200, 200) };
+            beacon = new BeaconBuddy { Size = new Size (200, 200) }.Named ("home.buddy");
             Controls.Add (beacon);
 
-            bubble = new SpeechBubble { Size = new Size (340, 120) };
+            bubble = new SpeechBubble { Size = new Size (340, 120) }.Named ("home.status");
             Controls.Add (bubble);
 
             connectionLine = new Label { AutoSize = false, Height = 26, ForeColor = AlertPalette.OnGround };
@@ -55,18 +56,18 @@ namespace AlertBuddy.Shared.Views
             alertList = new Panel { AutoScroll = true };
             Controls.Add (alertList);
 
-            openBookButton = new ChunkyButton { Text = "Alert book" };
+            openBookButton = new ChunkyButton { Text = "Alert book" }.Named ("home.alertBook");
             openBookButton.Click += (_, _) => vm.OpenBookCommand.Execute (null);
             Controls.Add (openBookButton);
 
-            practiceButton = new ChunkyButton { Text = "Practice" };
+            practiceButton = new ChunkyButton { Text = "Practice" }.Named ("home.practice");
             practiceButton.Click += (_, _) => vm.StartPracticeCommand.Execute (null);
             Controls.Add (practiceButton);
 
             rightNow = new Label { AutoSize = true, Text = "Right now", ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (20), Visible = false };
             Controls.Add (rightNow);
 
-            bedsideButton = new ChunkyButton { Size = new Size (144, 48), Visible = vm.CanBedside };
+            bedsideButton = new ChunkyButton { Size = new Size (144, 48), Visible = vm.CanBedside }.Named ("home.bedside");
             scope.Add (bedsideButton.BindCommand (vm.ToggleBedsideCommand));
             Controls.Add (bedsideButton);
 
@@ -106,7 +107,8 @@ namespace AlertBuddy.Shared.Views
 
             foreach (var item in vm.ActiveAlerts) {
                 if (!cards.TryGetValue (item, out var card)) {
-                    card = new TicketCard ();
+                    card = new TicketCard ().Named ($"home.alert.{item.Id}");
+                    card.AccessibleRole = AccessibleRole.PushButton;
                     card.Click += (_, _) => item.OpenCommand.Execute (null);
                     cards[item] = card;
                     alertList.Controls.Add (card);

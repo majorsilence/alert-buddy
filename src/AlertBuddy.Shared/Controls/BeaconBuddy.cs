@@ -1,5 +1,6 @@
 using System.Drawing;
 using AlertBuddy.Shared.Theme;
+using AlertBuddy.ViewModels.Copy;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms;
 using Majorsilence.Forms.Drawing;
@@ -33,10 +34,15 @@ namespace AlertBuddy.Shared.Controls
             Width = 220;
             Height = 220;
             timer.Tick += (_, _) => Advance ();
+
+            // The picture is not read by a screen reader or seen by an automation client: its state has to be said in words.
+            AccessibleName = "Buddy";
+            AccessibleRole = AccessibleRole.Graphic;
+            AccessibleDescription = Words.BeaconDescription (level);
         }
 
         /// <summary>What the beacon shows.</summary>
-        public BeaconMood Level { get => level; set { if (level == value) return; level = value; Invalidate (); } }
+        public BeaconMood Level { get => level; set { if (level == value) return; level = value; AccessibleDescription = Words.BeaconDescription (value); Invalidate (); } }
         private BeaconMood level = BeaconMood.Asleep;
 
         /// <summary>No rotation, no shake; the lamp pulses colour slowly instead. Follows <see cref="AlertMotion"/> (the grown-up's choice, else the system's) unless set here.</summary>

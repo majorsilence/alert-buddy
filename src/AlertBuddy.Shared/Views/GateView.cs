@@ -31,23 +31,23 @@ namespace AlertBuddy.Shared.Views
             Controls.Add (message);
             Controls.Add (dots);
 
-            hold = new HoldButton { Text = "Hold", Size = new Size (140, 72), HoldDuration = TimeSpan.FromSeconds (2) };
+            hold = new HoldButton { Text = "Hold", Size = new Size (140, 72), HoldDuration = TimeSpan.FromSeconds (2) }.Named ("gate.hold", "Hold to continue", AccessibleNames.HoldHint);
             hold.Held += (_, _) => vm.HoldCompletedCommand.Execute (null);
             Controls.Add (hold);
 
             for (var d = 0; d <= 9; d++) {
                 var digit = d.ToString ();
-                var key = new ChunkyButton { Text = digit, Size = new Size (72, 64) };
+                var key = new ChunkyButton { Text = digit, Size = new Size (72, 64) }.Named ($"gate.key.{digit}");
                 key.Click += (_, _) => vm.PressDigitCommand.Execute (digit);
                 pad.Add (key);
                 Controls.Add (key);
             }
 
-            backspace = new ChunkyButton { Text = "⌫", Size = new Size (72, 64) };
+            backspace = new ChunkyButton { Text = "⌫", Size = new Size (72, 64) }.Named ("gate.backspace", "Delete the last digit");
             scope.Add (backspace.BindCommand (vm.BackspaceCommand));
             Controls.Add (backspace);
 
-            cancel = new ChunkyButton { Text = "Cancel", Size = new Size (140, 56) };
+            cancel = new ChunkyButton { Text = "Cancel", Size = new Size (140, 56) }.Named ("gate.cancel");
             scope.Add (cancel.BindCommand (vm.CancelCommand));
             Controls.Add (cancel);
 

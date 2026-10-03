@@ -36,11 +36,11 @@ namespace AlertBuddy.Shared.Views
             problem = new Label { AutoSize = true, ForeColor = AlertPalette.Notice };
             Controls.Add (problem);
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56) };
+            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56) }.Named ("firstRun.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
-            nextButton = new ChunkyButton { Size = new Size (160, 56), FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper };
+            nextButton = new ChunkyButton { Size = new Size (160, 56), FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("firstRun.next");
             scope.Add (nextButton.BindCommand (vm.NextCommand));
             Controls.Add (nextButton);
 
@@ -70,10 +70,10 @@ namespace AlertBuddy.Shared.Views
         {
             var column = NewStep (FirstRunStep.NameBuddy, "Name your buddy");
             column.AddLabel ("What should the buddy be called?");
-            var name = column.Add (new TextBox { Height = 40 });
+            var name = column.Add (new TextBox { Height = 48 }.Named ("firstRun.buddyName", "What should the buddy be called?"));
             scope.Add (name.BindText (vm, nameof (FirstRunViewModel.BuddyName), v => v.BuddyName, (v, t) => v.BuddyName = t));
             column.AddLabel ("Colour");
-            var colour = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 40 });
+            var colour = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("firstRun.buddyColour", "Colour"));
             foreach (var option in Enum.GetNames<BuddyColour> ())
                 colour.Items.Add (option);
             scope.Add (colour.BindSelectedIndex (vm, nameof (FirstRunViewModel.BuddyColour), v => (int)v.BuddyColour, (v, i) => v.BuddyColour = (BuddyColour)i));
@@ -84,10 +84,10 @@ namespace AlertBuddy.Shared.Views
             var column = NewStep (FirstRunStep.GrownUpGate, "A grown-up sets a PIN");
             column.AddParagraph ("The PIN keeps little fingers out of settings. It is a gate, not a lock.");
             column.AddLabel ("PIN (4 digits)");
-            var pin = column.Add (new TextBox { Height = 40, UseSystemPasswordChar = true });
+            var pin = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.pin", "PIN, 4 digits"));
             scope.Add (pin.BindText (vm, nameof (FirstRunViewModel.Pin), v => v.Pin, (v, t) => v.Pin = t));
             column.AddLabel ("PIN again");
-            var again = column.Add (new TextBox { Height = 40, UseSystemPasswordChar = true });
+            var again = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.pinAgain", "PIN again"));
             scope.Add (again.BindText (vm, nameof (FirstRunViewModel.PinConfirm), v => v.PinConfirm, (v, t) => v.PinConfirm = t));
         }
 
@@ -95,25 +95,25 @@ namespace AlertBuddy.Shared.Views
         {
             var column = NewStep (FirstRunStep.Server, "Server and sign-in");
             column.AddLabel ("Server address");
-            var url = column.Add (new TextBox { Height = 40 });
+            var url = column.Add (new TextBox { Height = 48 }.Named ("firstRun.serverUrl", "Server address"));
             scope.Add (url.BindText (vm, nameof (FirstRunViewModel.ServerUrl), v => v.ServerUrl, (v, t) => v.ServerUrl = t));
             column.AddLabel ("Topic");
-            var topic = column.Add (new TextBox { Height = 40 });
+            var topic = column.Add (new TextBox { Height = 48 }.Named ("firstRun.topic", "Topic"));
             scope.Add (topic.BindText (vm, nameof (FirstRunViewModel.Topic), v => v.Topic, (v, t) => v.Topic = t));
 
             column.AddLabel ("Sign in");
-            var auth = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 40 });
+            var auth = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("firstRun.signIn", "Sign in"));
             foreach (var option in new[] { "No sign-in", "Username and password", "Access token" })
                 auth.Items.Add (option);
             scope.Add (auth.BindSelectedIndex (vm, nameof (FirstRunViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
             column.AddLabel ("Username");
-            var user = column.Add (new TextBox { Height = 40 });
+            var user = column.Add (new TextBox { Height = 48 }.Named ("firstRun.username", "Username"));
             scope.Add (user.BindText (vm, nameof (FirstRunViewModel.Username), v => v.Username, (v, t) => v.Username = t));
             column.AddLabel ("Password or token");
-            var secret = column.Add (new TextBox { Height = 40, UseSystemPasswordChar = true });
+            var secret = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.secret", "Password or token"));
             scope.Add (secret.BindText (vm, nameof (FirstRunViewModel.Secret), v => v.Secret, (v, t) => v.Secret = t));
 
-            var test = column.Add (new ChunkyButton { Text = "Test connection", Height = 56 });
+            var test = column.Add (new ChunkyButton { Text = "Test connection", Height = 56 }.Named ("firstRun.testConnection"));
             scope.Add (test.BindCommand (vm.TestConnectionCommand));
             var result = column.AddParagraph ("");
             scope.Add (vm.Observe (nameof (FirstRunViewModel.TestResult), v => v.TestResult, r => { result.Text = r ?? ""; column.Relayout (); }));
@@ -124,7 +124,7 @@ namespace AlertBuddy.Shared.Views
             var column = NewStep (FirstRunStep.Permissions, "Letting the buddy listen");
             var problem = column.AddParagraph ("");
             var section = column.AddSection ();
-            var later = column.Add (new ChunkyButton { Text = "Later", Height = 56 }, extraTop: 10);
+            var later = column.Add (new ChunkyButton { Text = "Later", Height = 56 }.Named ("firstRun.later"), extraTop: 10);
             scope.Add (later.BindCommand (vm.LaterCommand));
 
             // The steps change when the person comes back from system settings, so the section is drawn again each time the view model
@@ -149,7 +149,7 @@ namespace AlertBuddy.Shared.Views
         {
             var column = NewStep (FirstRunStep.Practice, "A practice run");
             column.AddParagraph ("Try a pretend alert so you both know what to expect.");
-            var practice = column.Add (new ChunkyButton { Text = "Practice", Height = 56 });
+            var practice = column.Add (new ChunkyButton { Text = "Practice", Height = 56 }.Named ("firstRun.practice"));
             scope.Add (practice.BindCommand (vm.TryPracticeCommand));
             column.AddParagraph (vm.SafetyNote);
         }

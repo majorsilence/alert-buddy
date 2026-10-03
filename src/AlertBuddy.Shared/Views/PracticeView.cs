@@ -30,20 +30,20 @@ namespace AlertBuddy.Shared.Views
             banner = new Label { AutoSize = true, Text = vm.Banner, ForeColor = AlertPalette.Notice };
             Controls.Add (banner);
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) };
+            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("practice.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
-            beacon = new BeaconBuddy { Size = new Size (200, 200) };
+            beacon = new BeaconBuddy { Size = new Size (200, 200) }.Named ("practice.buddy");
             Controls.Add (beacon);
 
-            bubble = new SpeechBubble { Size = new Size (340, 120) };
+            bubble = new SpeechBubble { Size = new Size (340, 120) }.Named ("practice.status");
             Controls.Add (bubble);
 
             stepLine = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };
             Controls.Add (stepLine);
 
-            startButton = new ChunkyButton { Height = 64 };
+            startButton = new ChunkyButton { Height = 64 }.Named ("practice.start");
             startButton.Click += (_, _) => {
                 if (vm.IsRunning)
                     vm.StopCommand.Execute (null);
@@ -52,7 +52,7 @@ namespace AlertBuddy.Shared.Views
             };
             Controls.Add (startButton);
 
-            toldButton = new ChunkyButton { Text = "I told a grown-up", Height = 64, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper };
+            toldButton = new ChunkyButton { Text = "I told a grown-up", Height = 64, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("practice.told");
             scope.Add (toldButton.BindCommand (vm.ToldAGrownUpCommand));
             Controls.Add (toldButton);
 

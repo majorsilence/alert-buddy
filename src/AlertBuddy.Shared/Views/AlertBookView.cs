@@ -25,7 +25,7 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) };
+            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("book.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
@@ -35,7 +35,7 @@ namespace AlertBuddy.Shared.Views
             empty = new Label { AutoSize = true, Text = vm.EmptyText, ForeColor = AlertPalette.OnGround };
             Controls.Add (empty);
 
-            clear = new HoldButton { Text = "Clear", Size = new Size (120, 48) };
+            clear = new HoldButton { Text = "Clear", Size = new Size (120, 48) }.Named ("book.clear", "Clear the Alert book", AccessibleNames.HoldHint);
             clear.Held += (_, _) => vm.ClearHistoryCommand.Execute (null);
             Controls.Add (clear);
 
@@ -67,6 +67,8 @@ namespace AlertBuddy.Shared.Views
                         Source = item.Source, TimeAgo = item.TimeAgo, Sentence = item.Sentence,
                         Temperature = item.Temperature, Level = item.Level, Status = item.Status,
                     };
+                    card.Named ($"book.alert.{item.Id}");
+                    card.AccessibleRole = AccessibleRole.PushButton;
                     card.Click += (_, _) => item.OpenCommand.Execute (null);
                     list.Controls.Add (card);
                 }

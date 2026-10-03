@@ -71,7 +71,7 @@ namespace AlertBuddy.Shared.Tests
     public class SmokeTests
     {
         // The heads apply the theme before they build a window; so do the renders, or they show the framework's default look.
-        private static AlertBuddyApp CreateApp ()
+        internal static AlertBuddyApp CreateApp ()
         {
             AlertBuddy.Shared.Theme.AlertBuddyTheme.Apply (AlertBuddy.Core.Settings.LookPreference.Day);
             return CreateAppCore ();

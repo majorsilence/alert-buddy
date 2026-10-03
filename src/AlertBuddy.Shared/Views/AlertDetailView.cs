@@ -27,11 +27,11 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) };
+            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("detail.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
-            card = new TicketCard { Height = 110 };
+            card = new TicketCard { Height = 110 }.Named ("detail.alert");
             Controls.Add (card);
 
             levelLine = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };
@@ -43,7 +43,7 @@ namespace AlertBuddy.Shared.Views
             Controls.Add (body);
             Controls.Add (whatToDo);
 
-            gotIt = new HoldButton { Text = "Got it", Size = new Size (140, 48) };
+            gotIt = new HoldButton { Text = "Got it", Size = new Size (140, 48) }.Named ("detail.gotIt", null, AccessibleNames.HoldHint);
             gotIt.Held += (_, _) => vm.GotItCommand.Execute (null);
             Controls.Add (gotIt);
 

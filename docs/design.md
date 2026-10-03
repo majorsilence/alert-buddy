@@ -30,9 +30,13 @@ the beacon following a saved change. Whether the system preference really reache
 
 ## Screen readers (not covered)
 
-- **Nothing sets an accessible name or description** on any control. The views are custom-painted, so a screen reader would find
-  unlabelled canvas, not the words on screen. The framework's accessibility bridge was Windows-only when PLAN.md was written
-  (register item F22 is its mobile design note and spike); this repo has not verified what Android TalkBack sees.
+- **Every control a person acts on now has a stable `Name` and words to say** (2026-10-03): buttons say their text, the glyph-only
+  settings button says "Settings, for grown-ups" and that it must be held, each text box, drop-down and number box carries the label
+  that sits above it (a separate control, so the field has to be told), the buddy describes its state in words, and a ticket card reads
+  as where, what and how long ago. `AccessibilityTests` walks every screen and fails on a missing name, a repeated name or a target under
+  48; it caught the 40-high text boxes, now 48. That is the **tree**, which an automation client reads; whether Android's TalkBack
+  actually receives it is #284 and has not been run. The framework's bridge was Windows-only when PLAN.md was written, and this repo has
+  not verified what TalkBack sees.
 - **The alarm takeover is the one screen that must work without sight.** Until a screen reader run says otherwise, assume it does
   not announce itself. The audible siren, vibration and the notification (which Android does announce) are what carry an alarm.
 - **Number entry.** The PIN fields bring up the full letter keyboard on Android, not a number pad (majorsilence/Majorsilence.Forms#368).
@@ -41,6 +45,5 @@ the beacon following a saved change. Whether the system preference really reache
 ## What would close the gaps
 
 1. Framework: a mobile screen-reader bridge (F22), a way to ask for a numeric keyboard (#368), and the focus fix (#366).
-2. App, once a bridge exists: names and descriptions on the buddy, ticket cards and buttons, and an announcement when the alarm
-   takeover opens.
+2. App, once a bridge exists: an announcement when the alarm takeover opens (the names are already set).
 3. A TalkBack run on a real phone, recorded in `docs/android-background.md`.

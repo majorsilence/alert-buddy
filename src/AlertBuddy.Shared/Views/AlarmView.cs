@@ -32,7 +32,7 @@ namespace AlertBuddy.Shared.Views
             // decoration"), and a Cherry background would also swallow the beacon's own Cherry lamp and Paper ring whole.
             BackColor = AlertPalette.Ground;
 
-            beacon = new BeaconBuddy { Size = new Size (200, 200), Level = BeaconMood.Alarm };
+            beacon = new BeaconBuddy { Size = new Size (200, 200), Level = BeaconMood.Alarm }.Named ("alarm.buddy");
             Controls.Add (beacon);
 
             heading = new Label { AutoSize = true, Text = vm.Heading, ForeColor = AlertPalette.OnGround };
@@ -41,14 +41,14 @@ namespace AlertBuddy.Shared.Views
             detail = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };
             Controls.Add (detail);
 
-            toldButton = new ChunkyButton { Text = vm.ToldButtonText, Height = 72, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper };
+            toldButton = new ChunkyButton { Text = vm.ToldButtonText, Height = 72, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("alarm.told");
             toldButton.Click += (_, _) => vm.ToldAGrownUpCommand.Execute (null);
             Controls.Add (toldButton);
 
             thankYou = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround, Visible = false, Text = vm.ThankYouText };
             Controls.Add (thankYou);
 
-            gotItButton = new HoldButton { Text = vm.GotItButtonText, Size = new Size (140, 48) };
+            gotItButton = new HoldButton { Text = vm.GotItButtonText, Size = new Size (140, 48) }.Named ("alarm.gotIt", null, AccessibleNames.HoldHint);
             gotItButton.Held += (_, _) => vm.GotItCommand.Execute (null);
             Controls.Add (gotItButton);
 

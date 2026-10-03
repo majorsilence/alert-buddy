@@ -23,16 +23,23 @@ namespace AlertBuddy.Shared.Controls
             OutlineColor = AlertPalette.GrapeInk;
         }
 
+        // A screen reader reads this, not the painted card: where, what, and how long ago.
+        private void Describe ()
+        {
+            AccessibleName = string.Join (" ", new[] { source, sentence, timeAgo }.Where (part => part.Length > 0));
+            AccessibleRole = AccessibleRole.StaticText;
+        }
+
         /// <summary>The room or device the alert came from.</summary>
-        public string Source { get => source; set { if (source == value) return; source = value; Invalidate (); } }
+        public string Source { get => source; set { if (source == value) return; source = value; Describe (); Invalidate (); } }
         private string source = "";
 
         /// <summary>How long ago, "22 min".</summary>
-        public string TimeAgo { get => timeAgo; set { if (timeAgo == value) return; timeAgo = value; Invalidate (); } }
+        public string TimeAgo { get => timeAgo; set { if (timeAgo == value) return; timeAgo = value; Describe (); Invalidate (); } }
         private string timeAgo = "";
 
         /// <summary>"41 degrees. Keep an eye on it."</summary>
-        public string Sentence { get => sentence; set { if (sentence == value) return; sentence = value; Invalidate (); } }
+        public string Sentence { get => sentence; set { if (sentence == value) return; sentence = value; Describe (); Invalidate (); } }
         private string sentence = "";
 
         /// <summary>The parsed temperature, when the alert carried one. Draws the thermometer glyph when set.</summary>

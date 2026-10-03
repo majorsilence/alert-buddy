@@ -19,6 +19,8 @@ namespace AlertBuddy.Shared.Controls
         protected override void OnTextChanged (EventArgs e)
         {
             base.OnTextChanged (e);
+            AccessibleName = Text;
+            AccessibleRole = AccessibleRole.StaticText;
             Invalidate ();
         }
 
