@@ -16,6 +16,8 @@ namespace AlertBuddy.Shared.Views
         private const float CharWidth = 9f;
         private const int LineHeight = 26;
 
+        private const int MaxRowWidth = 560;
+
         /// <summary>The height a wrapped paragraph needs at <paramref name="width"/>, from a per-character estimate that errs on the roomy side.</summary>
         internal static int ParagraphHeight (string text, int width)
         {
@@ -122,7 +124,11 @@ namespace AlertBuddy.Shared.Views
 
         private void LayRowsOut ()
         {
-            var width = Math.Max (160, Width - Inset * 2 - 16);
+            var available = Math.Max (160, Width - Inset * 2 - 16);
+
+            // A form is read down a column, not across a tablet: rows stop at a readable width and the column sits in the middle.
+            var width = Math.Min (available, MaxRowWidth);
+            var left = Inset + (available - width) / 2;
             var top = Inset;
             foreach (var row in rows) {
                 // An empty message (no problem, no test result yet) takes no room.
@@ -133,7 +139,7 @@ namespace AlertBuddy.Shared.Views
                     continue;
 
                 top += row.Tag is int extra ? extra : 0;
-                row.Left = Inset;
+                row.Left = left;
                 row.Top = top;
 
                 if (row is FormColumn) {

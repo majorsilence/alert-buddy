@@ -124,5 +124,27 @@ namespace AlertBuddy.Shared.Tests
                 await app.DisposeAsync ();
             }
         }
+
+        [Fact]
+        public async Task OnATablet_FormFieldsStayReadableWidth_AndCentred ()
+        {
+            // On a 2560-wide tablet First run and Settings stretched every field across the whole screen.
+            var app = SmokeTests.CreateApp ();
+            try {
+                var form = new MainForm (app);
+                app.Navigator.GoTo<FirstRunViewModel> ();
+                File.WriteAllBytes (Path.Combine (TestEnvironment.RenderDirectory, "tablet-firstrun.png"), HeadlessRenderer.CapturePng (form, 1280, 800));
+
+                var fields = Descendants (form.Controls.Cast<Control> ()).Where (c => c.Visible && c is TextBox or ComboBox).ToList ();
+                Assert.NotEmpty (fields);
+                Assert.All (fields, f => Assert.True (f.Width <= 640, $"{Where (f)} is {f.Width} wide on a 1280 page"));
+
+                // centred: the space to its left and right is about equal
+                var parent = fields[0].Parent!;
+                Assert.InRange (fields[0].Left - (parent.Width - fields[0].Left - fields[0].Width), -24, 24);
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
     }
 }
