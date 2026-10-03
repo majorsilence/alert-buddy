@@ -1,0 +1,39 @@
+name: Browser demo
+
+# The browser head is a demo of Practice mode, not a live receiver (it cannot hold a background connection). Published to GitHub Pages
+# from main. The page uses relative paths, so it works under /alert-buddy/ without a base-path setting.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+      - name: Publish the browser head
+        run: dotnet publish src/AlertBuddy.Wasm -c Release
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: src/AlertBuddy.Wasm/bin/Release/net10.0-browser/publish/wwwroot
+      - id: deployment
+        uses: actions/deploy-pages@v4

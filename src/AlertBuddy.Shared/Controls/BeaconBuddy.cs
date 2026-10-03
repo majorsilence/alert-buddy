@@ -39,8 +39,9 @@ namespace AlertBuddy.Shared.Controls
         public BeaconMood Level { get => level; set { if (level == value) return; level = value; Invalidate (); } }
         private BeaconMood level = BeaconMood.Asleep;
 
-        /// <summary>No rotation, no shake; the lamp pulses colour slowly instead. Set from the system setting or the grown-up's override.</summary>
-        public bool ReduceMotion { get; set; }
+        /// <summary>No rotation, no shake; the lamp pulses colour slowly instead. Follows <see cref="AlertMotion"/> (the grown-up's choice, else the system's) unless set here.</summary>
+        public bool ReduceMotion { get => reduceOverride ?? AlertMotion.Reduce; set => reduceOverride = value; }
+        private bool? reduceOverride;
 
         private void Advance ()
         {

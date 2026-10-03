@@ -1,3 +1,4 @@
+using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels;
 using Majorsilence.Forms;
 
@@ -12,6 +13,7 @@ namespace AlertBuddy
         public MainForm (AlertBuddyApp app)
         {
             this.app = app ?? throw new ArgumentNullException (nameof (app));
+            AlertMotion.Follow (app.Settings);
             InitializeComponent ();
             FormClosed += (_, _) => app.DisposeAsync ().AsTask ().GetAwaiter ().GetResult ();
         }
