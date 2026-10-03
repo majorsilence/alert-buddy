@@ -33,7 +33,6 @@ namespace AlertBuddy.Android
             var app = AppHost.Get (global::Android.App.Application.Context);
             AlertBuddyTheme.Apply (app.Settings.Current.Look);
 
-            MemoryGuard.Start ();
             var form = new MainForm (app);
             form.BackRequested += (_, e) => e.Cancel = AppHost.Lifecycle.RaiseBack ();
             MSForms.Application.Resumed += (_, _) => AppHost.Lifecycle.RaiseResumed ();

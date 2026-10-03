@@ -11,12 +11,20 @@ namespace AlertBuddy.Android
     {
         private static System.Threading.Timer? timer;
 
+        /// <summary>Starts collecting; a no-op if it already is. Called when the Activity is in front.</summary>
         public static void Start ()
         {
             timer ??= new System.Threading.Timer (_ => {
                 GC.Collect ();
                 GC.WaitForPendingFinalizers ();
             }, null, TimeSpan.FromSeconds (1), TimeSpan.FromSeconds (1));
+        }
+
+        /// <summary>Stops, so a screen that is off or an app that is behind another does not wake the device every second.</summary>
+        public static void Stop ()
+        {
+            timer?.Dispose ();
+            timer = null;
         }
     }
 }

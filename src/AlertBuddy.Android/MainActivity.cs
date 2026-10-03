@@ -18,6 +18,10 @@ namespace AlertBuddy.Android
         Theme = "@style/AlertBuddyTheme",
         MainLauncher = true,
         LaunchMode = LaunchMode.SingleTop,
+        // An alarm's full-screen notification starts this Activity; without these two it starts behind a sleeping or locked screen and
+        // nothing wakes it (seen on the emulator: the siren rang, the screen stayed off).
+        ShowWhenLocked = true,
+        TurnScreenOn = true,
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
     public class MainActivity : AvaloniaMainActivity
     {
@@ -29,6 +33,19 @@ namespace AlertBuddy.Android
             AvaloniaPlatformBackend.ReportAndroidIntent (Intent);
 
             ListenerService.Start (this);
+        }
+
+        // The collection that keeps the animated beacon's native memory bounded (TEMP-SHIM F27) only matters while something is drawing.
+        protected override void OnResume ()
+        {
+            base.OnResume ();
+            MemoryGuard.Start ();
+        }
+
+        protected override void OnPause ()
+        {
+            MemoryGuard.Stop ();
+            base.OnPause ();
         }
 
         protected override void OnNewIntent (Intent? intent)

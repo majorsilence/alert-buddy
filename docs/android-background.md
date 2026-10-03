@@ -67,3 +67,20 @@ Pixel Tablet profile (2560x1600), API 36, KVM, the 26.6.0 APK, against `tools/Fa
   designed layout. Still open: the red reason line sits over the bottom of the form on a short step.
 - **Not tried:** rotating, the soft keyboard in landscape beyond typing, a real tablet.
 
+## Alarm with the screen off, phone emulator (2026-10-03)
+
+Pixel 5 profile, API 36, KVM, the 26.6.0 APK, `tools/FakeNtfy` over `http://10.0.2.2:8080`, notification permission granted with `pm grant`
+and `USE_FULL_SCREEN_INTENT` allowed with `appops`. An emulator, not a phone.
+
+- **Live alarm, screen on:** the takeover appeared from the network ("Tell a grown-up now." in the display face, the sweeping beam, the red
+  button), and `dumpsys audio` showed a `MediaPlayer` **started with `USAGE_ALARM`**: the siren is on the alarm stream.
+- **Screen off (`KEYCODE_SLEEP`), foreground service running:** the siren still started on the alarm stream and an **alarm-channel
+  notification was posted, importance high, carrying a full-screen intent**, so the listener, the siren and the notification all work with the
+  screen off. **The screen did not wake and the takeover did not appear**, in three runs and also after the permission and the app op were
+  granted. The cause is not established: SystemUI's log said nothing and Android 16 has its own notification-avalanche logic in the path. This
+  needs a real phone.
+- `MainActivity` now declares `ShowWhenLocked` and `TurnScreenOn` (an Activity started by a full-screen intent needs them to light a sleeping
+  screen). Their effect is shown: `am start` on the sleeping emulator woke the screen. Their effect on a real full-screen notification is not.
+  They also let the app be opened over a lock screen, which is wanted for an alarm and worth knowing.
+- `MemoryGuard` (TEMP-SHIM F27) was running every second even with the screen off; it now runs only while the Activity is in front.
+
