@@ -14,7 +14,7 @@ first alerts it carries are home temperature warnings and alarms, but it underst
 Working on desktop and in the Android emulator; **not yet run on a real phone, and there is no release to download yet**. What
 exists: the alert pipeline (an ntfy client that reconnects and replays what it missed), every screen (Home, the alarm takeover,
 alert detail, the Alert book, Practice, First run, Settings, the grown-up gate), a foreground service for Android, notification
-and permission steps, sound and vibration, an optional "Read alerts aloud" setting (platform text-to-speech, off by default), and a browser demo that only plays Practice mode. [PLAN.md](PLAN.md) is the plan,
+and permission steps, sound and vibration, an optional "Read alerts aloud" setting (platform text-to-speech, off by default), and a [browser demo](https://majorsilence.github.io/alert-buddy/) that only plays Practice mode (it has not been looked at in a real browser yet). [PLAN.md](PLAN.md) is the plan,
 [docs/spikes.md](docs/spikes.md) and [docs/android-background.md](docs/android-background.md) record what has been tried and on
 what (an emulator is not a phone, and the notes say which).
 
