@@ -30,6 +30,7 @@ namespace AlertBuddy.Shared.Theme
             Form    { background-color: #F6F2FF; color: #2B1B4D; font-size: 18px; }
             Label, TextBox, CheckBox, ComboBox, NumericUpDown { font-family: "Atkinson Hyperlegible Next"; }
             TextBox { background-color: #FFFFFF; color: #2B1B4D; border: 3px solid #2B1B4D; border-radius: 14px; }
+            TextBox:focus { border: 3px solid #232E7A; }
             ScrollBar::thumb { background-color: #2B1B4D; border-radius: 6px; }
             """;
 
@@ -51,6 +52,7 @@ namespace AlertBuddy.Shared.Theme
             Form    { background-color: #232E7A; color: #F6F2FF; font-size: 18px; }
             Label, TextBox, CheckBox, ComboBox, NumericUpDown { font-family: "Atkinson Hyperlegible Next"; }
             TextBox { background-color: #2B1B4D; color: #F6F2FF; border: 3px solid #F6F2FF; border-radius: 14px; }
+            TextBox:focus { border: 3px solid #FFD84D; }
             ScrollBar::thumb { background-color: #F6F2FF; border-radius: 6px; }
             """;
 

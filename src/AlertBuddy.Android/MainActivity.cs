@@ -35,19 +35,6 @@ namespace AlertBuddy.Android
             ListenerService.Start (this);
         }
 
-        // The collection that keeps the animated beacon's native memory bounded (TEMP-SHIM F27) only matters while something is drawing.
-        protected override void OnResume ()
-        {
-            base.OnResume ();
-            MemoryGuard.Start ();
-        }
-
-        protected override void OnPause ()
-        {
-            MemoryGuard.Stop ();
-            base.OnPause ();
-        }
-
         protected override void OnNewIntent (Intent? intent)
         {
             base.OnNewIntent (intent);

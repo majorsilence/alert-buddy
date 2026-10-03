@@ -199,12 +199,12 @@ namespace AlertBuddy.Shared.Tests
             Assert.False (themed.AsSpan ().SequenceEqual (fallback), "an unstyled label drew the platform fallback");
         }
 
-        [Fact (Skip = "majorsilence/Majorsilence.Forms#366: a themed TextBox loses its border while focused; unskip when it is released")]
-        public void AFocusedTextBox_KeepsItsInkBorder ()
+        [Fact]
+        public void AFocusedTextBox_KeepsItsBorder_AsAFocusRing ()
         {
-            // On the emulator the field being typed in lost its outline altogether (the focused border is drawn in the page colour).
-            // Samples the left edge of the box, vertically centred, with and without focus: the calm one is ink, the focused one is a
-            // dark ring (the blueberry accent), and neither is the page colour.
+            // On the emulator the field being typed in lost its outline altogether (the focused border was drawn in the page colour, #366).
+            // Samples the left edge of the box, vertically centred, with and without focus: the calm border is ink and the focused one is the
+            // blueberry accent, so the box in use stands out and is never the page colour.
             SKColor EdgeOfTheBox (bool focused)
             {
                 var form = new Majorsilence.Forms.Form { ClientSize = new System.Drawing.Size (300, 80), FormBorderStyle = Majorsilence.Forms.FormBorderStyle.None };
@@ -216,15 +216,16 @@ namespace AlertBuddy.Shared.Tests
 
                 using var bitmap = SKBitmap.Decode (HeadlessRenderer.CapturePng (form, 300, 80));
                 form.Close ();
-                return bitmap.GetPixel (21, 35);
+                var scale = bitmap.Width / 300f;      // logical coordinates in, device pixels out
+                return bitmap.GetPixel ((int)(21 * scale), (int)(35 * scale));
             }
 
             AlertBuddy.Shared.Theme.AlertBuddyTheme.Apply (AlertBuddy.Core.Settings.LookPreference.Day);
             var calm = EdgeOfTheBox (false);
             var focused = EdgeOfTheBox (true);
 
-            Assert.True (calm.Red < 0x60 && calm.Green < 0x60, $"the calm border is {calm}, not ink");
-            Assert.True (focused.Red < 0x60 && focused.Green < 0x60, $"the focused border is {focused}, not a dark ring");
+            Assert.Equal (SKColor.Parse ("2B1B4D"), calm);
+            Assert.Equal (SKColor.Parse ("232E7A"), focused);
         }
 
         [Fact]

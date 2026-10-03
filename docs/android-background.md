@@ -84,3 +84,11 @@ and `USE_FULL_SCREEN_INTENT` allowed with `appops`. An emulator, not a phone.
   They also let the app be opened over a lock screen, which is wanted for an alarm and worth knowing.
 - `MemoryGuard` (TEMP-SHIM F27) was running every second even with the screen off; it now runs only while the Activity is in front.
 
+## On framework 26.7.0 (2026-10-03, phone emulator)
+
+The shims for the memory growth (F27) and the stale card (F28) are gone, and this run is the published 26.7.0 with nothing working around it:
+
+- **Native memory stays bounded.** With the beacon animating (Home, "Pip can't hear the house"), the native heap stayed between 107 and 123 MB
+  over 90 seconds, with no forced collection. On 26.6.0 it climbed until the system killed the process.
+- **The PIN fields show a number pad** (`InputKind = Number` on a masked box), and the field being typed in has a visible ring.
+- Not re-run: the tablet layout, the screen-off alarm and a longer soak (overnight).

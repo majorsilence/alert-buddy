@@ -124,11 +124,8 @@ namespace AlertBuddy.Shared.Views
 
             LayoutCards ();
 
-            // TEMP-SHIM (F28): removing a card does not repaint the space it left, so the last card stayed on screen (with its age frozen)
-            // after the alert was resolved. Invalidating the list and the page makes the framework draw them again.
-            alertList.Invalidate ();
+            // The heading shows only while there is something under it.
             PerformCustomLayout ();
-            Invalidate ();
         }
 
         private void LayoutCards ()

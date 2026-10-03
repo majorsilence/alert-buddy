@@ -4,6 +4,7 @@ using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms;
+using Majorsilence.Forms.Backends;
 using Majorsilence.Forms.Mvvm;
 
 namespace AlertBuddy.Shared.Views
@@ -84,10 +85,10 @@ namespace AlertBuddy.Shared.Views
             var column = NewStep (FirstRunStep.GrownUpGate, "A grown-up sets a PIN");
             column.AddParagraph ("The PIN keeps little fingers out of settings. It is a gate, not a lock.");
             column.AddLabel ("PIN (4 digits)");
-            var pin = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.pin", "PIN, 4 digits"));
+            var pin = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true, InputKind = TextInputKind.Number }.Named ("firstRun.pin", "PIN, 4 digits"));
             scope.Add (pin.BindText (vm, nameof (FirstRunViewModel.Pin), v => v.Pin, (v, t) => v.Pin = t));
             column.AddLabel ("PIN again");
-            var again = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.pinAgain", "PIN again"));
+            var again = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true, InputKind = TextInputKind.Number }.Named ("firstRun.pinAgain", "PIN again"));
             scope.Add (again.BindText (vm, nameof (FirstRunViewModel.PinConfirm), v => v.PinConfirm, (v, t) => v.PinConfirm = t));
         }
 

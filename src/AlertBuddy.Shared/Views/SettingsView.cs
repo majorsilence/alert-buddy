@@ -4,6 +4,7 @@ using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms;
+using Majorsilence.Forms.Backends;
 using Majorsilence.Forms.Mvvm;
 
 namespace AlertBuddy.Shared.Views
@@ -74,9 +75,9 @@ namespace AlertBuddy.Shared.Views
 
             column.AddHeading ("Grown-up PIN");
             Caption ("New PIN (4 digits, leave blank to keep it)");
-            Field (nameof (SettingsViewModel.NewPin), v => v.NewPin, (v, t) => v.NewPin = t, secret: true);
+            Field (nameof (SettingsViewModel.NewPin), v => v.NewPin, (v, t) => v.NewPin = t, secret: true, kind: TextInputKind.Number);
             Caption ("New PIN again");
-            Field (nameof (SettingsViewModel.NewPinConfirm), v => v.NewPinConfirm, (v, t) => v.NewPinConfirm = t, secret: true);
+            Field (nameof (SettingsViewModel.NewPinConfirm), v => v.NewPinConfirm, (v, t) => v.NewPinConfirm = t, secret: true, kind: TextInputKind.Number);
 
             if (vm.Permissions.Count > 0) {
                 column.AddHeading ("Letting the buddy listen");
@@ -135,9 +136,9 @@ namespace AlertBuddy.Shared.Views
             return paragraph ? column.AddParagraph (text) : column.AddLabel (text);
         }
 
-        private TextBox Field (string property, Func<SettingsViewModel, string> get, Action<SettingsViewModel, string> set, bool secret = false)
+        private TextBox Field (string property, Func<SettingsViewModel, string> get, Action<SettingsViewModel, string> set, bool secret = false, TextInputKind kind = TextInputKind.Normal)
         {
-            var box = column.Add (new TextBox { Height = 48 }.Named ($"settings.{property}", lastLabel));
+            var box = column.Add (new TextBox { Height = 48, InputKind = kind }.Named ($"settings.{property}", lastLabel));
             if (secret)
                 box.UseSystemPasswordChar = true;
             scope.Add (box.BindText (vm, property, get, set));
