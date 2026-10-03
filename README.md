@@ -18,6 +18,10 @@ and permission steps, sound and vibration, an optional "Read alerts aloud" setti
 [docs/spikes.md](docs/spikes.md) and [docs/android-background.md](docs/android-background.md) record what has been tried and on
 what (an emulator is not a phone, and the notes say which).
 
+Renders from the Headless backend with invented data (a warning on Home, and the alarm takeover):
+
+<img src="docs/screenshots/home-warning.png" width="260" alt="Home: the buddy says the workshop is getting warm, with one warning card"> <img src="docs/screenshots/alarm-takeover.png" width="260" alt="The alarm takeover: tell a grown-up now, with a big button">
+
 ## Try it
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/download) and nothing else for the desktop head. A local ntfy-compatible
