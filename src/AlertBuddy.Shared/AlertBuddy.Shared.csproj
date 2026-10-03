@@ -21,4 +21,8 @@
     <ProjectReference Include="..\AlertBuddy.ViewModels\AlertBuddy.ViewModels.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AlertBuddy.Shared.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -16,6 +16,13 @@ namespace AlertBuddy.Shared.Views
         private const float CharWidth = 9f;
         private const int LineHeight = 26;
 
+        /// <summary>The height a wrapped paragraph needs at <paramref name="width"/>, from a per-character estimate that errs on the roomy side.</summary>
+        internal static int ParagraphHeight (string text, int width)
+        {
+            var perLine = Math.Max (10, (int)(width / CharWidth));
+            return Math.Max (1, (text.Length + perLine - 1) / perLine) * LineHeight;
+        }
+
         private readonly List<Control> rows = [];
         private bool laying;
         private bool layAgain;
@@ -134,8 +141,7 @@ namespace AlertBuddy.Shared.Views
                     row.Width = Math.Max (160, Width - 16);
                 } else if (row is Label { AutoSize: false } paragraph) {
                     paragraph.Width = width;
-                    var perLine = Math.Max (10, (int)(width / CharWidth));
-                    paragraph.Height = Math.Max (1, (paragraph.Text.Length + perLine - 1) / perLine) * LineHeight;
+                    paragraph.Height = ParagraphHeight (paragraph.Text, width);
                 } else if (row is Label) {
                     // keeps its own size
                 } else if (row is ChunkyButton or HoldButton) {

@@ -41,7 +41,7 @@ namespace AlertBuddy.Shared.Views
             scope.Add (auth.BindSelectedIndex (vm, nameof (SettingsViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
             column.AddLabel ("Username");
             Field (nameof (SettingsViewModel.Username), v => v.Username, (v, t) => v.Username = t);
-            column.AddLabel ("Password or token (leave blank to keep the saved one)");
+            column.AddParagraph ("Password or token (leave blank to keep the saved one)");
             Field (nameof (SettingsViewModel.Secret), v => v.Secret, (v, t) => v.Secret = t, secret: true);
 
             problems = column.AddParagraph ("", AlertPalette.Notice);

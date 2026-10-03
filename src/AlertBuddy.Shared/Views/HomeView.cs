@@ -171,6 +171,8 @@ namespace AlertBuddy.Shared.Views
             // Wrapped to the pane, not left to run off the edge of a phone: the honest banner is the one line that must be readable whole.
             connectionLine.Width = paneWidth - 48;
             bannerLine.Width = paneWidth - 48;
+            // As tall as its text needs at this width: a fixed height cut the last line off on a phone ("...fix this in settings.").
+            bannerLine.Height = FormColumn.ParagraphHeight (bannerLine.Text, bannerLine.Width);
             connectionLine.Location = new Point (paneLeft + 24, bubble.Bottom + 12);
             if (bannerLine.Visible)
                 bannerLine.Location = new Point (paneLeft + 24, connectionLine.Bottom + 4);
