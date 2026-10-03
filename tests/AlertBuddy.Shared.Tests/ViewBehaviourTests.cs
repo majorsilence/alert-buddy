@@ -148,7 +148,13 @@ namespace AlertBuddy.Shared.Tests
                 var at = Centre (card);
                 at = new Point (at.X - card.Width / 2 + 5, at.Y);     // on the card's coloured left edge, which is nothing like the page
 
-                SKColor Sample () { using var bitmap = SKBitmap.Decode (HeadlessRenderer.CapturePng (form, 420, 1400)); return bitmap.GetPixel (at.X, at.Y); }
+                SKColor Sample ()
+                {
+                    // Logical coordinates in, device pixels out: at a scaled display the render is that many times wider than 420.
+                    using var bitmap = SKBitmap.Decode (HeadlessRenderer.CapturePng (form, 420, 1400));
+                    var scale = bitmap.Width / 420f;
+                    return bitmap.GetPixel ((int)(at.X * scale), (int)(at.Y * scale));
+                }
                 var withCard = Sample ();
 
                 app.Engine.Handle (new NtfyEvent (NtfyEventKind.Message, new NtfyMessage (
