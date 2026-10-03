@@ -305,6 +305,22 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
+        public void ReadAloud_IsOnlyOffered_WhereTheDeviceHasAVoice_AndIsSaved ()
+        {
+            Assert.False (Open ().Vm.CanReadAloud);
+
+            var rig = new FormRig (Configured ());
+            var vm = rig.SettingsScreen (speaker: new RecordingSpeaker ());
+            Assert.True (vm.CanReadAloud);
+            Assert.False (vm.ReadAloud);
+
+            vm.ReadAloud = true;
+            vm.SaveCommand.Execute (null);
+
+            Assert.True (rig.Settings.Current.ReadAloud);
+        }
+
+        [Fact]
         public void AboutSaysWhatItIs_AndWhatItIsNot ()
         {
             var (_, vm) = Open ();

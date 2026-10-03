@@ -96,5 +96,8 @@ namespace AlertBuddy.Core.Settings
 
         /// <summary>Whether sounds play at all. Practice mode and the alarm respect it; a grown-up can silence the app on a tablet in a meeting.</summary>
         public bool SoundsEnabled { get; init; } = true;
+
+        /// <summary>Whether a new warning or alarm is also read aloud, for a child still learning to read. Off until a grown-up turns it on.</summary>
+        public bool ReadAloud { get; init; }
     }
 }

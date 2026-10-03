@@ -38,6 +38,13 @@ namespace AlertBuddy.ViewModels.Tests
         public void StopLoop () => Calls.Add ("StopLoop");
     }
 
+    internal sealed class RecordingSpeaker : ISpeaker
+    {
+        public List<string> Said { get; } = [];
+        public bool IsSupported => true;
+        public void Speak (string text) => Said.Add (text);
+    }
+
     internal sealed class RecordingHaptics : IHaptics
     {
         public List<string> Calls { get; } = [];
@@ -139,6 +146,7 @@ namespace AlertBuddy.ViewModels.Tests
         public RecordingSound Sound { get; } = new ();
         public RecordingHaptics Haptics { get; } = new ();
         public RecordingNotifier Notifier { get; } = new ();
+        public RecordingSpeaker Speaker { get; } = new ();
         public FakeBackground Background { get; } = new ();
         public FakeTester Tester { get; } = new ();
         public FakeLifecycle Lifecycle { get; } = new ();
@@ -172,6 +180,7 @@ namespace AlertBuddy.ViewModels.Tests
                 Sound = Sound,
                 Haptics = Haptics,
                 Notifier = Notifier,
+                Speaker = Speaker,
                 Background = Background,
                 Dispatcher = new SynchronousDispatcher (),
                 Secrets = Secrets,
@@ -262,9 +271,9 @@ namespace AlertBuddy.ViewModels.Tests
             return vm;
         }
 
-        public SettingsViewModel SettingsScreen (string version = "1.2.3")
+        public SettingsViewModel SettingsScreen (string version = "1.2.3", ISpeaker? speaker = null)
         {
-            var vm = new SettingsViewModel (Settings, Secrets, Tester, Listener, Engine, Navigator, version);
+            var vm = new SettingsViewModel (Settings, Secrets, Tester, Listener, Engine, Navigator, version, speaker: speaker);
             Navigator.Show (vm);
             return vm;
         }

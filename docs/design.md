@@ -10,7 +10,7 @@ what is known to be missing, not a full audit.
 - **Sizes.** Body text 18, nothing under 16, touch targets 48 and primary buttons larger. Headings use Grandstander, everything
   else Atkinson Hyperlegible Next.
 - **Contrast.** Only the high-contrast pairs of PLAN.md section 8.2 are used, in Day and in Night.
-- **Copy** is plain, short, active and in one table (`Words`), so it can be translated and read aloud.
+- **Copy** is plain, short, active and in one table (`Words`), so it can be translated. A grown-up can turn on "Read alerts aloud" in Settings (off by default, offered only where the device has a voice): a new warning says which place needs a look, an alarm says "Tell a grown-up now.", and quiet hours and replayed history stay silent. It has not been heard on an Android emulator or phone yet.
 
 ## Reduced motion (audited 2026-10-02)
 

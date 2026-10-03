@@ -52,6 +52,7 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private LookPreference look;
         [ObservableProperty] private MotionPreference motion;
         [ObservableProperty] private bool soundsEnabled = true;
+        [ObservableProperty] private bool readAloud;
         [ObservableProperty] private int silenceMinutes = 10;
         [ObservableProperty] private bool nightEnabled = true;
         [ObservableProperty] private TimeOnly nightStart = new (20, 0);
@@ -68,6 +69,9 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private bool isTesting;
         [ObservableProperty] private string? savedMessage;
 
+        /// <summary>Whether this device has a voice, so the screen offers reading alerts aloud at all.</summary>
+        public bool CanReadAloud { get; }
+
         /// <summary>Creates the settings screen and loads the current settings into it.</summary>
         /// <param name="version">The app version, for About.</param>
         public SettingsViewModel (
@@ -79,8 +83,10 @@ namespace AlertBuddy.ViewModels.Screens
             INavigator navigator,
             string version = "",
             IPermissionGuide? permissions = null,
-            ILifecycle? lifecycle = null)
+            ILifecycle? lifecycle = null,
+            ISpeaker? speaker = null)
         {
+            CanReadAloud = speaker is { IsSupported: true };
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
             this.tester = tester ?? throw new ArgumentNullException (nameof (tester));
@@ -204,6 +210,7 @@ namespace AlertBuddy.ViewModels.Screens
                 Look = Look,
                 ReduceMotion = Motion switch { MotionPreference.Reduce => true, MotionPreference.Full => false, _ => null },
                 SoundsEnabled = SoundsEnabled,
+                ReadAloud = ReadAloud,
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
                 Night = new NightPolicy { Enabled = NightEnabled, Start = NightStart, End = NightEnd },
                 Interpretation = BuildInterpretation (),
@@ -305,6 +312,7 @@ namespace AlertBuddy.ViewModels.Screens
             Look = s.Look;
             Motion = s.ReduceMotion switch { true => MotionPreference.Reduce, false => MotionPreference.Full, null => MotionPreference.System };
             SoundsEnabled = s.SoundsEnabled;
+            ReadAloud = s.ReadAloud;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;
             NightEnabled = s.Night.Enabled;
             NightStart = s.Night.Start;

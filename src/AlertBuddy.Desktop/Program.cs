@@ -25,6 +25,7 @@ namespace AlertBuddy.Desktop
                 Sound = new DesktopSoundPlayer (),
                 Haptics = new DesktopHaptics (),
                 Notifier = new DesktopAlertNotifier (),
+                Speaker = new PlatformSpeaker (),
                 Background = new DesktopBackgroundListener (),
                 Dispatcher = new DesktopUiDispatcher (() => form ?? throw new InvalidOperationException ("The window has not been created yet.")),
                 Secrets = new PlatformSecretStore (),

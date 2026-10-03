@@ -20,10 +20,11 @@ namespace AlertBuddy.ViewModels.Services
         private readonly SettingsService settings;
         private readonly IClock clock;
         private readonly TimeZoneInfo zone;
+        private readonly ISpeaker? speaker;
         private bool sirenRunning;
 
         /// <summary>Starts listening to the hub.</summary>
-        public AlertFeedback (AlertHub hub, ISoundPlayer sound, IHaptics haptics, IAlertNotifier notifier, SettingsService settings, IClock clock, TimeZoneInfo? zone = null)
+        public AlertFeedback (AlertHub hub, ISoundPlayer sound, IHaptics haptics, IAlertNotifier notifier, SettingsService settings, IClock clock, TimeZoneInfo? zone = null, ISpeaker? speaker = null)
         {
             this.hub = hub ?? throw new ArgumentNullException (nameof (hub));
             this.sound = sound ?? throw new ArgumentNullException (nameof (sound));
@@ -32,6 +33,7 @@ namespace AlertBuddy.ViewModels.Services
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.clock = clock ?? throw new ArgumentNullException (nameof (clock));
             this.zone = zone ?? TimeZoneInfo.Local;
+            this.speaker = speaker;
 
             hub.AlertChanged += OnChange;
         }
@@ -55,6 +57,7 @@ namespace AlertBuddy.ViewModels.Services
 
                     var wanted = SoundPolicy.Apply (change.Sound, current.Night, clock.Now, zone);
                     Play (wanted, current.SoundsEnabled);
+                    Speak (change, wanted, current.ReadAloud);
                 }
 
                 // Whether or not this change made a sound, the siren must run exactly while an alarm is open and unanswered: it stops the
@@ -86,6 +89,26 @@ namespace AlertBuddy.ViewModels.Services
                     sound.Play (Cue.Cheer);
                     break;
             }
+        }
+
+        // The same line a grown-up would say: the alarm instruction, or which place needs a look. Only for news that is making a sound,
+        // so quiet hours keep warnings silent here too, and an alarm is never hushed.
+        private void Speak (AlertChange change, AlertSound wanted, bool readAloud)
+        {
+            if (!readAloud || speaker is not { IsSupported: true } || change.Alert is not { } alert)
+                return;
+
+            if (change.Kind is not (AlertChangeKind.Raised or AlertChangeKind.Upgraded))
+                return;
+
+            var line = wanted switch {
+                AlertSound.Alarm => Copy.Words.TellAGrownUpNow,
+                AlertSound.Warning => Copy.Words.NeedsALook (alert.Source),
+                _ => null,
+            };
+
+            if (line is not null)
+                speaker.Speak (line);
         }
 
         private void StopSiren ()

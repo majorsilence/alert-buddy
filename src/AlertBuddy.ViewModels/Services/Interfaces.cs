@@ -44,6 +44,16 @@ namespace AlertBuddy.ViewModels.Services
         void StopLoop ();
     }
 
+    /// <summary>Reads a line aloud (F15). Optional: a head with no voice supplies none and the setting is not offered.</summary>
+    public interface ISpeaker
+    {
+        /// <summary>Whether this device can speak at all.</summary>
+        bool IsSupported { get; }
+
+        /// <summary>Says a line and returns at once. Never throws: a device that cannot speak just stays quiet.</summary>
+        void Speak (string text);
+    }
+
     /// <summary>Vibration (F13).</summary>
     public interface IHaptics
     {

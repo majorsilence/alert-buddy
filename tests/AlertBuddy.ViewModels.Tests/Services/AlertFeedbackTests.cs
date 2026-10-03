@@ -26,6 +26,57 @@ namespace AlertBuddy.ViewModels.Tests.Services
             Assert.Empty (rig.Haptics.Calls);
         }
 
+        private static AppSettings Reading (bool readAloud, bool night = false)
+            => Settings (night: night) with { ReadAloud = readAloud };
+
+        [Fact]
+        public async Task ReadAloud_SpeaksAWarning_AndTheAlarmInstruction ()
+        {
+            await using var rig = new AppRig (Reading (true));
+
+            rig.Warning ();
+            rig.Alarm ();
+
+            Assert.Equal (2, rig.Speaker.Said.Count);
+            Assert.StartsWith ("The ", rig.Speaker.Said[0]);
+            Assert.Contains ("needs a look", rig.Speaker.Said[0]);
+            Assert.Equal (AlertBuddy.ViewModels.Copy.Words.TellAGrownUpNow, rig.Speaker.Said[1]);
+        }
+
+        [Fact]
+        public async Task ReadAloud_IsOffByDefault_AndSaysNothing ()
+        {
+            await using var rig = new AppRig (Reading (false));
+
+            rig.Warning ();
+            rig.Alarm ();
+
+            Assert.Empty (rig.Speaker.Said);
+        }
+
+        [Fact]
+        public async Task ReadAloud_SaysNothingWhenTheNightPolicyHushesAWarning_ButStillSpeaksAnAlarm ()
+        {
+            await using var rig = new AppRig (Reading (true, night: true));
+            rig.Clock.Advance (new DateTimeOffset (AppRig.Start.Date, TimeSpan.Zero).AddHours (22) - AppRig.Start);   // 22:00, inside quiet hours
+
+            rig.Warning ();
+            Assert.Empty (rig.Speaker.Said);
+
+            rig.Alarm ();
+            Assert.Single (rig.Speaker.Said);
+        }
+
+        [Fact]
+        public async Task ReadAloud_NeverSpeaksAReplay ()
+        {
+            await using var rig = new AppRig (Reading (true));
+
+            rig.Send ("Workshop: alarm", 5, "50 °C", origin: MessageOrigin.Backlog);
+
+            Assert.Empty (rig.Speaker.Said);
+        }
+
         [Fact]
         public async Task AnAlarm_StartsTheSiren_AndTheVibration ()
         {

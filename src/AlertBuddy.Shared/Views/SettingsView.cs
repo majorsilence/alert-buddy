@@ -63,6 +63,10 @@ namespace AlertBuddy.Shared.Views
             column.AddHeading ("Sounds and quiet time");
             var sounds = column.Add (new CheckBox { Text = "Play sounds" });
             scope.Add (sounds.BindChecked (vm, nameof (SettingsViewModel.SoundsEnabled), v => v.SoundsEnabled, (v, c) => v.SoundsEnabled = c));
+            if (vm.CanReadAloud) {
+                var aloud = column.Add (new CheckBox { Text = "Read alerts aloud" });
+                scope.Add (aloud.BindChecked (vm, nameof (SettingsViewModel.ReadAloud), v => v.ReadAloud, (v, c) => v.ReadAloud = c));
+            }
             var night = column.Add (new CheckBox { Text = "Quieter at night (8 pm to 7 am)" });
             scope.Add (night.BindChecked (vm, nameof (SettingsViewModel.NightEnabled), v => v.NightEnabled, (v, c) => v.NightEnabled = c));
             column.AddLabel ("Minutes to stay quiet after \"Got it\"");
