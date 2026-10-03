@@ -16,6 +16,7 @@ app **found** that was not in the register.
 | #317 | Desktop-viewable slice (this session) | `Control.ClientSize` reads back in device pixels outside `OnPaint`, while `Width`/`Height`/`Top`/`Bottom` stay logical -- undocumented, and the two families look interchangeable | `HomeView`/`AlarmView`'s manual layout centred children correctly reading `Width` at both `MF_HEADLESS_SCALE` 1 and 2, but drifted off-screen reading `ClientSize.Width` at scale 2 | Read `Width`/`Height`, never `ClientSize`, in manual child-control layout | Fixed: majorsilence/Majorsilence.Forms#331 merged 2026-09-30, released in 26.5.0 |
 | #352 | Settings and First run views (this session) | `Majorsilence.Forms.Mvvm` has no two-way text binding, so every app writes the same `TextBox` helper and its re-entrancy guard | Bind a `TextBox` to a view model without `DataBindings` | `Shared/Binding/FormBindings.cs`, TEMP-SHIM (F26) | Fixed: majorsilence/Majorsilence.Forms#353 merged, released in 26.6.0; shim removed (`BindIndex` is `BindSelectedIndex`, `BindNumber` is `BindValue` on a `decimal`) |
 | #366 | Android emulator run on 26.6.0 (2026-10-02) | A themed `TextBox` loses its border while focused (drawn in the page colour), and `TextBox:focus` is rejected by the CSS parser | Apply the Day theme, focus a `TextBox`, sample its left edge: `#2B1B4D` calm, `#F6F2FF` focused | none yet; the field being typed in has no outline | Open. `SmokeTests.AFocusedTextBox_KeepsItsInkBorder` is skipped until it is released |
+| #368 | Android emulator run on 26.6.0 (2026-10-02) | No way to ask a `TextBox` for a number pad: the four-digit PIN fields bring up the full letter keyboard | Focus a First run PIN field on an Android emulator | none; the PIN is typed on a letter keyboard | Open |
 
 Evidence added to existing issues:
 
@@ -23,6 +24,7 @@ Evidence added to existing issues:
 - #290 (binding fails silently): NativeAOT (ILC) evidence, 2026-09-26. Not keeping `Control.Text` makes `DataBindings.Add` throw;
   not keeping `Control.TextChanged` or a view-model property fails silently (reads work without the event, typed text never
   reaches the source). The smallest working `TrimmerRootDescriptor` is those members and nothing broader.
+- #284 (mobile screen readers, F22): nothing in this app sets an accessible name, and the views are custom-painted, so the first TalkBack run is expected to find unlabelled canvas. See `docs/design.md`.
 - #281 (Android device shakeout): soft keyboard never appeared, safe-area behaviour, `BeginInvoke` result.
 - #271 (colour emoji): renders on Android and Headless; iOS untested.
 

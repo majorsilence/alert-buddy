@@ -35,12 +35,12 @@ the beacon following a saved change. Whether the system preference really reache
   (register item F22 is its mobile design note and spike); this repo has not verified what Android TalkBack sees.
 - **The alarm takeover is the one screen that must work without sight.** Until a screen reader run says otherwise, assume it does
   not announce itself. The audible siren, vibration and the notification (which Android does announce) are what carry an alarm.
-- **Number entry.** The PIN fields bring up the full letter keyboard on Android, not a number pad.
+- **Number entry.** The PIN fields bring up the full letter keyboard on Android, not a number pad (majorsilence/Majorsilence.Forms#368).
 - **Focus.** The text box being typed in loses its outline (majorsilence/Majorsilence.Forms#366).
 
 ## What would close the gaps
 
-1. Framework: a mobile screen-reader bridge (F22), a way to ask for a numeric keyboard, and the focus fix (#366).
+1. Framework: a mobile screen-reader bridge (F22), a way to ask for a numeric keyboard (#368), and the focus fix (#366).
 2. App, once a bridge exists: names and descriptions on the buddy, ticket cards and buttons, and an announcement when the alarm
    takeover opens.
 3. A TalkBack run on a real phone, recorded in `docs/android-background.md`.
