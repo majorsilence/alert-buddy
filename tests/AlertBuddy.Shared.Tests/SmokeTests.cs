@@ -172,6 +172,34 @@ namespace AlertBuddy.Shared.Tests
             Assert.False (bundled.AsSpan ().SequenceEqual (fallback), "the bundled family drew exactly what an unknown family draws");
         }
 
+        [Fact (Skip = "majorsilence/Majorsilence.Forms#366: a themed TextBox loses its border while focused; unskip when it is released")]
+        public void AFocusedTextBox_KeepsItsInkBorder ()
+        {
+            // On the emulator the field being typed in lost its outline altogether (the focused border is drawn in the page colour).
+            // Samples the left edge of the box, vertically centred, with and without focus: the calm one is ink, the focused one is a
+            // dark ring (the blueberry accent), and neither is the page colour.
+            SKColor EdgeOfTheBox (bool focused)
+            {
+                var form = new Majorsilence.Forms.Form { ClientSize = new System.Drawing.Size (300, 80), FormBorderStyle = Majorsilence.Forms.FormBorderStyle.None };
+                var box = new Majorsilence.Forms.TextBox { Location = new System.Drawing.Point (20, 10), Size = new System.Drawing.Size (240, 50) };
+                form.Controls.Add (box);
+                form.Show ();
+                if (focused)
+                    box.Focus ();
+
+                using var bitmap = SKBitmap.Decode (HeadlessRenderer.CapturePng (form, 300, 80));
+                form.Close ();
+                return bitmap.GetPixel (21, 35);
+            }
+
+            AlertBuddy.Shared.Theme.AlertBuddyTheme.Apply (AlertBuddy.Core.Settings.LookPreference.Day);
+            var calm = EdgeOfTheBox (false);
+            var focused = EdgeOfTheBox (true);
+
+            Assert.True (calm.Red < 0x60 && calm.Green < 0x60, $"the calm border is {calm}, not ink");
+            Assert.True (focused.Red < 0x60 && focused.Green < 0x60, $"the focused border is {focused}, not a dark ring");
+        }
+
         [Fact]
         public async Task MainForm_RendersTheBookDetailPracticeAndGate_Headlessly ()
         {
