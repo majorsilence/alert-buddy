@@ -396,5 +396,23 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             Assert.Same (screen, rig.Navigator.Current);          // the same screen, not a second one
             Assert.Equal (55.2, screen.Temperature);
         }
+
+        [Fact]
+        public async Task AReplayOfTwoWholeEpisodes_LeavesNothingOpen_OnHome ()
+        {
+            // Seen on the Android emulator: after connecting to a server whose history held warning, alarm, all clear, twice, Home listed a
+            // warning from seven minutes before while its sentence said "All quiet".
+            await using var rig = new AppRig ();
+
+            foreach (var minutesAgo in new[] { 20, 10 }) {
+                rig.Send ("Workshop: temperature warning", 4, "Workshop is at 41.2 °C", origin: MessageOrigin.Backlog, age: TimeSpan.FromMinutes (minutesAgo));
+                rig.Send ("Workshop: temperature alarm", 5, "Workshop is at 50.6 °C", origin: MessageOrigin.Backlog, age: TimeSpan.FromMinutes (minutesAgo) - TimeSpan.FromSeconds (3));
+                rig.Send ("Workshop: temperature alarm (resolved)", 3, "Workshop is at 44.0 °C", origin: MessageOrigin.Backlog, age: TimeSpan.FromMinutes (minutesAgo) - TimeSpan.FromSeconds (6));
+            }
+
+            Assert.Empty (rig.Hub.Snapshot.Active);
+            Assert.Empty (rig.Main.ActiveAlerts);
+            Assert.NotEqual (BeaconMood.Warning, rig.Main.Mood);
+        }
     }
 }

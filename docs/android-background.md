@@ -47,3 +47,23 @@ activity opened later finds it already listening, with no IPC.
 - **The bundled fonts are drawn on the emulator** (2026-10-02, 26.6.0 APK, API 36 emulator, KVM): Grandstander Bold for headings and buttons, Atkinson Hyperlegible Next for body text.
 - **Found on that run:** the text box being typed in loses its outline (framework issue #366, recorded in `docs/framework-findings.md`), and the PIN fields in First run bring up the full letter keyboard rather than a number pad (majorsilence/Majorsilence.Forms#368; the gate's own PIN pad is a custom number pad and is fine). The emulator also showed one "System UI isn't responding" dialog while it was still settling after boot, which is the emulator and not the app.
 - **Two clipped layouts, found and fixed on the same run:** Home's red "may miss an alert" line was cut off after two lines on a phone (a fixed 52 high), and Settings' long "Password or token (leave blank to keep the saved one)" label ran past the right edge and gave the screen a horizontal scrollbar. Both now size to their text (`FormColumn.ParagraphHeight`); the banner was seen whole on the emulator afterwards. The Settings label was not re-checked there.
+
+## Tablet emulator run (2026-10-03)
+
+Pixel Tablet profile (2560x1600), API 36, KVM, the 26.6.0 APK, against `tools/FakeNtfy` over plain HTTP at the emulator's host address
+(`http://10.0.2.2:8080`, which the app accepts as a private-network address). An emulator, not a tablet.
+
+- **First run to Home worked end to end** with typed input, then `POST /_scenario/home-alerts` showed a warning, an alarm and an all clear
+  arriving live: "Listening. Last heard a few seconds ago.", the warning card on the right of the **two-pane layout** with its "Right now"
+  heading, then the sentence and beacon returning to calm. The full-screen alarm takeover itself was not seen: the process was killed first
+  (below).
+- **Found: native memory grew without limit while the beacon animated, and the system killed the process** (`LOW_MEMORY`, rss 2.3 GB, within
+  about six minutes). A static screen was flat. Forcing a garbage collection once a second keeps it between about 130 and 340 MB over 90
+  seconds, so `MemoryGuard` does that (TEMP-SHIM F27, framework issue #371). A bedside tablet showing the beacon all night would have died
+  without it; the shim has been run for 90 seconds, not overnight.
+- **Found: a resolved alert's card stayed on screen** with its age frozen, while the sentence said "All quiet" (framework issue #370, TEMP-SHIM
+  F28: Home and the Alert book invalidate their lists after removing cards). A freshly built Home was correct.
+- **Seen, not fixed:** on a tablet First run and Settings stretch their fields across the whole 2560-wide screen. It works, but it is not a
+  designed layout. The red reason line also sits over the bottom of the form on a short step.
+- **Not tried:** rotating, the soft keyboard in landscape beyond typing, a real tablet.
+

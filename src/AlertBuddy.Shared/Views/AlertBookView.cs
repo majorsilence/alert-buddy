@@ -75,6 +75,9 @@ namespace AlertBuddy.Shared.Views
             }
 
             LayoutList ();
+
+            // TEMP-SHIM (F28): removing a card does not repaint the space it left; see HomeView.SyncCards.
+            list.Invalidate ();
         }
 
         private void LayoutList ()

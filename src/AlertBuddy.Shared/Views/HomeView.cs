@@ -123,6 +123,12 @@ namespace AlertBuddy.Shared.Views
             }
 
             LayoutCards ();
+
+            // TEMP-SHIM (F28): removing a card does not repaint the space it left, so the last card stayed on screen (with its age frozen)
+            // after the alert was resolved. Invalidating the list and the page makes the framework draw them again.
+            alertList.Invalidate ();
+            PerformCustomLayout ();
+            Invalidate ();
         }
 
         private void LayoutCards ()
@@ -152,7 +158,8 @@ namespace AlertBuddy.Shared.Views
         {
             var mode = LayoutModes.For (Width, Height);
             var w = Width;
-            rightNow.Visible = mode == LayoutMode.Expanded;
+            // The heading only when there is something under it: an empty "Right now" beside a calm buddy reads as a mistake.
+            rightNow.Visible = mode == LayoutMode.Expanded && vm.ActiveAlerts.Count > 0;
 
             // The gear stays top-left and bedside top-right, whatever the mode.
             bedsideButton.Location = new Point (w - bedsideButton.Width - 16, 16);

@@ -3,6 +3,7 @@ using AlertBuddy.Core.Ntfy;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms;
 using Majorsilence.Forms.Headless;
+using SkiaSharp;
 using Xunit;
 
 namespace AlertBuddy.Shared.Tests
@@ -127,6 +128,36 @@ namespace AlertBuddy.Shared.Tests
                 vm.BuddyName = "Nobody is listening";
 
                 Assert.NotEqual ("Nobody is listening", name.Text);
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
+
+        [Fact]
+        public async Task Home_PaintsOverTheSpaceAResolvedCardLeft ()
+        {
+            // Seen on the Android emulator: the last card stayed on screen, its age frozen, after the alert was resolved, because removing
+            // a control did not repaint the space it left (majorsilence/Majorsilence.Forms#370; Home invalidates its list itself meanwhile).
+            var app = SmokeTests.CreateApp ();
+            try {
+                var form = new MainForm (app);
+                app.Engine.Handle (new NtfyEvent (NtfyEventKind.Message, new NtfyMessage (
+                    "w1", DateTimeOffset.UtcNow, "home-alerts", "Workshop: temperature warning", "Workshop is at 41.2 °C", 4, [])));
+                Render (form);
+                var card = Find<Control> (form, "home.alert.w1");
+                var at = Centre (card);
+                at = new Point (at.X - card.Width / 2 + 5, at.Y);     // on the card's coloured left edge, which is nothing like the page
+
+                SKColor Sample () { using var bitmap = SKBitmap.Decode (HeadlessRenderer.CapturePng (form, 420, 1400)); return bitmap.GetPixel (at.X, at.Y); }
+                var withCard = Sample ();
+
+                app.Engine.Handle (new NtfyEvent (NtfyEventKind.Message, new NtfyMessage (
+                    "w2", DateTimeOffset.UtcNow, "home-alerts", "Workshop: temperature alarm (resolved)", "Workshop is at 40.0 °C", 3, [])));
+                Assert.Empty (app.Hub.Snapshot.Active);
+                var afterwards = Sample ();
+
+                Assert.NotEqual (SKColor.Parse ("F6F2FF"), withCard);     // the sample really is on the card
+                Assert.Equal (SKColor.Parse ("F6F2FF"), afterwards);       // and is the page again, not the card left behind
             } finally {
                 await app.DisposeAsync ();
             }
