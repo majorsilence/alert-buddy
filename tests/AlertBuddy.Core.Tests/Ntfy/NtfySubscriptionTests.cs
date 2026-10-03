@@ -60,6 +60,7 @@ namespace AlertBuddy.Core.Tests.Ntfy
         {
             await using var rig = new SubscriptionRig ();
             await rig.ConnectedStreamAsync (AppendixC.Open, AppendixC.Keepalive, "garbage", AppendixC.Warning);
+            await rig.MessagesAsync (1);     // the stream is read on another thread: wait for the message, never assume it has arrived
 
             Assert.Equal (["aB3dEh"], rig.Messages.Select (m => m.Message!.Id));
             Assert.DoesNotContain (rig.Events, e => e.Kind is NtfyEventKind.Open or NtfyEventKind.Keepalive && e.Origin == MessageOrigin.Backlog);
