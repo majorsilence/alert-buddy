@@ -14,7 +14,7 @@ namespace AlertBuddy.Shared.Tests
     /// </summary>
     public class AccessibilityTests
     {
-        private static IEnumerable<Control> Descendants (IEnumerable<Control> children)
+        internal static IEnumerable<Control> Descendants (IEnumerable<Control> children)
         {
             foreach (var child in children) {
                 yield return child;
