@@ -33,7 +33,7 @@ namespace AlertBuddy.Shared.Views
             body = new Panel ();
             Controls.Add (body);
 
-            problem = new Label { AutoSize = true, ForeColor = AlertPalette.Notice };
+            problem = new Label { AutoSize = false, ForeColor = AlertPalette.Notice };
             Controls.Add (problem);
 
             backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56) }.Named ("firstRun.back");
@@ -176,7 +176,10 @@ namespace AlertBuddy.Shared.Views
                 column.Relayout ();
             }
 
-            problem.Location = new Point (24, Height - footer - 20);
+            // Wrapped to the page, growing upward from the footer, so a long reason ("Enter the server address, for example ...") is not cut off.
+            problem.Width = Math.Max (160, w - 48);
+            problem.Height = FormColumn.ParagraphHeight (problem.Text, problem.Width);
+            problem.Location = new Point (24, Height - footer - 4 - problem.Height);
             backButton.Location = new Point (16, Height - footer + 16);
             nextButton.Location = new Point (w - nextButton.Width - 16, Height - footer + 16);
         }

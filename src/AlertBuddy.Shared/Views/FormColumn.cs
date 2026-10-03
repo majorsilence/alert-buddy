@@ -62,7 +62,8 @@ namespace AlertBuddy.Shared.Views
         /// <summary>A short label above a field.</summary>
         public Label AddLabel (string text)
         {
-            var label = new Label { AutoSize = true, Text = text, ForeColor = AlertPalette.OnGround };
+            // Wraps like a paragraph: on a 360-wide phone "New PIN (4 digits, leave blank to keep it)" ran off the edge as one line.
+            var label = new Label { AutoSize = false, Text = text, ForeColor = AlertPalette.OnGround };
             Add (label);
             return label;
         }

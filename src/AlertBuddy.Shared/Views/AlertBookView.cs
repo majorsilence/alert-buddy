@@ -32,7 +32,7 @@ namespace AlertBuddy.Shared.Views
             list = new Panel { AutoScroll = true };
             Controls.Add (list);
 
-            empty = new Label { AutoSize = true, Text = vm.EmptyText, ForeColor = AlertPalette.OnGround };
+            empty = new Label { AutoSize = false, Text = vm.EmptyText, ForeColor = AlertPalette.OnGround };
             Controls.Add (empty);
 
             clear = new HoldButton { Text = "Clear", Size = new Size (120, 48) }.Named ("book.clear", "Clear the Alert book", AccessibleNames.HoldHint);
@@ -92,6 +92,9 @@ namespace AlertBuddy.Shared.Views
         {
             var w = Width;
             clear.Location = new Point (w - clear.Width - 16, 20);
+            // Wrapped to the page: on one line this invitation ran off the right edge of a phone.
+            empty.Width = Math.Max (160, w - 48);
+            empty.Height = FormColumn.ParagraphHeight (empty.Text, empty.Width);
             empty.Location = new Point (24, backButton.Bottom + 32);
             list.Location = new Point (16, backButton.Bottom + 16);
             list.Size = new Size (w - 32, Math.Max (0, Height - list.Top - 16));

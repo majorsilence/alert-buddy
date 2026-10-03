@@ -32,7 +32,7 @@ namespace AlertBuddy.Shared.Tests
         /// <summary>Renders the screen first, so layout has run and sizes are real.</summary>
         private static void AssertAccessible (MainForm form, string screen)
         {
-            HeadlessRenderer.CapturePng (form, 420, 1200);
+            HeadlessRenderer.CapturePng (form, 360, 1200);   // a common phone width: the narrower the page, the sooner words run off it
             var controls = Descendants (form.Controls.Cast<Control> ()).Where (c => c.Visible).ToList ();
 
             var unnamed = controls.Where (c => (IsInteractive (c) || c is BeaconBuddy or TicketCard or SpeechBubble) && string.IsNullOrEmpty (c.Name)).Select (Where).ToList ();
@@ -43,6 +43,10 @@ namespace AlertBuddy.Shared.Tests
 
             var mute = controls.Where (c => (IsInteractive (c) || c is BeaconBuddy or TicketCard) && Label (c).Length == 0).Select (Where).ToList ();
             Assert.True (mute.Count == 0, $"{screen}: nothing a screen reader could say for {string.Join ("; ", mute)}");
+
+            // Words must not run off the right edge of the screen: a label wider than the page is cut off (the Alert book's empty line was).
+            var clipped = controls.Where (c => c is Label && c.Parent is { } parent && c.Left + c.Width > parent.Width + 1).Select (c => $"{Where (c)} ends at {c.Left + c.Width}, page is {c.Parent!.Width}").ToList ();
+            Assert.True (clipped.Count == 0, $"{screen}: text runs off the edge: {string.Join ("; ", clipped)}");
 
             var small = controls.Where (c => IsInteractive (c) && (c.Width < 48 || c.Height < 48)).Select (c => $"{Where (c)} is {c.Width}x{c.Height}").ToList ();
             Assert.True (small.Count == 0, $"{screen}: touch targets under 48: {string.Join ("; ", small)}");
@@ -55,6 +59,10 @@ namespace AlertBuddy.Shared.Tests
             try {
                 var form = new MainForm (app);
                 AssertAccessible (form, "Home, calm");
+
+                app.Main.OpenBookCommand.Execute (null);
+                AssertAccessible (form, "Alert book, empty");
+                app.Navigator.GoBack ();
 
                 app.Engine.Handle (new NtfyEvent (NtfyEventKind.Message, new NtfyMessage (
                     "w1", DateTimeOffset.UtcNow, "home-alerts", "Workshop: temperature warning", "Workshop is at 41.2 °C", 4, [])));
