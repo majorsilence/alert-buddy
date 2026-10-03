@@ -146,5 +146,38 @@ namespace AlertBuddy.Shared.Tests
                 await app.DisposeAsync ();
             }
         }
+
+        [Theory]
+        [InlineData (360, 640)]     // a short phone
+        [InlineData (420, 720)]
+        public async Task FirstRun_ReasonLine_NeverCoversTheForm (int width, int height)
+        {
+            // On the emulator the red line saying what is wrong sat over the bottom of the form: the form's scrolling area ran to just above
+            // the footer, and the line was drawn in the same strip. The form now ends where the line starts.
+            var app = SmokeTests.CreateApp ();
+            try {
+                var form = new MainForm (app);
+                app.Navigator.GoTo<FirstRunViewModel> ();
+                var firstRun = Assert.IsType<FirstRunViewModel> (app.Navigator.Current);
+                firstRun.BuddyName = "Pip";
+                firstRun.NextCommand.Execute (null);
+                firstRun.Pin = "1234";
+                firstRun.PinConfirm = "1234";
+                firstRun.NextCommand.Execute (null);
+                Assert.Equal (FirstRunStep.Server, firstRun.Step);
+                firstRun.ServerUrl = "https://ntfy.example.com";      // the topic is still empty, so there is a reason to show
+
+                HeadlessRenderer.CapturePng (form, width, height);
+                var all = Descendants (form.Controls.Cast<Control> ()).ToList ();
+                var reason = all.First (c => c.Name == "firstRun.reason");
+                var body = all.First (c => c.Name == "firstRun.body");
+
+                Assert.NotEmpty (reason.Text);
+                Assert.True (reason.Top >= body.Top + body.Height, $"the reason line starts at {reason.Top} but the form runs to {body.Top + body.Height}");
+                Assert.True (reason.Top + reason.Height <= form.ClientSize.Height, "the reason line runs off the bottom of the page");
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
     }
 }

@@ -64,7 +64,7 @@ Pixel Tablet profile (2560x1600), API 36, KVM, the 26.6.0 APK, against `tools/Fa
 - **Found: a resolved alert's card stayed on screen** with its age frozen, while the sentence said "All quiet" (framework issue #370, TEMP-SHIM
   F28: Home and the Alert book invalidate their lists after removing cards). A freshly built Home was correct.
 - **Seen and fixed afterwards:** on a tablet First run and Settings stretched their fields across the whole 2560-wide screen; rows now stop at 560 and sit in the middle (checked headlessly at 1280, not re-run on the emulator). It worked, but it was not a
-  designed layout. Still open: the red reason line sits over the bottom of the form on a short step.
+  designed layout. The red reason line over the bottom of the form on a short step was fixed afterwards: the form now ends where the line starts (checked headlessly at 360x640 and 420x720).
 - **Not tried:** rotating, the soft keyboard in landscape beyond typing, a real tablet.
 
 ## Alarm with the screen off, phone emulator (2026-10-03)

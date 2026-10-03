@@ -31,10 +31,10 @@ namespace AlertBuddy.Shared.Views
             stepLine = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (20), Location = new Point (24, 20) };
             Controls.Add (stepLine);
 
-            body = new Panel ();
+            body = new Panel { Name = "firstRun.body" };
             Controls.Add (body);
 
-            problem = new Label { AutoSize = false, ForeColor = AlertPalette.Notice };
+            problem = new Label { AutoSize = false, ForeColor = AlertPalette.Notice, Name = "firstRun.reason" };
             Controls.Add (problem);
 
             backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56) }.Named ("firstRun.back");
@@ -169,18 +169,22 @@ namespace AlertBuddy.Shared.Views
         {
             var w = Width;
             const int footer = 88;
+
+            // The reason line sits just above the footer, wrapped to the page, and the form ends where it starts: the form scrolls, so
+            // nothing is lost, but nothing is drawn under the line either. With no reason the line takes no room.
+            problem.Width = Math.Max (160, w - 48);
+            problem.Height = problem.Text.Length > 0 ? FormColumn.ParagraphHeight (problem.Text, problem.Width) : 0;
+            var reasonTop = Height - footer - 4 - problem.Height;
+            problem.Location = new Point (24, reasonTop);
+
             body.Location = new Point (8, 64);
-            body.Size = new Size (w - 16, Math.Max (0, Height - 64 - footer - 24));
+            body.Size = new Size (w - 16, Math.Max (0, reasonTop - 8 - 64));
             foreach (var column in steps.Values) {
                 column.Location = new Point (0, 0);
                 column.Size = body.Size;
                 column.Relayout ();
             }
 
-            // Wrapped to the page, growing upward from the footer, so a long reason ("Enter the server address, for example ...") is not cut off.
-            problem.Width = Math.Max (160, w - 48);
-            problem.Height = FormColumn.ParagraphHeight (problem.Text, problem.Width);
-            problem.Location = new Point (24, Height - footer - 4 - problem.Height);
             backButton.Location = new Point (16, Height - footer + 16);
             nextButton.Location = new Point (w - nextButton.Width - 16, Height - footer + 16);
         }
