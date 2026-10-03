@@ -28,6 +28,7 @@ namespace AlertBuddy.Shared.Theme
               --ui-font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", "Noto Sans", sans-serif;
             }
             Form    { background-color: #F6F2FF; color: #2B1B4D; font-size: 18px; }
+            Label, TextBox, CheckBox, ComboBox, NumericUpDown { font-family: "Atkinson Hyperlegible Next"; }
             TextBox { background-color: #FFFFFF; color: #2B1B4D; border: 3px solid #2B1B4D; border-radius: 14px; }
             ScrollBar::thumb { background-color: #2B1B4D; border-radius: 6px; }
             """;
@@ -48,6 +49,7 @@ namespace AlertBuddy.Shared.Theme
               --ui-font: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", "Noto Sans", sans-serif;
             }
             Form    { background-color: #232E7A; color: #F6F2FF; font-size: 18px; }
+            Label, TextBox, CheckBox, ComboBox, NumericUpDown { font-family: "Atkinson Hyperlegible Next"; }
             TextBox { background-color: #2B1B4D; color: #F6F2FF; border: 3px solid #F6F2FF; border-radius: 14px; }
             ScrollBar::thumb { background-color: #F6F2FF; border-radius: 6px; }
             """;

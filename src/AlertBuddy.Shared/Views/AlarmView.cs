@@ -35,7 +35,8 @@ namespace AlertBuddy.Shared.Views
             beacon = new BeaconBuddy { Size = new Size (200, 200), Level = BeaconMood.Alarm }.Named ("alarm.buddy");
             Controls.Add (beacon);
 
-            heading = new Label { AutoSize = true, Text = vm.Heading, ForeColor = AlertPalette.OnGround };
+            // The one instruction on the one screen that must be understood at a glance: big, in the buddy's own face.
+            heading = new Label { AutoSize = true, Text = vm.Heading, ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (24) };
             Controls.Add (heading);
 
             detail = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };

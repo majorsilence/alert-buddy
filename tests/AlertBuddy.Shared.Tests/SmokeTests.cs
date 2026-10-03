@@ -172,6 +172,33 @@ namespace AlertBuddy.Shared.Tests
             Assert.False (bundled.AsSpan ().SequenceEqual (fallback), "the bundled family drew exactly what an unknown family draws");
         }
 
+        [Theory]
+        [InlineData (AlertBuddy.Core.Settings.LookPreference.Day)]
+        [InlineData (AlertBuddy.Core.Settings.LookPreference.Night)]
+        public void PlainText_IsDrawnInTheBundledBodyFont_NotWhateverTheMachineHas (AlertBuddy.Core.Settings.LookPreference look)
+        {
+            // Body text used to fall back to the platform's own sans-serif, so it differed from machine to machine (Roboto on the emulator,
+            // Noto on one Linux box, something else on CI) and was not the Atkinson Hyperlegible the design asks for. The theme names the family.
+            AlertBuddy.Shared.Theme.AlertBuddyTheme.Apply (look);
+            byte[] Render (Func<Majorsilence.Forms.Drawing.Font>? font)
+            {
+                var form = new Majorsilence.Forms.Form { ClientSize = new System.Drawing.Size (420, 80), FormBorderStyle = Majorsilence.Forms.FormBorderStyle.None };
+                var label = new Majorsilence.Forms.Label { AutoSize = true, Text = "Pip is keeping watch", Location = new System.Drawing.Point (10, 10) };
+                if (font is not null)
+                    label.Font = font ();
+                form.Controls.Add (label);
+                return HeadlessRenderer.CapturePng (form, 420, 80);
+            }
+
+            var themed = Render (null);
+            // The theme's 18px is 13.5 in the font's own units.
+            var explicitBody = Render (() => AlertBuddy.Shared.Theme.AlertFonts.Body (13.5f));
+            var fallback = Render (() => new Majorsilence.Forms.Drawing.Font ("NoSuchFamilyAnywhere", 13.5f));
+
+            Assert.True (themed.AsSpan ().SequenceEqual (explicitBody), "an unstyled label did not draw in the bundled body font");
+            Assert.False (themed.AsSpan ().SequenceEqual (fallback), "an unstyled label drew the platform fallback");
+        }
+
         [Fact (Skip = "majorsilence/Majorsilence.Forms#366: a themed TextBox loses its border while focused; unskip when it is released")]
         public void AFocusedTextBox_KeepsItsInkBorder ()
         {
