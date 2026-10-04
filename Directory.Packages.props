@@ -6,7 +6,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <!-- The committed value is always a published version. Directory.Build.local.props (git-ignored) may set
          MajorsilenceFormsVersion first to develop against a locally packed framework build. -->
-    <MajorsilenceFormsVersion Condition="'$(MajorsilenceFormsVersion)' == ''">26.7.0</MajorsilenceFormsVersion>
+    <MajorsilenceFormsVersion Condition="'$(MajorsilenceFormsVersion)' == ''">26.8.0</MajorsilenceFormsVersion>
   </PropertyGroup>
 
   <ItemGroup Label="Majorsilence.Forms">
