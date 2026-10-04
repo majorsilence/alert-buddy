@@ -11,7 +11,7 @@ first alerts it carries are home temperature warnings and alarms, but it underst
 
 ## Status
 
-Working on desktop and in the Android emulator; **not yet run on a real phone, and there is no release to download yet**. What
+Working on desktop and in the Android emulator; **not yet run on a real phone, and there is no published release yet**. To try it on your own Android device, open the latest run of the CI workflow on the Actions tab and download the `AlertBuddy-android-apk` artifact (kept 30 days; you need to be signed in to GitHub), unzip it and install the `.apk` (allow installs from your file manager or browser, or `adb install -r`). It is signed with a debug key, so it is for side-loading only. What
 exists: the alert pipeline (an ntfy client that reconnects and replays what it missed), every screen (Home, the alarm takeover,
 alert detail, the Alert book, Practice, First run, Settings, the grown-up gate), a foreground service for Android, notification
 and permission steps, sound and vibration, an optional "Read alerts aloud" setting (platform text-to-speech, off by default), and a [browser demo](https://majorsilence.github.io/alert-buddy/) that only plays Practice mode (it has not been looked at in a real browser yet). [PLAN.md](PLAN.md) is the plan,

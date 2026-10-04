@@ -85,4 +85,20 @@ jobs:
       - name: Install android workload
         run: dotnet workload install android
       - name: Build the head
-        run: dotnet build src/AlertBuddy.Android -c Release
+        # The run number is the version code, so each CI build installs over the last one.
+        run: >-
+          dotnet build src/AlertBuddy.Android -c Release
+          -p:ApplicationVersion=${{ github.run_number }} -p:ApplicationDisplayVersion=0.0.${{ github.run_number }}-ci
+      - name: Collect the APK
+        run: |
+          mkdir -p apk
+          cp src/AlertBuddy.Android/bin/Release/net10.0-android/*-Signed.apk apk/AlertBuddy-ci-${{ github.run_number }}-${GITHUB_SHA::7}.apk
+      - name: Archive the APK
+        # Signed with the .NET Android debug key: install by hand (adb install, or open the file on the device), not for a store.
+        # Kept for 30 days; a tagged release (release.yml) is the durable build.
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlertBuddy-android-apk
+          path: apk/*.apk
+          if-no-files-found: error
+          retention-days: 30
