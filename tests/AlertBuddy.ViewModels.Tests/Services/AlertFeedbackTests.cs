@@ -1,3 +1,4 @@
+using AlertBuddy.ViewModels.Services;
 using AlertBuddy.Core.Ntfy;
 using AlertBuddy.Core.Settings;
 using AlertBuddy.Core.Store;
@@ -273,6 +274,46 @@ namespace AlertBuddy.ViewModels.Tests.Services
             rig.AllClear ();
 
             Assert.Equal (AlertBuddy.Core.Alerts.AlertStatus.Resolved, rig.Notifier.Shown[^1].Status);
+        }
+
+        [Theory]
+        [InlineData (AlarmTone.Whoop, "Alarm")]
+        [InlineData (AlarmTone.Code3, "Code3")]
+        [InlineData (AlarmTone.MarchTime, "MarchTime")]
+        [InlineData (AlarmTone.Continuous, "Continuous")]
+        [InlineData (AlarmTone.VoiceEvacuation, "VoiceEvacuation")]
+        public async Task TheAlarm_LoopsTheChosenTone (AlarmTone tone, string cue)
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = tone });
+
+            rig.Alarm ();
+
+            Assert.Equal ([$"Loop:{cue}"], rig.Sound.Calls);
+        }
+
+        [Fact]
+        public async Task VoiceEvacuation_SaysTheInstructionAgainEveryFewSeconds_UntilTheAlarmEnds ()
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation });
+
+            rig.Alarm ();
+            rig.Clock.Advance (AlertFeedback.VoiceRepeat);
+            rig.Clock.Advance (AlertFeedback.VoiceRepeat);
+            Assert.Equal (3, rig.Speaker.Said.Count);
+
+            rig.AllClear ();
+            rig.Clock.Advance (AlertFeedback.VoiceRepeat);
+            Assert.Equal (3, rig.Speaker.Said.Count);
+        }
+
+        [Fact]
+        public async Task VoiceEvacuation_WithReadAloudOn_DoesNotSayTheInstructionTwice ()
+        {
+            await using var rig = new AppRig (Reading (true) with { AlarmTone = AlarmTone.VoiceEvacuation });
+
+            rig.Alarm ();
+
+            Assert.Single (rig.Speaker.Said);
         }
     }
 }

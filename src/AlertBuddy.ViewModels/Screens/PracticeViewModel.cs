@@ -51,6 +51,9 @@ namespace AlertBuddy.ViewModels.Screens
         [NotifyCanExecuteChangedFor (nameof (ToldAGrownUpCommand))]
         private bool canTellAGrownUp;
 
+        /// <summary>How loud a chosen tone is in Practice, against the real alarm.</summary>
+        public const double PracticeVolume = 0.4;
+
         /// <summary>The banner that says this is not real.</summary>
         public string Banner => Words.PracticeBanner;
 
@@ -128,9 +131,14 @@ namespace AlertBuddy.ViewModels.Screens
             Step = scripted.Number;
             Caption = scripted.Caption;
 
-            // The quiet practice cue, never the siren: it is a rehearsal.
-            if (settings.Current.SoundsEnabled)
-                sound.Play (Cue.Practice);
+            // Quiet and played once, never looped: it is a rehearsal. A grown-up may pick which tone the child rehearses with.
+            var current = settings.Current;
+            if (current.SoundsEnabled) {
+                if (current.PracticeTone is { } tone)
+                    sound.Play (AlertFeedback.CueFor (tone), PracticeVolume);
+                else
+                    sound.Play (Cue.Practice);
+            }
 
             engine.Handle (new NtfyEvent (NtfyEventKind.Message, scripted.Message, MessageOrigin.Live));
         }

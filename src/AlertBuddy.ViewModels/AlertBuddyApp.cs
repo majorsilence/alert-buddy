@@ -145,7 +145,7 @@ namespace AlertBuddy.ViewModels
 
             navigator.Register (() => new AlertBookViewModel (engine, hub, navigator, screens, clock, platform.Dispatcher, platform.Zone));
             navigator.Register (() => new PracticeViewModel (settings, clock, platform.Dispatcher, scheduler, platform.Sound, navigator));
-            navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version, platform.Permissions, platform.Lifecycle, platform.Speaker));
+            navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version, platform.Permissions, platform.Lifecycle, platform.Speaker, platform.Sound));
             navigator.Register (() => new FirstRunViewModel (settings, platform.Secrets, tester, listener, navigator, platform.Background, platform.Permissions, platform.Lifecycle));
 
             screens.Wire (
@@ -153,7 +153,7 @@ namespace AlertBuddy.ViewModels
                 alert => new AlarmViewModel (alert, engine, hub, platform.Dispatcher),
                 onUnlocked => new GateViewModel (settings, navigator, scheduler, gateLock, onUnlocked));
 
-            var feedback = new AlertFeedback (hub, platform.Sound, platform.Haptics, platform.Notifier, settings, clock, platform.Zone, platform.Speaker);
+            var feedback = new AlertFeedback (hub, platform.Sound, platform.Haptics, platform.Notifier, settings, clock, platform.Zone, platform.Speaker, scheduler);
             var takeover = new TakeoverCoordinator (hub, navigator, screens, platform.Dispatcher);
 
             // The back button steps back one screen before it ever leaves the app (PLAN.md section 6.5).

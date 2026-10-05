@@ -46,6 +46,25 @@ namespace AlertBuddy.Core.Settings
         Sand,
     }
 
+    /// <summary>The sounds a grown-up may choose for the alarm, and for Practice. Named for the familiar building-alarm signals.</summary>
+    public enum AlarmTone
+    {
+        /// <summary>The app's own rising whoop, looped. The default.</summary>
+        Whoop,
+
+        /// <summary>Three short bursts, a pause, and again (the "temporal 3" pattern of ISO 8201).</summary>
+        Code3,
+
+        /// <summary>A steady beat of 120 short tones a minute.</summary>
+        MarchTime,
+
+        /// <summary>One unbroken tone.</summary>
+        Continuous,
+
+        /// <summary>An attention chime followed by a spoken instruction, repeated. The words come from the device's voice.</summary>
+        VoiceEvacuation,
+    }
+
     /// <summary>
     /// Everything a grown-up can configure (PLAN.md sections 4.3 and 7.4). A JSON file in the app data directory. Secrets are not in it:
     /// the password and the token live in the <see cref="ISecretStore"/>.
@@ -96,6 +115,12 @@ namespace AlertBuddy.Core.Settings
 
         /// <summary>Whether sounds play at all. Practice mode and the alarm respect it; a grown-up can silence the app on a tablet in a meeting.</summary>
         public bool SoundsEnabled { get; init; } = true;
+
+        /// <summary>The sound the alarm makes. Warnings and all clears keep their own friendly cues.</summary>
+        public AlarmTone AlarmTone { get; init; } = AlarmTone.Whoop;
+
+        /// <summary>The sound Practice plays for each step, quietly; null is the gentle practice cue.</summary>
+        public AlarmTone? PracticeTone { get; init; }
 
         /// <summary>Whether a new warning or alarm is also read aloud, for a child still learning to read. Off until a grown-up turns it on.</summary>
         public bool ReadAloud { get; init; }

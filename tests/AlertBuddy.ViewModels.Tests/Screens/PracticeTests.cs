@@ -76,6 +76,22 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             Assert.Equal (["Play:Practice", "Play:Practice", "Play:Practice"], rig.Sound.Calls);
         }
 
+        [Theory]
+        [InlineData (AlarmTone.Code3, "Code3")]
+        [InlineData (AlarmTone.MarchTime, "MarchTime")]
+        [InlineData (AlarmTone.Continuous, "Continuous")]
+        [InlineData (AlarmTone.VoiceEvacuation, "VoiceEvacuation")]
+        public async Task AChosenPracticeTone_PlaysOnceForEachStep_Quietly (AlarmTone tone, string cue)
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = tone });
+            var practice = Open (rig);
+
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (21));
+
+            Assert.Equal (Enumerable.Repeat ($"Play:{cue}@0.4", 3), rig.Sound.Calls);
+        }
+
         [Fact]
         public async Task WithSoundsOff_ItIsSilent ()
         {

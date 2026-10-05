@@ -13,7 +13,7 @@ namespace AlertBuddy.Shared.Platform
         public bool IsSupported => false;
 
         /// <inheritdoc/>
-        public void Play (Cue cue) { }
+        public void Play (Cue cue, double volume = 1) { }
 
         /// <inheritdoc/>
         public void StartLoop (Cue cue) { }

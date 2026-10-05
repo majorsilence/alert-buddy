@@ -16,9 +16,10 @@ namespace AlertBuddy.Android.Platform
 
         public bool IsSupported => AudioPlayer.IsSupported;
 
-        public void Play (Cue cue)
+        public void Play (Cue cue, double volume = 1)
         {
             var player = Create (cue, loop: false);
+            player.Volume = (float)Math.Clamp (volume, 0, 1);
             lock (gate)
                 playing.Add (player);
 
@@ -56,7 +57,7 @@ namespace AlertBuddy.Android.Platform
             var stream = context.Assets!.Open ($"sounds/{FileFor (cue)}.wav");
             return new AudioPlayer (stream) {
                 Loop = loop,
-                Usage = cue == Cue.Alarm ? AudioUsage.Alarm : cue is Cue.Warning or Cue.AllClear ? AudioUsage.Notification : AudioUsage.Effect,
+                Usage = cue is Cue.Alarm or Cue.Code3 or Cue.MarchTime or Cue.Continuous or Cue.VoiceEvacuation ? AudioUsage.Alarm : cue is Cue.Warning or Cue.AllClear ? AudioUsage.Notification : AudioUsage.Effect,
             };
         }
 
@@ -66,6 +67,10 @@ namespace AlertBuddy.Android.Platform
             Cue.Alarm => "alarm",
             Cue.AllClear => "allclear",
             Cue.Cheer => "cheer",
+            Cue.Code3 => "code3",
+            Cue.MarchTime => "marchtime",
+            Cue.Continuous => "continuous",
+            Cue.VoiceEvacuation => "voice",
             _ => "practice",
         };
     }

@@ -21,10 +21,15 @@ namespace AlertBuddy.ViewModels.Services
         private readonly IClock clock;
         private readonly TimeZoneInfo zone;
         private readonly ISpeaker? speaker;
+        private readonly IScheduler? scheduler;
+        private IDisposable? voiceRepeat;
         private bool sirenRunning;
 
+        /// <summary>How often the spoken evacuation instruction is repeated while the alarm is open.</summary>
+        public static readonly TimeSpan VoiceRepeat = TimeSpan.FromSeconds (12);
+
         /// <summary>Starts listening to the hub.</summary>
-        public AlertFeedback (AlertHub hub, ISoundPlayer sound, IHaptics haptics, IAlertNotifier notifier, SettingsService settings, IClock clock, TimeZoneInfo? zone = null, ISpeaker? speaker = null)
+        public AlertFeedback (AlertHub hub, ISoundPlayer sound, IHaptics haptics, IAlertNotifier notifier, SettingsService settings, IClock clock, TimeZoneInfo? zone = null, ISpeaker? speaker = null, IScheduler? scheduler = null)
         {
             this.hub = hub ?? throw new ArgumentNullException (nameof (hub));
             this.sound = sound ?? throw new ArgumentNullException (nameof (sound));
@@ -34,6 +39,7 @@ namespace AlertBuddy.ViewModels.Services
             this.clock = clock ?? throw new ArgumentNullException (nameof (clock));
             this.zone = zone ?? TimeZoneInfo.Local;
             this.speaker = speaker;
+            this.scheduler = scheduler;
 
             hub.AlertChanged += OnChange;
         }
@@ -56,8 +62,8 @@ namespace AlertBuddy.ViewModels.Services
                     Notify (change);
 
                     var wanted = SoundPolicy.Apply (change.Sound, current.Night, clock.Now, zone);
-                    Play (wanted, current.SoundsEnabled);
-                    Speak (change, wanted, current.ReadAloud);
+                    Play (wanted, current.SoundsEnabled, current.AlarmTone);
+                    Speak (change, wanted, current.ReadAloud, current.AlarmTone);
                 }
 
                 // Whether or not this change made a sound, the siren must run exactly while an alarm is open and unanswered: it stops the
@@ -68,15 +74,16 @@ namespace AlertBuddy.ViewModels.Services
             }
         }
 
-        private void Play (AlertSound wanted, bool friendlySounds)
+        private void Play (AlertSound wanted, bool friendlySounds, AlarmTone alarmTone)
         {
             switch (wanted) {
                 case AlertSound.Alarm:
                     // The siren is not one of the "friendly sounds": muting those never mutes an alarm.
                     if (!sirenRunning) {
                         sirenRunning = true;
-                        sound.StartLoop (Cue.Alarm);
+                        sound.StartLoop (CueFor (alarmTone));
                         haptics.Alarm ();
+                        StartVoice (alarmTone);
                     }
                     break;
                 case AlertSound.Warning when friendlySounds:
@@ -93,7 +100,7 @@ namespace AlertBuddy.ViewModels.Services
 
         // The same line a grown-up would say: the alarm instruction, or which place needs a look. Only for news that is making a sound,
         // so quiet hours keep warnings silent here too, and an alarm is never hushed.
-        private void Speak (AlertChange change, AlertSound wanted, bool readAloud)
+        private void Speak (AlertChange change, AlertSound wanted, bool readAloud, AlarmTone alarmTone)
         {
             if (!readAloud || speaker is not { IsSupported: true } || change.Alert is not { } alert)
                 return;
@@ -102,7 +109,8 @@ namespace AlertBuddy.ViewModels.Services
                 return;
 
             var line = wanted switch {
-                AlertSound.Alarm => Copy.Words.TellAGrownUpNow,
+                // The voice evacuation tone already says this line itself, on repeat.
+                AlertSound.Alarm when alarmTone != AlarmTone.VoiceEvacuation => Copy.Words.TellAGrownUpNow,
                 AlertSound.Warning => Copy.Words.NeedsALook (alert.Source),
                 _ => null,
             };
@@ -111,8 +119,36 @@ namespace AlertBuddy.ViewModels.Services
                 speaker.Speak (line);
         }
 
+        /// <summary>The cue a tone plays as. Shared with Practice so a rehearsal sounds like the real thing.</summary>
+        public static Cue CueFor (AlarmTone tone) => tone switch {
+            AlarmTone.Code3 => Cue.Code3,
+            AlarmTone.MarchTime => Cue.MarchTime,
+            AlarmTone.Continuous => Cue.Continuous,
+            AlarmTone.VoiceEvacuation => Cue.VoiceEvacuation,
+            _ => Cue.Alarm,
+        };
+
+        // The chime is a generated file; the words are the device's own voice, said again every few seconds while the alarm is open. A
+        // device with no voice (or no scheduler) just plays the chime, which is still an unmistakable alarm.
+        private void StartVoice (AlarmTone tone)
+        {
+            if (tone != AlarmTone.VoiceEvacuation || speaker is not { IsSupported: true } || scheduler is null)
+                return;
+
+            speaker.Speak (Copy.Words.TellAGrownUpNow);
+            voiceRepeat = scheduler.Every (VoiceRepeat, () => {
+                lock (gate) {
+                    if (sirenRunning)
+                        speaker.Speak (Copy.Words.TellAGrownUpNow);
+                }
+            });
+        }
+
         private void StopSiren ()
         {
+            voiceRepeat?.Dispose ();
+            voiceRepeat = null;
+
             if (!sirenRunning)
                 return;
 

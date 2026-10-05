@@ -23,6 +23,18 @@ namespace AlertBuddy.ViewModels.Services
 
         /// <summary>A short, quieter version used by Practice mode.</summary>
         Practice,
+
+        /// <summary>Three bursts, a pause, repeated.</summary>
+        Code3,
+
+        /// <summary>A steady 120-a-minute beat.</summary>
+        MarchTime,
+
+        /// <summary>One unbroken tone, looped.</summary>
+        Continuous,
+
+        /// <summary>The attention chime that opens a voice evacuation message; the spoken words come from <see cref="ISpeaker"/>.</summary>
+        VoiceEvacuation,
     }
 
     /// <summary>
@@ -34,8 +46,8 @@ namespace AlertBuddy.ViewModels.Services
         /// <summary>Whether this platform can play anything at all.</summary>
         bool IsSupported { get; }
 
-        /// <summary>Plays a cue once.</summary>
-        void Play (Cue cue);
+        /// <summary>Plays a cue once. <paramref name="volume"/> runs from 0 to 1; Practice plays the real tones quietly.</summary>
+        void Play (Cue cue, double volume = 1);
 
         /// <summary>Plays a cue over and over until <see cref="StopLoop"/>. The siren.</summary>
         void StartLoop (Cue cue);

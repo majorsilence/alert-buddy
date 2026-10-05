@@ -33,7 +33,7 @@ namespace AlertBuddy.ViewModels.Tests
     {
         public List<string> Calls { get; } = [];
         public bool IsSupported => true;
-        public void Play (Cue cue) => Calls.Add ($"Play:{cue}");
+        public void Play (Cue cue, double volume = 1) => Calls.Add (volume < 1 ? $"Play:{cue}@{volume}" : $"Play:{cue}");
         public void StartLoop (Cue cue) => Calls.Add ($"Loop:{cue}");
         public void StopLoop () => Calls.Add ("StopLoop");
     }

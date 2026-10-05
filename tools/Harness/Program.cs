@@ -96,7 +96,7 @@ Console.WriteLine ("Done.");
 sealed class ConsoleSound : ISoundPlayer
 {
     public bool IsSupported => true;
-    public void Play (Cue cue) => Console.WriteLine ($"    (sound: {cue})");
+    public void Play (Cue cue, double volume = 1) => Console.WriteLine ($"    (sound: {cue})");
     public void StartLoop (Cue cue) => Console.WriteLine ($"    (sound: {cue} on a loop)");
     public void StopLoop () => Console.WriteLine ("    (sound: stopped)");
 }

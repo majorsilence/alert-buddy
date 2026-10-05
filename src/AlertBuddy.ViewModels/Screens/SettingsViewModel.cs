@@ -25,6 +25,28 @@ namespace AlertBuddy.ViewModels.Screens
         Full,
     }
 
+    /// <summary>What Practice plays: the gentle cue it always had, or one of the alarm tones. Order matches <see cref="AlarmTone"/> after Gentle.</summary>
+    public enum PracticeSound
+    {
+        /// <summary>The short, quiet practice cue.</summary>
+        Gentle,
+
+        /// <summary>The whoop.</summary>
+        Whoop,
+
+        /// <summary>Code 3.</summary>
+        Code3,
+
+        /// <summary>March time.</summary>
+        MarchTime,
+
+        /// <summary>Continuous.</summary>
+        Continuous,
+
+        /// <summary>The voice evacuation chime.</summary>
+        VoiceEvacuation,
+    }
+
     /// <summary>
     /// Everything a grown-up can configure, behind the gate (PLAN.md sections 4.3 and 9). Edits are held here and applied only by
     /// <see cref="SaveCommand"/>, so half-typed values never reach the listener. A stored password or token is never shown, and a blank
@@ -52,7 +74,10 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private LookPreference look;
         [ObservableProperty] private MotionPreference motion;
         [ObservableProperty] private bool soundsEnabled = true;
+        private readonly ISoundPlayer? sound;
         [ObservableProperty] private bool readAloud;
+        [ObservableProperty] private AlarmTone alarmTone;
+        [ObservableProperty] private PracticeSound practiceSound;
         [ObservableProperty] private int silenceMinutes = 10;
         [ObservableProperty] private bool nightEnabled = true;
         [ObservableProperty] private TimeOnly nightStart = new (20, 0);
@@ -69,6 +94,10 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private bool isTesting;
         [ObservableProperty] private string? savedMessage;
 
+        /// <summary>Plays the chosen alarm tone once, quietly, so a grown-up can hear it without raising an alarm.</summary>
+        [RelayCommand]
+        private void PreviewAlarmTone () => sound?.Play (AlertFeedback.CueFor (AlarmTone), PracticeViewModel.PracticeVolume);
+
         /// <summary>Whether this device has a voice, so the screen offers reading alerts aloud at all.</summary>
         public bool CanReadAloud { get; }
 
@@ -84,8 +113,10 @@ namespace AlertBuddy.ViewModels.Screens
             string version = "",
             IPermissionGuide? permissions = null,
             ILifecycle? lifecycle = null,
-            ISpeaker? speaker = null)
+            ISpeaker? speaker = null,
+            ISoundPlayer? sound = null)
         {
+            this.sound = sound;
             CanReadAloud = speaker is { IsSupported: true };
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
@@ -211,6 +242,8 @@ namespace AlertBuddy.ViewModels.Screens
                 ReduceMotion = Motion switch { MotionPreference.Reduce => true, MotionPreference.Full => false, _ => null },
                 SoundsEnabled = SoundsEnabled,
                 ReadAloud = ReadAloud,
+                AlarmTone = AlarmTone,
+                PracticeTone = PracticeSound == PracticeSound.Gentle ? null : (AlarmTone)((int)PracticeSound - 1),
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
                 Night = new NightPolicy { Enabled = NightEnabled, Start = NightStart, End = NightEnd },
                 Interpretation = BuildInterpretation (),
@@ -313,6 +346,8 @@ namespace AlertBuddy.ViewModels.Screens
             Motion = s.ReduceMotion switch { true => MotionPreference.Reduce, false => MotionPreference.Full, null => MotionPreference.System };
             SoundsEnabled = s.SoundsEnabled;
             ReadAloud = s.ReadAloud;
+            AlarmTone = s.AlarmTone;
+            PracticeSound = s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 1) : PracticeSound.Gentle;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;
             NightEnabled = s.Night.Enabled;
             NightStart = s.Night.Start;

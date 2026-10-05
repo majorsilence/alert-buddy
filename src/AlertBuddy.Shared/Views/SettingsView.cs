@@ -68,6 +68,14 @@ namespace AlertBuddy.Shared.Views
                 var aloud = column.Add (new CheckBox { Text = "Read alerts aloud", Height = 48 }.Named ("settings.readAloud"));
                 scope.Add (aloud.BindChecked (vm, nameof (SettingsViewModel.ReadAloud), v => v.ReadAloud, (v, c) => v.ReadAloud = c));
             }
+            Caption ("Alarm sound");
+            var tone = Choice (nameof (SettingsViewModel.AlarmTone), "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
+            scope.Add (tone.BindSelectedIndex (vm, nameof (SettingsViewModel.AlarmTone), v => (int)v.AlarmTone, (v, i) => v.AlarmTone = (AlarmTone)i));
+            var hear = column.Add (new ChunkyButton { Text = "Hear the alarm sound", Height = 56 }.Named ("settings.hearAlarm"));
+            scope.Add (hear.BindCommand (vm.PreviewAlarmToneCommand));
+            Caption ("Practice sound");
+            var practice = Choice (nameof (SettingsViewModel.PracticeSound), "Gentle", "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
+            scope.Add (practice.BindSelectedIndex (vm, nameof (SettingsViewModel.PracticeSound), v => (int)v.PracticeSound, (v, i) => v.PracticeSound = (PracticeSound)i));
             var night = column.Add (new CheckBox { Text = "Quieter at night (8 pm to 7 am)", Height = 48 }.Named ("settings.night"));
             scope.Add (night.BindChecked (vm, nameof (SettingsViewModel.NightEnabled), v => v.NightEnabled, (v, c) => v.NightEnabled = c));
             Caption ("Minutes to stay quiet after \"Got it\"");

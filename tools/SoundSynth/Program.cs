@@ -11,6 +11,10 @@ Write ("alarm", Alarm ());
 Write ("allclear", AllClear ());
 Write ("cheer", Cheer ());
 Write ("practice", Warning (1.0), Peak * 0.4);
+Write ("code3", Code3 ());
+Write ("marchtime", MarchTime ());
+Write ("continuous", Continuous ());
+Write ("voice", VoiceChime ());
 
 void Write (string name, double[] samples, double peak = Peak)
 {
@@ -79,3 +83,42 @@ double[] Alarm ()
     }
     return data;
 }
+
+// A steady tone with a touch of second harmonic, ramped over 5 ms at each end so a burst does not click.
+double[] Beep (double hz, double seconds)
+{
+    var n = (int)(seconds * Rate);
+    var data = new double[n];
+    for (var i = 0; i < n; i++) {
+        var t = i / (double)Rate;
+        var ramp = Math.Min (Math.Min (1, t / 0.005), Math.Min (1, (seconds - t) / 0.005));
+        data[i] = (Math.Sin (2 * Math.PI * hz * t) + 0.3 * Math.Sin (4 * Math.PI * hz * t)) * ramp;
+    }
+    return data;
+}
+
+// Code 3, the temporal-3 pattern (ISO 8201): three 0.5 s tones with 0.5 s gaps, then a 1.5 s rest. One cycle, looped.
+double[] Code3 ()
+{
+    var burst = Join (Beep (800, 0.5), Silence (0.5));
+    return Join (burst, burst, burst, Silence (1.0));
+}
+
+// March time: 120 beats a minute, each a 0.25 s tone and a 0.25 s gap. Two seconds, looped.
+double[] MarchTime ()
+{
+    var beat = Join (Beep (800, 0.25), Silence (0.25));
+    return Join (beat, beat, beat, beat);
+}
+
+// Continuous: a whole number of cycles (600 Hz for one second), so the loop point is seamless.
+double[] Continuous ()
+{
+    var data = new double[Rate];
+    for (var i = 0; i < Rate; i++)
+        data[i] = Math.Sin (2 * Math.PI * 600 * i / (double)Rate);
+    return data;
+}
+
+// The two-note attention chime that opens a voice evacuation message; the spoken words come from the device's voice. Then a rest, looped.
+double[] VoiceChime () => Join (Note (880, 0.45, 3), Note (659.25, 0.7, 3), Silence (0.4));
