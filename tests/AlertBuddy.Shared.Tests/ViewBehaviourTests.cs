@@ -168,5 +168,33 @@ namespace AlertBuddy.Shared.Tests
                 await app.DisposeAsync ();
             }
         }
+
+        [Fact]
+        public async Task ARelayoutOfScrolledSettings_KeepsTheFormWhereTheyScrolledTo ()
+        {
+            var app = SmokeTests.CreateApp ();
+            try {
+                var form = new MainForm (app);
+                Render (form);
+                app.Main.OpenSettingsCommand.Execute (null);
+                Assert.IsType<GateViewModel> (app.Navigator.Current).HoldCompletedCommand.Execute (null);
+                Render (form);
+
+                var column = AccessibilityTests.Descendants (form.Controls.Cast<Control> ()).OfType<AlertBuddy.Shared.Views.FormColumn> ().First (c => c.AutoScroll);
+                var field = Find<Control> (form, "settings.BuddyName");
+                column.AutoScrollPosition = new Point (0, -600);
+                Render (form);
+                var before = (column.AutoScrollPosition.Y, field.Top);
+                Assert.True (before.Y < 0, "the form did not scroll, so this proves nothing");
+
+                // What a tap, the keyboard resizing the window, or a keystroke that changes the problem line all end in.
+                column.Relayout ();
+                Render (form);
+
+                Assert.Equal (before, (column.AutoScrollPosition.Y, field.Top));
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
     }
 }

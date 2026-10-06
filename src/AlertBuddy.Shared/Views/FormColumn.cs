@@ -129,7 +129,11 @@ namespace AlertBuddy.Shared.Views
             // A form is read down a column, not across a tablet: rows stop at a readable width and the column sits in the middle.
             var width = Math.Min (available, MaxRowWidth);
             var left = Inset + (available - width) / 2;
-            var top = Inset;
+
+            // A scrolled panel keeps its children shifted by the scroll offset (WinForms semantics: Top is relative to the visible area).
+            // Laying rows out from Inset again would drop that shift and snap the form back to the top on every relayout: a tap, the
+            // keyboard resizing the window, a keystroke that changes the problem line.
+            var top = Inset + (isSection ? 0 : AutoScrollPosition.Y);
             foreach (var row in rows) {
                 // An empty message (no problem, no test result yet) takes no room.
                 if (row is Label { AutoSize: false } message)
