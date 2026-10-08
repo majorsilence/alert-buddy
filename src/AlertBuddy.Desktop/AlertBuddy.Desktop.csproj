@@ -6,7 +6,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>AlertBuddy</AssemblyName>
     <RootNamespace>AlertBuddy.Desktop</RootNamespace>
+    <!-- The Windows exe's icon. The window and taskbar icon is set in code from the embedded PNG, which is what Linux and macOS use. -->
+    <ApplicationIcon>AlertBuddy.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\icon-256.png" LogicalName="AlertBuddy.Desktop.icon.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Majorsilence.Forms.Avalonia" />

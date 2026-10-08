@@ -37,6 +37,9 @@ namespace AlertBuddy.Desktop
 
             var app = AlertBuddyApp.Create (platform);
             form = new MainForm (app);
+            using (var icon = typeof (Program).Assembly.GetManifestResourceStream ("AlertBuddy.Desktop.icon.png"))
+                if (icon is not null)
+                    form.Image = Majorsilence.Forms.Drawing.Image.FromStream (icon);
             app.Start ();
 
             Application.Run (form);

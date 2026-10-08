@@ -13,7 +13,7 @@
   <!-- Let an alarm take over the screen where Android allows it. -->
   <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
   <uses-permission android:name="android.permission.VIBRATE" />
-  <application android:allowBackup="true" android:label="AlertBuddy">
+  <application android:allowBackup="true" android:label="AlertBuddy" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
     <service android:name="alertbuddy.ListenerService" android:exported="false" android:foregroundServiceType="specialUse">
       <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Keeps one connection to the family's own ntfy server open so a temperature alarm is heard with the screen off. It is not a media, location or data-sync task." />
