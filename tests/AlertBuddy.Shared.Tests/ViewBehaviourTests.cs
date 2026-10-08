@@ -141,6 +141,7 @@ namespace AlertBuddy.Shared.Tests
             var app = SmokeTests.CreateApp ();
             try {
                 var form = new MainForm (app);
+                form.Show ();
                 app.Engine.Handle (new NtfyEvent (NtfyEventKind.Message, new NtfyMessage (
                     "w1", DateTimeOffset.UtcNow, "home-alerts", "Workshop: temperature warning", "Workshop is at 41.2 °C", 4, [])));
                 Render (form);
@@ -182,7 +183,7 @@ namespace AlertBuddy.Shared.Tests
 
                 var column = AccessibilityTests.Descendants (form.Controls.Cast<Control> ()).OfType<AlertBuddy.Shared.Views.FormColumn> ().First (c => c.AutoScroll);
                 var field = Find<Control> (form, "settings.BuddyName");
-                column.AutoScrollPosition = new Point (0, -600);
+                column.AutoScrollPosition = new Point (0, 600);     // the setter takes the distance to scroll to; the getter answers it negated (framework 26.9.0)
                 Render (form);
                 var before = (column.AutoScrollPosition.Y, field.Top);
                 Assert.True (before.Y < 0, "the form did not scroll, so this proves nothing");
