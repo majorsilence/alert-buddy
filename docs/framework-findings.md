@@ -24,6 +24,7 @@ app **found** that was not in the register.
 | #399 | Android and desktop run (2026-10-07) | The caret of an empty single-line `TextBox` taller than its text hangs from the box's vertical centre (7 px low in a 48 px box) instead of sitting on the text's line, so the focused field is hard to find | Headless: `GetPositionFromCharIndex (0)` of an empty 48 px box is Y 25, of a box holding " " is Y 18 | None | Fixed: released in 26.9.0 (#401) |
 | #438 | Real Android device and emulator (2026-10-08) | A `ComboBox` never opens on Android: the drop-down is a `PopupWindow` the single-view host does not show, so no choice can be changed. The same on 26.8.1 and 26.9.0. A phone should get its own selector, not a small drop-down | Tap any `ComboBox` (Settings: Sign in, Look; First run: Colour) | Framework PR #440 | Fix open: asks for the platform's native selector on mobile |
 | #449 | Android emulator (2026-10-09) | A swipe that starts on a text box focuses it and raises the soft keyboard, which covers the content so the next swipe lands on the keyboard | Swipe starting on any text box (First run: the name box) | None | Fix open as framework PR #439: the keyboard waits for the tap |
+| #450 | Android emulator (2026-10-09) | A touch drag scrolled a third of the way or not at all: the swipe recognizer took the pointer before the scroll recognizer started, and the scroll recognizer's delta had the opposite sign | Slow drag on any scrollable page | None | Fix open as framework PR #451 |
 
 Evidence added to existing issues:
 
