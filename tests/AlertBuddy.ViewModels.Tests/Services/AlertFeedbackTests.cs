@@ -317,8 +317,19 @@ namespace AlertBuddy.ViewModels.Tests.Services
             rig.Alarm ("Workshop");
             rig.Clock.Advance (AlertFeedback.AnnounceAfterTone);
 
-            Assert.Equal ("Alert. Workshop. Tell a grown-up now.", Assert.Single (rig.Speaker.Said));
+            Assert.Equal ("Alert. The workshop is too hot. Tell a grown-up now.", Assert.Single (rig.Speaker.Said));      // the alert itself, then what to do
             Assert.Equal ((VoiceType.Deep, 1.0), Assert.Single (rig.Speaker.Voices));
+        }
+
+        [Fact]
+        public async Task VoiceEvacuation_ReadsAnAlarmWithNoTemperature_AsNeedingALook ()
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation });
+
+            rig.Alarm ("Front door", degrees: null);
+            rig.Clock.Advance (AlertFeedback.AnnounceAfterTone);
+
+            Assert.Equal ("Alert. The front door needs a look. Tell a grown-up now.", Assert.Single (rig.Speaker.Said));
         }
 
         [Fact]

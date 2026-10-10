@@ -101,8 +101,12 @@ namespace AlertBuddy.ViewModels.Screens
             }
 
             sound.Play (AlertFeedback.CueFor ((AlarmTone)((int)which - 1)), PracticeVolume);
-            if (which == PracticeSound.VoiceEvacuation)
-                Announce (repeat: false);
+            if (which == PracticeSound.VoiceEvacuation) {
+                if (speaker is not { IsSupported: true })
+                    SoundNote = Words.NoVoice;
+                else
+                    Announce (repeat: false);
+            }
         }
 
         // The voice evacuation sound is a chime and then a voice saying which place and what to do, in the voice the grown-up picked.
@@ -119,7 +123,7 @@ namespace AlertBuddy.ViewModels.Screens
                 if (repeat && !alarmSounding)
                     return;
 
-                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source), settings.Current.Voice, PracticeVolume, settings.Current.VoiceId);
+                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source, hot: true), settings.Current.Voice, PracticeVolume, settings.Current.VoiceId);
             }
 
             announcements.Add (scheduler.Schedule (AlertFeedback.AnnounceAfterTone, Say));

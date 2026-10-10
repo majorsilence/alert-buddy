@@ -107,7 +107,7 @@ namespace AlertBuddy.ViewModels.Screens
         [RelayCommand]
         private void PreviewVoice ()
             // A picked voice is spoken as it is; the pitch presets belong to the device's own voice.
-            => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource), VoiceId is null ? Voice : VoiceType.Standard, PracticeViewModel.PracticeVolume, VoiceId);
+            => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource, hot: true), VoiceId is null ? Voice : VoiceType.Standard, PracticeViewModel.PracticeVolume, VoiceId);
 
         /// <summary>The installed voices for the language in use, men's first (a platform that does not say a voice's sex lists it after them), so a grown-up can pick one by ear.</summary>
         public ObservableCollection<VoiceOption> AvailableVoices { get; } = [];

@@ -203,13 +203,28 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             rig.Clock.Advance (TimeSpan.FromSeconds (7));                    // the alarm starts: the chime loops
             Assert.Empty (rig.Speaker.Said);
             rig.Clock.Advance (AlertBuddy.ViewModels.Services.AlertFeedback.AnnounceAfterTone);             // and the voice follows the tone
-            Assert.Equal (["Alert. Practice room. Tell a grown-up now."], rig.Speaker.Said);
+            Assert.Equal (["Alert. The practice room is too hot. Tell a grown-up now."], rig.Speaker.Said);
             Assert.Equal ((VoiceType.Deep, 0.4), Assert.Single (rig.Speaker.Voices));
 
             rig.Clock.Advance (TimeSpan.FromSeconds (6));                    // 14 s: the all clear
             var said = rig.Speaker.Said.Count;
             rig.Clock.Advance (TimeSpan.FromSeconds (60));
             Assert.Equal (said, rig.Speaker.Said.Count);                     // and it stops
+        }
+
+        [Fact]
+        public async Task HearingTheVoiceSound_OnADeviceWithNoVoice_PlaysTheChime_AndSaysThereIsNoVoice ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true });
+            rig.Speaker.IsSupported = false;
+            var practice = Open (rig);
+
+            practice.HearSoundCommand.Execute (PracticeSound.VoiceEvacuation);
+
+            Assert.Equal (["Play:VoiceEvacuation@0.4"], rig.Sound.Calls);
+            Assert.Equal (AlertBuddy.ViewModels.Copy.Words.NoVoice, practice.SoundNote);
+            practice.HearSoundCommand.Execute (PracticeSound.Whoop);                 // another sound clears it
+            Assert.Equal ("", practice.SoundNote);
         }
 
         [Fact]

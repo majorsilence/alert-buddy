@@ -41,7 +41,8 @@ namespace AlertBuddy.ViewModels.Tests.Localization
         {
             Loc.Use (AppLanguage.French);
 
-            Assert.Equal ("Alerte. Atelier. Préviens un adulte tout de suite.", Words.AlarmAnnouncement ("Atelier"));
+            Assert.Equal ($"Alerte. Atelier{Nbsp}: il fait trop chaud. Préviens un adulte tout de suite.", Words.AlarmAnnouncement ("Atelier", hot: true));
+            Assert.Equal ($"Alerte. Atelier{Nbsp}: il faut aller voir. Préviens un adulte tout de suite.", Words.AlarmAnnouncement ("Atelier", hot: false));
         }
 
         [Fact]

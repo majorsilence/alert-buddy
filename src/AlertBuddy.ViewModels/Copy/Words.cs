@@ -66,8 +66,11 @@ namespace AlertBuddy.ViewModels.Copy
         /// <summary>The takeover's stopwatch, before the time.</summary>
         public static string AlarmSounding => Loc.T ("Sounding for");
 
-        /// <summary>What the voice says after the tone: which place, and what to do.</summary>
-        public static string AlarmAnnouncement (string source) => Loc.F ("Alert. {0}. {1}", source, TellAGrownUpNow);
+        /// <summary>What the voice says after the tone: the alert itself (too hot, or needing a look), then what to do.</summary>
+        public static string AlarmAnnouncement (string source, bool hot) => Loc.F ("Alert. {0} {1}", hot ? TooHot (source) : NeedsALook (source), TellAGrownUpNow);
+
+        /// <summary>Shown when the voice sound is asked for on a device that cannot speak, so its chime is not mistaken for the whole sound.</summary>
+        public static string NoVoice => Loc.T ("This device has no voice to read alerts aloud.");
 
         /// <summary>Shown when a sound is asked for and a grown-up has switched sounds off.</summary>
         public static string SoundsAreOff => Loc.T ("Sounds are switched off.");

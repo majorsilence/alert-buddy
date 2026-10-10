@@ -56,7 +56,7 @@ namespace AlertBuddy.Core.Localization
             ["A grown-up is on it."] = "Un adulte s’en occupe.",
             ["Sample room"] = "Pièce d’essai",
             ["Sounding for"] = "Sonne depuis",
-            ["Alert. {0}. {1}"] = "Alerte. {0}. {1}",
+            ["Alert. {0} {1}"] = "Alerte. {0} {1}",
             ["Sounds are switched off."] = "Les sons sont désactivés.",
             ["Practice. Nothing is really hot."] = "Essai. Rien n’est chaud.",
             ["No alerts yet. When something needs a look, it shows up here."] = "Aucune alerte pour l’instant. Quand quelque chose demande un coup d’œil, ça apparaît ici.",
@@ -198,6 +198,7 @@ namespace AlertBuddy.Core.Localization
             // A language is named in itself, so it reads the same whatever language is in use.
             ["English"] = "English",
             ["Français"] = "Français",
+            ["This device has no voice to read alerts aloud."] = "Cet appareil n’a pas de voix pour lire les alertes à voix haute.",
             ["Automatic"] = "Automatique",
             ["man"] = "homme",
             ["woman"] = "femme",

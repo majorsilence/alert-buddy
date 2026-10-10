@@ -66,7 +66,7 @@ namespace AlertBuddy.ViewModels.Services
                     Notify (change);
 
                     var wanted = SoundPolicy.Apply (change.Sound, current.Night, clock.Now, zone);
-                    Play (wanted, current.SoundsEnabled, current.AlarmTone, change.Alert?.Source ?? "");
+                    Play (wanted, current.SoundsEnabled, current.AlarmTone, change.Alert?.Source ?? "", change.Alert?.Temperature is not null);
                     Speak (change, wanted, current.ReadAloud, current.AlarmTone);
                 }
 
@@ -78,7 +78,7 @@ namespace AlertBuddy.ViewModels.Services
             }
         }
 
-        private void Play (AlertSound wanted, bool friendlySounds, AlarmTone alarmTone, string source)
+        private void Play (AlertSound wanted, bool friendlySounds, AlarmTone alarmTone, string source, bool hot)
         {
             switch (wanted) {
                 case AlertSound.Alarm:
@@ -87,7 +87,7 @@ namespace AlertBuddy.ViewModels.Services
                         sirenRunning = true;
                         sound.StartLoop (CueFor (alarmTone));
                         haptics.Alarm ();
-                        StartVoice (alarmTone, source);
+                        StartVoice (alarmTone, source, hot);
                     }
                     break;
                 case AlertSound.Warning when friendlySounds:
@@ -135,12 +135,12 @@ namespace AlertBuddy.ViewModels.Services
         // The chime is a generated file; the words are the device's own voice, in the voice the grown-up picked: which place, and what to do, said
         // after the tone and again every few seconds while the alarm is open. A device with no voice (or no scheduler) just plays the chime,
         // which is still an unmistakable alarm.
-        private void StartVoice (AlarmTone tone, string source)
+        private void StartVoice (AlarmTone tone, string source, bool hot)
         {
             if (tone != AlarmTone.VoiceEvacuation || speaker is not { IsSupported: true } || scheduler is null)
                 return;
 
-            var line = Copy.Words.AlarmAnnouncement (source);
+            var line = Copy.Words.AlarmAnnouncement (source, hot);
             void Say ()
             {
                 lock (gate) {
