@@ -120,7 +120,7 @@ namespace AlertBuddy.ViewModels.Services
             };
 
             if (line is not null)
-                speaker.Speak (line, settings.Current.Voice);
+                speaker.Speak (line, settings.Current.Voice, voiceId: settings.Current.VoiceId);
         }
 
         /// <summary>The cue a tone plays as. Shared with Practice so a rehearsal sounds like the real thing.</summary>
@@ -145,7 +145,7 @@ namespace AlertBuddy.ViewModels.Services
             {
                 lock (gate) {
                     if (sirenRunning)
-                        speaker.Speak (line, settings.Current.Voice);
+                        speaker.Speak (line, settings.Current.Voice, voiceId: settings.Current.VoiceId);
                 }
             }
 

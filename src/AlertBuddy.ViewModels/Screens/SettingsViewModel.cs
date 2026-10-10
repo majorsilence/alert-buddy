@@ -80,6 +80,7 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private bool readAloud;
         [ObservableProperty] private VoiceType voice;
         [ObservableProperty] private AppLanguage language;
+        [ObservableProperty] private string? voiceId;
         [ObservableProperty] private AlarmTone alarmTone;
         [ObservableProperty] private PracticeSound practiceSound;
         [ObservableProperty] private int silenceMinutes = 10;
@@ -104,7 +105,43 @@ namespace AlertBuddy.ViewModels.Screens
 
         /// <summary>Says a sample line in the chosen voice, quietly, so a grown-up can pick one by ear.</summary>
         [RelayCommand]
-        private void PreviewVoice () => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource), Voice, PracticeViewModel.PracticeVolume);
+        private void PreviewVoice ()
+            // A picked voice is spoken as it is; the pitch presets belong to the device's own voice.
+            => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource), VoiceId is null ? Voice : VoiceType.Standard, PracticeViewModel.PracticeVolume, VoiceId);
+
+        /// <summary>The installed voices for the language in use, men's first (a platform that does not say a voice's sex lists it after them), so a grown-up can pick one by ear.</summary>
+        public ObservableCollection<VoiceOption> AvailableVoices { get; } = [];
+
+        // The list comes from the device and may take a moment (Android starts its speech engine to answer), so it arrives when it arrives.
+        private async Task LoadVoicesAsync ()
+        {
+            if (speaker is not { IsSupported: true })
+                return;
+
+            var context = SynchronizationContext.Current;
+            IReadOnlyList<VoiceOption> installed;
+            try {
+                installed = await speaker.ListVoicesAsync ();
+            } catch (Exception) {
+                return;
+            }
+
+            void Fill ()
+            {
+                var code = Loc.Code;
+                foreach (var v in installed
+                    .Where (v => !v.RequiresNetwork && (v.Locale.Length == 0 || v.Locale.StartsWith (code, StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy (v => v.Sex switch { VoiceSex.Male => 0, VoiceSex.Unknown => 1, _ => 2 })
+                    .ThenBy (v => v.Locale, StringComparer.Ordinal)
+                    .ThenBy (v => v.Name, StringComparer.Ordinal))
+                    AvailableVoices.Add (v);
+            }
+
+            if (context is null)
+                Fill ();
+            else
+                context.Post (_ => Fill (), null);
+        }
 
         /// <summary>Whether this device has a voice, so the screen offers reading alerts aloud at all.</summary>
         public bool CanReadAloud { get; }
@@ -127,6 +164,7 @@ namespace AlertBuddy.ViewModels.Screens
             this.sound = sound;
             this.speaker = speaker;
             CanReadAloud = speaker is { IsSupported: true };
+            _ = LoadVoicesAsync ();
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
             this.tester = tester ?? throw new ArgumentNullException (nameof (tester));
@@ -253,6 +291,7 @@ namespace AlertBuddy.ViewModels.Screens
                 ReadAloud = ReadAloud,
                 Voice = Voice,
                 Language = Language,
+                VoiceId = VoiceId,
                 AlarmTone = AlarmTone,
                 PracticeTone = PracticeSound == PracticeSound.Gentle ? null : (AlarmTone)((int)PracticeSound - 1),
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
@@ -359,6 +398,7 @@ namespace AlertBuddy.ViewModels.Screens
             ReadAloud = s.ReadAloud;
             Voice = s.Voice;
             Language = s.Language;
+            VoiceId = s.VoiceId;
             AlarmTone = s.AlarmTone;
             PracticeSound = s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 1) : PracticeSound.Gentle;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;

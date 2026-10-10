@@ -84,5 +84,41 @@ namespace AlertBuddy.Shared.Tests
                 await app.DisposeAsync ();
             }
         }
+
+        private sealed class FakeSpeaker : AlertBuddy.ViewModels.Services.ISpeaker
+        {
+            public bool IsSupported => true;
+            public string? LastVoiceId { get; private set; }
+            public Task<IReadOnlyList<AlertBuddy.ViewModels.Services.VoiceOption>> ListVoicesAsync () => Task.FromResult<IReadOnlyList<AlertBuddy.ViewModels.Services.VoiceOption>> ([
+                new ("en-gb-x-rp", "English RP", "en-GB", AlertBuddy.ViewModels.Services.VoiceSex.Female),
+                new ("en-us-x-iom", "English US", "en-US", AlertBuddy.ViewModels.Services.VoiceSex.Male),
+            ]);
+            public void Speak (string text, AlertBuddy.Core.Settings.VoiceType voice = AlertBuddy.Core.Settings.VoiceType.Standard, double volume = 1, string? voiceId = null) => LastVoiceId = voiceId;
+        }
+
+        [Fact]
+        public async Task Settings_ListsTheInstalledVoices_AndAPickedOneIsKept ()
+        {
+            var speaker = new FakeSpeaker ();
+            var app = SmokeTests.CreateApp (speaker: speaker);
+            try {
+                var form = new MainForm (app);
+                app.Main.OpenSettingsCommand.Execute (null);
+                Assert.IsType<GateViewModel> (app.Navigator.Current).HoldCompletedCommand.Execute (null);
+                HeadlessRenderer.CapturePng (form, 420, 1800);
+
+                var box = Find<ComboBox> (form, "settings.VoiceId");
+                Assert.Equal (["Automatic", "English US (man)", "English RP (woman)"], box.Items.Cast<object> ().Select (i => i.ToString ()));
+                Assert.True (Find<ComboBox> (form, "settings.Voice").Visible);      // the pitch presets, while the voice is automatic
+
+                box.SelectedIndex = 1;
+                var vm = (SettingsViewModel) app.Navigator.Current;
+                Assert.Equal ("en-us-x-iom", vm.VoiceId);
+                HeadlessRenderer.CapturePng (form, 420, 1800);
+                Assert.False (Find<ComboBox> (form, "settings.Voice").Visible);     // a picked voice is not pitched on top
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
     }
 }

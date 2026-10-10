@@ -136,6 +136,9 @@ namespace AlertBuddy.Core.Settings
         /// <summary>The sound Practice plays for each step, quietly; null is the gentle practice cue.</summary>
         public AlarmTone? PracticeTone { get; init; }
 
+        /// <summary>The installed voice that speaks, by its platform id; null lets the platform choose, with the <see cref="Voice"/> pitch applied.</summary>
+        public string? VoiceId { get; init; }
+
         /// <summary>The language of the app: follow the device, or English, or French.</summary>
         public AppLanguage Language { get; init; } = AppLanguage.System;
 

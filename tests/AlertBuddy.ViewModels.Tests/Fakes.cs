@@ -42,11 +42,15 @@ namespace AlertBuddy.ViewModels.Tests
     {
         public List<string> Said { get; } = [];
         public List<(VoiceType Voice, double Volume)> Voices { get; } = [];
+        public List<string?> VoiceIds { get; } = [];
+        public List<VoiceOption> Installed { get; } = [];
         public bool IsSupported => true;
-        public void Speak (string text, VoiceType voice = VoiceType.Standard, double volume = 1)
+        public Task<IReadOnlyList<VoiceOption>> ListVoicesAsync () => Task.FromResult<IReadOnlyList<VoiceOption>> (Installed);
+        public void Speak (string text, VoiceType voice = VoiceType.Standard, double volume = 1, string? voiceId = null)
         {
             Said.Add (text);
             Voices.Add ((voice, volume));
+            VoiceIds.Add (voiceId);
         }
     }
 

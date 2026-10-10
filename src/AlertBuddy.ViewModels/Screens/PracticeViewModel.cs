@@ -119,7 +119,7 @@ namespace AlertBuddy.ViewModels.Screens
                 if (repeat && !alarmSounding)
                     return;
 
-                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source), settings.Current.Voice, PracticeVolume);
+                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source), settings.Current.Voice, PracticeVolume, settings.Current.VoiceId);
             }
 
             announcements.Add (scheduler.Schedule (AlertFeedback.AnnounceAfterTone, Say));

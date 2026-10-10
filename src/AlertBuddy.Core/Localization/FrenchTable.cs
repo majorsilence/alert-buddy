@@ -198,6 +198,10 @@ namespace AlertBuddy.Core.Localization
             // A language is named in itself, so it reads the same whatever language is in use.
             ["English"] = "English",
             ["Français"] = "Français",
+            ["Automatic"] = "Automatique",
+            ["man"] = "homme",
+            ["woman"] = "femme",
+            ["Voice pitch"] = "Hauteur de la voix",
             ["Language"] = "Langue",
             ["Follow the device"] = "Suivre l’appareil",
             ["No sign-in"] = "Sans connexion",

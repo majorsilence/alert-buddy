@@ -1,3 +1,4 @@
+using AlertBuddy.ViewModels.Services;
 using AlertBuddy.Core.Localization;
 using System.Drawing;
 using AlertBuddy.Core.Settings;
@@ -78,9 +79,16 @@ namespace AlertBuddy.Shared.Views
             var hear = column.Add (new ChunkyButton { Text = Loc.T ("Hear the alarm sound"), Height = 56 }.Named ("settings.hearAlarm"));
             scope.Add (hear.BindCommand (vm.PreviewAlarmToneCommand));
             if (vm.CanReadAloud) {
-                Caption (Loc.T ("Voice"));
+                BuildVoicePicker ();
+                var pitchCaption = Caption (Loc.T ("Voice pitch"));
                 var voice = Choice (nameof (SettingsViewModel.Voice), "Deeper", "Standard", "Lighter");
                 scope.Add (voice.BindSelectedIndex (vm, nameof (SettingsViewModel.Voice), v => (int)v.Voice, (v, i) => v.Voice = (VoiceType)i));
+                // The pitch presets lower or raise the device's own voice; a voice picked by name is spoken as it is.
+                scope.Add (vm.Observe (nameof (SettingsViewModel.VoiceId), v => v.VoiceId, id => {
+                    voice.Visible = id is null;
+                    pitchCaption.Visible = id is null;
+                    column.Relayout ();
+                }));
                 var hearVoice = column.Add (new ChunkyButton { Text = Loc.T ("Hear the voice"), Height = 56 }.Named ("settings.hearVoice"));
                 scope.Add (hearVoice.BindCommand (vm.PreviewVoiceCommand));
             }
@@ -170,6 +178,60 @@ namespace AlertBuddy.Shared.Views
             var box = column.Add (new NumericUpDown { Minimum = min, Maximum = max, Height = 48 }.Named ($"settings.{property}", lastLabel));
             scope.Add (box.BindValue (vm, property, v => get (v), (v, n) => set (v, (int)n)));
             return box;
+        }
+
+        // The installed voices of the language in use: "Automatic", then each one named and, where the device says, whether it is a
+        // man's or a woman's. The list arrives from the device when it arrives, so the choices are filled in as it does.
+        private void BuildVoicePicker ()
+        {
+            Caption (Loc.T ("Voice"));
+            var box = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("settings.VoiceId", lastLabel));
+            var filling = false;
+
+            void Fill ()
+            {
+                filling = true;
+                box.Items.Clear ();
+                box.Items.Add (Loc.T ("Automatic"));
+                foreach (var option in vm.AvailableVoices)
+                    box.Items.Add (VoiceLabel (option));
+                box.SelectedIndex = SelectedVoiceIndex ();
+                filling = false;
+            }
+
+            int SelectedVoiceIndex ()
+            {
+                for (var i = 0; i < vm.AvailableVoices.Count; i++)
+                    if (vm.AvailableVoices[i].Id == vm.VoiceId)
+                        return i + 1;
+                return 0;
+            }
+
+            box.SelectedIndexChanged += (_, _) => {
+                if (!filling)
+                    vm.VoiceId = box.SelectedIndex is > 0 and var i && i - 1 < vm.AvailableVoices.Count ? vm.AvailableVoices[i - 1].Id : null;
+            };
+            vm.AvailableVoices.CollectionChanged += OnVoicesChanged;
+            scope.Add (new Unsubscribe (() => vm.AvailableVoices.CollectionChanged -= OnVoicesChanged));
+            scope.Add (vm.Observe (nameof (SettingsViewModel.VoiceId), v => v.VoiceId, _ => {
+                if (!filling && box.Items.Count > 0 && box.SelectedIndex != SelectedVoiceIndex ())
+                    box.SelectedIndex = SelectedVoiceIndex ();
+            }));
+            Fill ();
+
+            void OnVoicesChanged (object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => Fill ();
+        }
+
+        private static string VoiceLabel (VoiceOption option)
+        {
+            // The list is already of the language in use, so the language is not repeated; a man's or a woman's voice is said where the device says.
+            var sex = option.Sex switch { VoiceSex.Male => Loc.T ("man"), VoiceSex.Female => Loc.T ("woman"), _ => "" };
+            return sex.Length > 0 ? $"{option.Name} ({sex})" : option.Name;
+        }
+
+        private sealed class Unsubscribe (Action action) : IDisposable
+        {
+            public void Dispose () => action ();
         }
 
         private ComboBox Choice (string property, params string[] items)
