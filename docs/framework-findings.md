@@ -28,6 +28,8 @@ app **found** that was not in the register.
 | #454 | Android emulator (2026-10-10) | The scroll indicator did not move while the page scrolled (the thumb had no range for a page under two screens), and once it moved it left a trail | Scroll any page on Android | None | Fixed in 26.10.1 |
 | #458 | Real Android device (2026-10-10) | Pressing two buttons with two fingers at once left both pressed: a second finger took the mouse capture | Press two Practice sound buttons together | None | Fixed in 26.10.1 |
 | #456 | Alert Buddy (2026-10-10) | `Speech` can only speak in the default voice for a language, so a man's voice for the spoken alarm can only be approximated by lowering the pitch | Settings, Voice | None (pitch presets: Deeper, Standard, Lighter) | Open: list installed voices and speak with a chosen one |
+| #462 | Linux desktop (2026-10-10) | `Speech` on Linux needed an `espeak` binary, so a desktop with only speech-dispatcher (`spd-say`) said nothing | Practice, Voice evacuation sound, on a stock Linux desktop | None | Fix open as framework PR #463 |
+| #464 | Android emulator (2026-10-10) | After a file picker was shown the form stayed short by the keyboard's height (the input pane's Closed event was never delivered): the next screen was built too small and the old one stayed painted under it | Restore the settings from a file on First run | None | Fix open as framework PR #465 |
 
 Evidence added to existing issues:
 

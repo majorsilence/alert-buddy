@@ -333,8 +333,8 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             vm.SaveCommand.Execute (null);
 
             Assert.Equal (VoiceType.Light, rig.Settings.Current.Voice);
-            Assert.Equal ("Alert. Sample room. Tell a grown-up now.", Assert.Single (speaker.Said));
-            Assert.Equal ((VoiceType.Light, 0.4), Assert.Single (speaker.Voices));
+            Assert.Equal ("Alert. The sample room is too hot. Tell a grown-up now.", Assert.Single (speaker.Said));
+            Assert.Equal ((VoiceType.Light, 1.0), Assert.Single (speaker.Voices));
         }
 
         [Fact]

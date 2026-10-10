@@ -57,14 +57,58 @@ namespace AlertBuddy.ViewModels.Services
         void StopLoop ();
     }
 
+    /// <summary>
+    /// Lets a person keep the settings in a file of their own choosing and load them again: the one thing that survives removing the app. The
+    /// platform's own file picker does it, so no storage permission is asked for. Null where a device has no such picker.
+    /// </summary>
+    public interface ISettingsTransfer
+    {
+        /// <summary>Whether this device can pick a file to save to or load from.</summary>
+        bool IsSupported { get; }
+
+        /// <summary>Asks where to save <paramref name="text"/> and writes it there. False when the person cancelled or it could not be written.</summary>
+        Task<bool> SaveAsync (string suggestedName, string text);
+
+        /// <summary>Asks for a file and reads it. Null when the person cancelled or it could not be read.</summary>
+        Task<string?> LoadAsync ();
+    }
+
+    /// <summary>What a platform says about a voice's sex. Android and macOS do not say.</summary>
+    public enum VoiceSex
+    {
+        /// <summary>Not said.</summary>
+        Unknown,
+
+        /// <summary>A man's voice.</summary>
+        Male,
+
+        /// <summary>A woman's voice.</summary>
+        Female,
+    }
+
+    /// <summary>An installed voice, as a grown-up picks it in Settings.</summary>
+    /// <param name="Id">What the platform calls it.</param>
+    /// <param name="Name">A name to show.</param>
+    /// <param name="Locale">Its language as a tag such as "en-GB", or empty.</param>
+    /// <param name="Sex">Its sex where the platform says.</param>
+    /// <param name="RequiresNetwork">Whether it needs a connection to speak. An alarm must be heard with none, so Settings leaves these out.</param>
+    public sealed record VoiceOption (string Id, string Name, string Locale, VoiceSex Sex, bool RequiresNetwork = false);
+
     /// <summary>Reads a line aloud (F15). Optional: a head with no voice supplies none and the setting is not offered.</summary>
     public interface ISpeaker
     {
         /// <summary>Whether this device can speak at all.</summary>
         bool IsSupported { get; }
 
-        /// <summary>Says a line and returns at once. Never throws: a device that cannot speak just stays quiet. <paramref name="volume"/> runs from 0 to 1.</summary>
-        void Speak (string text, VoiceType voice = VoiceType.Standard, double volume = 1);
+        /// <summary>The voices installed on this device, or none when the device cannot list them.</summary>
+        Task<IReadOnlyList<VoiceOption>> ListVoicesAsync ();
+
+        /// <summary>
+        /// Says a line and returns at once. Never throws: a device that cannot speak just stays quiet. <paramref name="volume"/> runs from 0 to 1.
+        /// <paramref name="voiceId"/> is an installed voice from <see cref="ListVoicesAsync"/>; with none, the device's own voice is used and
+        /// <paramref name="voice"/> sets its pitch.
+        /// </summary>
+        void Speak (string text, VoiceType voice = VoiceType.Standard, double volume = 1, string? voiceId = null);
     }
 
     /// <summary>Vibration (F13).</summary>

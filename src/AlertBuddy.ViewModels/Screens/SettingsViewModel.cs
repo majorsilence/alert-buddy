@@ -26,9 +26,12 @@ namespace AlertBuddy.ViewModels.Screens
         Full,
     }
 
-    /// <summary>What Practice plays: the gentle cue it always had, or one of the alarm tones. Order matches <see cref="AlarmTone"/> after Gentle.</summary>
+    /// <summary>What Practice plays: the same as the alarm, the gentle cue, or one of the alarm tones. Order matches <see cref="AlarmTone"/> after Gentle.</summary>
     public enum PracticeSound
     {
+        /// <summary>What a real alert sounds like: the warning sound, the alarm tone, then the all clear.</summary>
+        SameAsAlarm,
+
         /// <summary>The short, quiet practice cue.</summary>
         Gentle,
 
@@ -77,9 +80,11 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private bool soundsEnabled = true;
         private readonly ISoundPlayer? sound;
         private readonly ISpeaker? speaker;
+        private readonly ISettingsTransfer? transfer;
         [ObservableProperty] private bool readAloud;
         [ObservableProperty] private VoiceType voice;
         [ObservableProperty] private AppLanguage language;
+        [ObservableProperty] private string? voiceId;
         [ObservableProperty] private AlarmTone alarmTone;
         [ObservableProperty] private PracticeSound practiceSound;
         [ObservableProperty] private int silenceMinutes = 10;
@@ -104,7 +109,43 @@ namespace AlertBuddy.ViewModels.Screens
 
         /// <summary>Says a sample line in the chosen voice, quietly, so a grown-up can pick one by ear.</summary>
         [RelayCommand]
-        private void PreviewVoice () => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource), Voice, PracticeViewModel.PracticeVolume);
+        private void PreviewVoice ()
+            // A picked voice is spoken as it is; the pitch presets belong to the device's own voice.
+            => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource, hot: true), VoiceId is null ? Voice : VoiceType.Standard, 1, VoiceId);
+
+        /// <summary>The installed voices for the language in use, men's first (a platform that does not say a voice's sex lists it after them), so a grown-up can pick one by ear.</summary>
+        public ObservableCollection<VoiceOption> AvailableVoices { get; } = [];
+
+        // The list comes from the device and may take a moment (Android starts its speech engine to answer), so it arrives when it arrives.
+        private async Task LoadVoicesAsync ()
+        {
+            if (speaker is not { IsSupported: true })
+                return;
+
+            var context = SynchronizationContext.Current;
+            IReadOnlyList<VoiceOption> installed;
+            try {
+                installed = await speaker.ListVoicesAsync ();
+            } catch (Exception) {
+                return;
+            }
+
+            void Fill ()
+            {
+                var code = Loc.Code;
+                foreach (var v in installed
+                    .Where (v => !v.RequiresNetwork && (v.Locale.Length == 0 || v.Locale.StartsWith (code, StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy (v => v.Sex switch { VoiceSex.Male => 0, VoiceSex.Unknown => 1, _ => 2 })
+                    .ThenBy (v => v.Locale, StringComparer.Ordinal)
+                    .ThenBy (v => v.Name, StringComparer.Ordinal))
+                    AvailableVoices.Add (v);
+            }
+
+            if (context is null)
+                Fill ();
+            else
+                context.Post (_ => Fill (), null);
+        }
 
         /// <summary>Whether this device has a voice, so the screen offers reading alerts aloud at all.</summary>
         public bool CanReadAloud { get; }
@@ -122,11 +163,14 @@ namespace AlertBuddy.ViewModels.Screens
             IPermissionGuide? permissions = null,
             ILifecycle? lifecycle = null,
             ISpeaker? speaker = null,
-            ISoundPlayer? sound = null)
+            ISoundPlayer? sound = null,
+            ISettingsTransfer? transfer = null)
         {
             this.sound = sound;
             this.speaker = speaker;
+            this.transfer = transfer;
             CanReadAloud = speaker is { IsSupported: true };
+            _ = LoadVoicesAsync ();
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
             this.tester = tester ?? throw new ArgumentNullException (nameof (tester));
@@ -223,6 +267,54 @@ namespace AlertBuddy.ViewModels.Screens
             SavedMessage = null;
         }
 
+        /// <summary>Whether the device can save the settings to a file and load them again.</summary>
+        public bool CanTransferSettings => transfer is { IsSupported: true };
+
+        /// <summary>What happened to the last file saved or loaded.</summary>
+        [ObservableProperty]
+        private string? transferMessage;
+
+        /// <summary>Saves the settings as they are saved, not as they are half-edited on screen, to a file the person picks.</summary>
+        [RelayCommand]
+        private async Task SaveSettingsFileAsync ()
+        {
+            if (transfer is null)
+                return;
+
+            var saved = await transfer.SaveAsync (SettingsBackup.FileName, SettingsBackup.Write (settings.Current));
+            TransferMessage = saved ? Loc.T ("Settings saved to the file.") : Loc.T ("Nothing was saved.");
+        }
+
+        /// <summary>Loads the settings from a file the person picks, and applies them at once.</summary>
+        [RelayCommand]
+        private async Task LoadSettingsFileAsync ()
+        {
+            if (transfer is null)
+                return;
+
+            var text = await transfer.LoadAsync ();
+            if (text is null) {
+                TransferMessage = Loc.T ("Nothing was loaded.");
+                return;
+            }
+
+            if (SettingsBackup.TryRead (text) is not { } loaded) {
+                TransferMessage = Loc.T ("That is not an Alert Buddy settings file.");
+                return;
+            }
+
+            // The password and token are not in a file, so the one this device had is dropped with the server it belonged to.
+            secrets.Remove (SecretKeys.Password);
+            secrets.Remove (SecretKeys.Token);
+            settings.Save (loaded);
+            engine.SetInterpreter (new AlertInterpreter (loaded.Interpretation));
+            LoadFrom (loaded);
+            HasStoredSecret = false;
+            SavedMessage = null;
+            TransferMessage = loaded.Auth == AuthMode.None ? Loc.T ("Settings loaded.") : Loc.T ("Settings loaded. Enter the password or token again.");
+            await listener.RestartAsync ();
+        }
+
         /// <summary>Applies every edit: settings, secrets, PIN, the interpreter and the listener.</summary>
         [RelayCommand (CanExecute = nameof (CanSave))]
         private async Task SaveAsync ()
@@ -253,8 +345,10 @@ namespace AlertBuddy.ViewModels.Screens
                 ReadAloud = ReadAloud,
                 Voice = Voice,
                 Language = Language,
+                VoiceId = VoiceId,
                 AlarmTone = AlarmTone,
-                PracticeTone = PracticeSound == PracticeSound.Gentle ? null : (AlarmTone)((int)PracticeSound - 1),
+                PracticeTone = PracticeSound >= PracticeSound.Whoop ? (AlarmTone)((int)PracticeSound - 2) : null,
+                PracticeGentle = PracticeSound == PracticeSound.Gentle,
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
                 Night = new NightPolicy { Enabled = NightEnabled, Start = NightStart, End = NightEnd },
                 Interpretation = BuildInterpretation (),
@@ -359,8 +453,9 @@ namespace AlertBuddy.ViewModels.Screens
             ReadAloud = s.ReadAloud;
             Voice = s.Voice;
             Language = s.Language;
+            VoiceId = s.VoiceId;
             AlarmTone = s.AlarmTone;
-            PracticeSound = s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 1) : PracticeSound.Gentle;
+            PracticeSound = s.PracticeGentle ? PracticeSound.Gentle : s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 2) : PracticeSound.SameAsAlarm;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;
             NightEnabled = s.Night.Enabled;
             NightStart = s.Night.Start;

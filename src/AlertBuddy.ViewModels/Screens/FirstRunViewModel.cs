@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using AlertBuddy.Core.Ntfy;
@@ -34,6 +35,7 @@ namespace AlertBuddy.ViewModels.Screens
     {
         private readonly SettingsService settings;
         private readonly ISecretStore secrets;
+        private readonly ISettingsTransfer? transfer;
         private readonly IConnectionTester tester;
         private readonly IListenerControl listener;
         private readonly INavigator navigator;
@@ -86,8 +88,10 @@ namespace AlertBuddy.ViewModels.Screens
             INavigator navigator,
             IBackgroundListener background,
             IPermissionGuide? permissions = null,
-            ILifecycle? lifecycle = null)
+            ILifecycle? lifecycle = null,
+            ISettingsTransfer? transfer = null)
         {
+            this.transfer = transfer;
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
             this.tester = tester ?? throw new ArgumentNullException (nameof (tester));
@@ -103,6 +107,39 @@ namespace AlertBuddy.ViewModels.Screens
             }
 
             RefreshPermissions ();
+        }
+
+        /// <summary>Whether the device can load settings from a file, so a new install can be set up from a copy kept before the app was removed.</summary>
+        public bool CanRestoreSettings => transfer is { IsSupported: true };
+
+        /// <summary>What happened to the last file picked.</summary>
+        [ObservableProperty]
+        private string? restoreMessage;
+
+        /// <summary>Sets everything up from a settings file, and goes straight to Home.</summary>
+        [RelayCommand]
+        private async Task RestoreFromFileAsync ()
+        {
+            if (transfer is null)
+                return;
+
+            var text = await transfer.LoadAsync ();
+            if (text is null) {
+                RestoreMessage = Loc.T ("Nothing was loaded.");
+                return;
+            }
+
+            if (SettingsBackup.TryRead (text) is not { } loaded) {
+                RestoreMessage = Loc.T ("That is not an Alert Buddy settings file.");
+                return;
+            }
+
+            // The password and token are not in a file: if the server needs one, Home says the sign-in was refused and Settings has the field.
+            // No ConfigureAwait (false) here: the screen changes after this, and it must change on the thread that owns it. Carrying on from the
+            // listener's thread left the old screen half painted under Home.
+            settings.Save (loaded);
+            navigator.GoHome ();
+            await listener.RestartAsync ();
         }
 
         /// <summary>The permission steps, in order. Empty on a platform with nothing to allow.</summary>

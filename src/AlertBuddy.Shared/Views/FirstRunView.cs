@@ -79,6 +79,14 @@ namespace AlertBuddy.Shared.Views
             foreach (var option in Enum.GetNames<BuddyColour> ())
                 colour.Items.Add (Loc.T (option));
             scope.Add (colour.BindSelectedIndex (vm, nameof (FirstRunViewModel.BuddyColour), v => (int)v.BuddyColour, (v, i) => v.BuddyColour = (BuddyColour)i));
+
+            // A new install after the app was removed can be set up from the copy kept before, instead of typing it all again.
+            if (vm.CanRestoreSettings) {
+                var restore = column.Add (new ChunkyButton { Text = Loc.T ("Restore the settings from a file"), Height = 72 }.Named ("firstRun.restore"), extraTop: 14);
+                scope.Add (restore.BindCommand (vm.RestoreFromFileCommand));
+                var restoreMessage = column.AddParagraph ("");
+                scope.Add (vm.Observe (nameof (FirstRunViewModel.RestoreMessage), v => v.RestoreMessage, m => { restoreMessage.Text = m ?? ""; column.Relayout (); }));
+            }
         }
 
         private void BuildPinStep ()

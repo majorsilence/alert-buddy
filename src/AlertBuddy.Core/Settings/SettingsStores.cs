@@ -42,6 +42,7 @@ namespace AlertBuddy.Core.Settings
 
     [JsonSourceGenerationOptions (UseStringEnumConverter = true, WriteIndented = true)]
     [JsonSerializable (typeof (AppSettings))]
+    [JsonSerializable (typeof (SettingsBackup.Envelope))]
     internal sealed partial class SettingsJsonContext : JsonSerializerContext
     {
     }

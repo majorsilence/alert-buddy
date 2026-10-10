@@ -95,14 +95,19 @@ namespace AlertBuddy.ViewModels.Screens
 
             SoundNote = "";
             StopAnnouncements ();
-            if (which == PracticeSound.Gentle) {
+            if (which is PracticeSound.Gentle) {
                 sound.Play (Cue.Practice);
                 return;
             }
 
-            sound.Play (AlertFeedback.CueFor ((AlarmTone)((int)which - 1)), PracticeVolume);
-            if (which == PracticeSound.VoiceEvacuation)
-                Announce (repeat: false);
+            var heard = which == PracticeSound.SameAsAlarm ? settings.Current.AlarmTone : (AlarmTone)((int)which - 2);
+            sound.Play (AlertFeedback.CueFor (heard), PracticeVolume);
+            if (heard == AlarmTone.VoiceEvacuation) {
+                if (speaker is not { IsSupported: true })
+                    SoundNote = Words.NoVoice;
+                else
+                    Announce (repeat: false);
+            }
         }
 
         // The voice evacuation sound is a chime and then a voice saying which place and what to do, in the voice the grown-up picked.
@@ -119,12 +124,28 @@ namespace AlertBuddy.ViewModels.Screens
                 if (repeat && !alarmSounding)
                     return;
 
-                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source), settings.Current.Voice, PracticeVolume);
+                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source, hot: true), settings.Current.Voice, 1, settings.Current.VoiceId);
             }
 
             announcements.Add (scheduler.Schedule (AlertFeedback.AnnounceAfterTone, Say));
             if (repeat)
                 announcements.Add (scheduler.Every (AlertFeedback.VoiceRepeat, Say));
+        }
+
+        // The chime once, the voice after it, and the pair again every few seconds until the alarm ends.
+        private void StartVoiceCycle ()
+        {
+            void Cycle ()
+            {
+                if (IsDisposed || !alarmSounding)
+                    return;
+
+                sound.Play (Cue.VoiceEvacuation, PracticeVolume);
+                Announce (repeat: false);
+            }
+
+            Cycle ();
+            announcements.Add (scheduler.Every (AlertFeedback.VoiceRepeat, Cycle));
         }
 
         private void StopAnnouncements ()
@@ -208,13 +229,36 @@ namespace AlertBuddy.ViewModels.Screens
 
         private bool alarmSounding;
 
+        // What Practice sounds like: the gentle cue, a tone a grown-up chose for it, or (the default) the real alert: the warning sound, the
+        // alarm tone, and the all clear sound.
+        private AlarmTone? ToneForPractice ()
+        {
+            var current = settings.Current;
+            if (current.PracticeGentle)
+                return null;
+
+            return current.PracticeTone ?? current.AlarmTone;
+        }
+
+        private bool PracticeFollowsAlarm => !settings.Current.PracticeGentle && settings.Current.PracticeTone is null;
+
         private void PlayCue (bool loop)
         {
-            var tone = settings.Current.PracticeTone;
+            var tone = ToneForPractice ();
             if (loop) {
+                // The voice evacuation sound is a chime and then a voice, taking turns, as the real alarm does; the other tones loop.
+                if (tone == AlarmTone.VoiceEvacuation && speaker is { IsSupported: true }) {
+                    StartVoiceCycle ();
+                    return;
+                }
+
                 sound.StartLoop (tone is { } t ? AlertFeedback.CueFor (t) : Cue.Practice, PracticeVolume);
-                if (tone == AlarmTone.VoiceEvacuation)
-                    Announce (repeat: true);
+                return;
+            }
+
+            // Following the alarm, the warning and the all clear have their own real sounds; the alarm is the tone, looped above.
+            if (PracticeFollowsAlarm && Step is 1 or 3) {
+                sound.Play (Step == 1 ? Cue.Warning : Cue.AllClear, PracticeVolume);
                 return;
             }
 

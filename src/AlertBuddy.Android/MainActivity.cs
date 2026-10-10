@@ -25,14 +25,38 @@ namespace AlertBuddy.Android
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
     public class MainActivity : AvaloniaMainActivity
     {
+        /// <summary>The live activity, which the file picker is started from.</summary>
+        internal static MainActivity? Current { get; private set; }
+
         protected override void OnCreate (Bundle? savedInstanceState)
         {
             base.OnCreate (savedInstanceState);
+            Current = this;
             BackRequested += (_, e) => e.Handled = AvaloniaPlatformBackend.RaiseBackRequested ();
             AvaloniaPlatformBackend.RegisterAndroidActivity (this);
             AvaloniaPlatformBackend.ReportAndroidIntent (Intent);
 
             ListenerService.Start (this);
+        }
+
+        protected override void OnDestroy ()
+        {
+            if (ReferenceEquals (Current, this))
+                Current = null;
+
+            base.OnDestroy ();
+        }
+
+        protected override void OnResume ()
+        {
+            base.OnResume ();
+            Platform.AndroidSettingsTransfer.OnResumed ();
+        }
+
+        protected override void OnActivityResult (int requestCode, Result resultCode, Intent? data)
+        {
+            base.OnActivityResult (requestCode, resultCode, data);
+            Platform.AndroidSettingsTransfer.OnActivityResult (requestCode, resultCode, data);
         }
 
         protected override void OnNewIntent (Intent? intent)

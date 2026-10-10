@@ -26,6 +26,9 @@ namespace AlertBuddy.ViewModels
         /// <summary>Reads alerts aloud when a grown-up has turned that on; null where the device has no voice.</summary>
         public ISpeaker? Speaker { get; init; }
 
+        /// <summary>Saves and loads the settings as a file the person picks; null where the device has no file picker.</summary>
+        public ISettingsTransfer? SettingsTransfer { get; init; }
+
         /// <summary>Reports whether the app can listen in the background.</summary>
         public required IBackgroundListener Background { get; init; }
 
@@ -145,8 +148,8 @@ namespace AlertBuddy.ViewModels
 
             navigator.Register (() => new AlertBookViewModel (engine, hub, navigator, screens, clock, platform.Dispatcher, platform.Zone));
             navigator.Register (() => new PracticeViewModel (settings, clock, platform.Dispatcher, scheduler, platform.Sound, navigator, platform.Speaker));
-            navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version, platform.Permissions, platform.Lifecycle, platform.Speaker, platform.Sound));
-            navigator.Register (() => new FirstRunViewModel (settings, platform.Secrets, tester, listener, navigator, platform.Background, platform.Permissions, platform.Lifecycle));
+            navigator.Register (() => new SettingsViewModel (settings, platform.Secrets, tester, listener, engine, navigator, platform.Version, platform.Permissions, platform.Lifecycle, platform.Speaker, platform.Sound, platform.SettingsTransfer));
+            navigator.Register (() => new FirstRunViewModel (settings, platform.Secrets, tester, listener, navigator, platform.Background, platform.Permissions, platform.Lifecycle, platform.SettingsTransfer));
 
             screens.Wire (
                 alert => new AlertDetailViewModel (alert, engine, hub, navigator, clock, platform.Dispatcher, platform.Zone),
