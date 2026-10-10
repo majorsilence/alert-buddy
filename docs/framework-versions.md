@@ -13,6 +13,7 @@ line here: the version, the date, what it unlocked, what it broke. CI never uses
 | 26.8.1 | 2026-10-05 | Android keyboard raises reliably and fields stay clear of it, touch scroll bars on Android, a terminal host (`Majorsilence.Forms.Terminal`), ReportDesigner parity fixes | None found yet | none |
 | 26.9.0 | 2026-10-08 | See the framework release notes | `AutoScrollPosition` setter takes the positive distance (WinForms); `Invalidate` does nothing on a form that was never shown, so tests call `form.Show ()` before checking a repaint; the framework `StackPanel`. No framework bugs | none |
 | 26.10.0 | 2026-10-10 | `ComboBox` opens a native item picker on Android (#438); a swipe that starts on a text box no longer raises the keyboard (#449); touch drags scroll the full distance (#450) | None found yet | none |
+| 26.10.1 | 2026-10-10 | The scroll bar thumb follows the content and the touch indicator leaves no trail (#454); a second finger no longer leaves the first control pressed (#458) | None found yet | none |
 
 Released items: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F23, F24, F26, F27, F28
 
