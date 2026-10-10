@@ -292,11 +292,14 @@ namespace AlertBuddy.ViewModels.Tests.Services
         }
 
         [Fact]
-        public async Task VoiceEvacuation_SaysTheInstructionAgainEveryFewSeconds_UntilTheAlarmEnds ()
+        public async Task VoiceEvacuation_SaysTheInstructionAfterTheTone_AndAgainEveryFewSeconds_UntilTheAlarmEnds ()
         {
             await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation });
 
             rig.Alarm ();
+            Assert.Empty (rig.Speaker.Said);                                    // the chime comes first
+            rig.Clock.Advance (AlertFeedback.AnnounceAfterTone);
+            Assert.Single (rig.Speaker.Said);                                   // then the voice
             rig.Clock.Advance (AlertFeedback.VoiceRepeat);
             rig.Clock.Advance (AlertFeedback.VoiceRepeat);
             Assert.Equal (3, rig.Speaker.Said.Count);
@@ -307,11 +310,36 @@ namespace AlertBuddy.ViewModels.Tests.Services
         }
 
         [Fact]
+        public async Task VoiceEvacuation_NamesThePlace_InTheChosenVoice ()
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation, Voice = VoiceType.Deep });
+
+            rig.Alarm ("Workshop");
+            rig.Clock.Advance (AlertFeedback.AnnounceAfterTone);
+
+            Assert.Equal ("Alert. Workshop. Tell a grown-up now.", Assert.Single (rig.Speaker.Said));
+            Assert.Equal ((VoiceType.Deep, 1.0), Assert.Single (rig.Speaker.Voices));
+        }
+
+        [Fact]
+        public async Task VoiceEvacuation_SilencedBeforeTheToneEnds_SaysNothing ()
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation });
+
+            rig.Alarm ();
+            rig.AllClear ();
+            rig.Clock.Advance (AlertFeedback.AnnounceAfterTone);
+
+            Assert.Empty (rig.Speaker.Said);
+        }
+
+        [Fact]
         public async Task VoiceEvacuation_WithReadAloudOn_DoesNotSayTheInstructionTwice ()
         {
             await using var rig = new AppRig (Reading (true) with { AlarmTone = AlarmTone.VoiceEvacuation });
 
             rig.Alarm ();
+            rig.Clock.Advance (AlertFeedback.AnnounceAfterTone);
 
             Assert.Single (rig.Speaker.Said);
         }

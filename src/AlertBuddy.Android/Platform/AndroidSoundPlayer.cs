@@ -31,12 +31,13 @@ namespace AlertBuddy.Android.Platform
             player.Play ();
         }
 
-        public void StartLoop (Cue cue)
+        public void StartLoop (Cue cue, double volume = 1)
         {
             lock (gate) {
                 loop?.Stop ();
                 loop?.Dispose ();
                 loop = Create (cue, loop: true);
+                loop.Volume = (float)Math.Clamp (volume, 0, 1);
                 loop.Play ();
             }
         }

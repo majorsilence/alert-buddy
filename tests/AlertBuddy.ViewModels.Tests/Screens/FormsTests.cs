@@ -321,6 +321,23 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
+        public void TheVoice_DefaultsToTheDeepOne_CanBePicked_AndIsHeardInThatVoice ()
+        {
+            var rig = new FormRig (Configured ());
+            var speaker = new RecordingSpeaker ();
+            var vm = rig.SettingsScreen (speaker: speaker);
+            Assert.Equal (VoiceType.Deep, vm.Voice);
+
+            vm.Voice = VoiceType.Light;
+            vm.PreviewVoiceCommand.Execute (null);
+            vm.SaveCommand.Execute (null);
+
+            Assert.Equal (VoiceType.Light, rig.Settings.Current.Voice);
+            Assert.Equal ("Alert. Sample room. Tell a grown-up now.", Assert.Single (speaker.Said));
+            Assert.Equal ((VoiceType.Light, 0.4), Assert.Single (speaker.Voices));
+        }
+
+        [Fact]
         public void AboutSaysWhatItIs_AndWhatItIsNot ()
         {
             var (_, vm) = Open ();

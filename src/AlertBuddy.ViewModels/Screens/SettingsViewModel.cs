@@ -75,7 +75,9 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private MotionPreference motion;
         [ObservableProperty] private bool soundsEnabled = true;
         private readonly ISoundPlayer? sound;
+        private readonly ISpeaker? speaker;
         [ObservableProperty] private bool readAloud;
+        [ObservableProperty] private VoiceType voice;
         [ObservableProperty] private AlarmTone alarmTone;
         [ObservableProperty] private PracticeSound practiceSound;
         [ObservableProperty] private int silenceMinutes = 10;
@@ -98,6 +100,10 @@ namespace AlertBuddy.ViewModels.Screens
         [RelayCommand]
         private void PreviewAlarmTone () => sound?.Play (AlertFeedback.CueFor (AlarmTone), PracticeViewModel.PracticeVolume);
 
+        /// <summary>Says a sample line in the chosen voice, quietly, so a grown-up can pick one by ear.</summary>
+        [RelayCommand]
+        private void PreviewVoice () => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource), Voice, PracticeViewModel.PracticeVolume);
+
         /// <summary>Whether this device has a voice, so the screen offers reading alerts aloud at all.</summary>
         public bool CanReadAloud { get; }
 
@@ -117,6 +123,7 @@ namespace AlertBuddy.ViewModels.Screens
             ISoundPlayer? sound = null)
         {
             this.sound = sound;
+            this.speaker = speaker;
             CanReadAloud = speaker is { IsSupported: true };
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.secrets = secrets ?? throw new ArgumentNullException (nameof (secrets));
@@ -242,6 +249,7 @@ namespace AlertBuddy.ViewModels.Screens
                 ReduceMotion = Motion switch { MotionPreference.Reduce => true, MotionPreference.Full => false, _ => null },
                 SoundsEnabled = SoundsEnabled,
                 ReadAloud = ReadAloud,
+                Voice = Voice,
                 AlarmTone = AlarmTone,
                 PracticeTone = PracticeSound == PracticeSound.Gentle ? null : (AlarmTone)((int)PracticeSound - 1),
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
@@ -346,6 +354,7 @@ namespace AlertBuddy.ViewModels.Screens
             Motion = s.ReduceMotion switch { true => MotionPreference.Reduce, false => MotionPreference.Full, null => MotionPreference.System };
             SoundsEnabled = s.SoundsEnabled;
             ReadAloud = s.ReadAloud;
+            Voice = s.Voice;
             AlarmTone = s.AlarmTone;
             PracticeSound = s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 1) : PracticeSound.Gentle;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;

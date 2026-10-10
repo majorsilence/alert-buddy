@@ -61,7 +61,7 @@ namespace AlertBuddy.Shared.Tests
             public List<Cue> Played { get; } = [];
             public bool IsSupported => true;
             public void Play (Cue cue, double volume = 1) => Played.Add (cue);
-            public void StartLoop (Cue cue) { }
+            public void StartLoop (Cue cue, double volume = 1) { }
             public void StopLoop () { }
         }
 

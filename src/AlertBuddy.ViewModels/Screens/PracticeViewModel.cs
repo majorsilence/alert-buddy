@@ -24,7 +24,9 @@ namespace AlertBuddy.ViewModels.Screens
         private readonly IScheduler scheduler;
         private readonly ISoundPlayer sound;
         private readonly INavigator navigator;
+        private readonly ISpeaker? speaker;
         private readonly List<IDisposable> timers = [];
+        private readonly List<IDisposable> announcements = [];
         private AlertHub hub = new ();
         private AlertEngine engine;
         private HubSubscription? subscription;
@@ -62,8 +64,9 @@ namespace AlertBuddy.ViewModels.Screens
         public string Banner => Words.PracticeBanner;
 
         /// <summary>Creates the practice screen.</summary>
-        public PracticeViewModel (SettingsService settings, IClock clock, IUiDispatcher dispatcher, IScheduler scheduler, ISoundPlayer sound, INavigator navigator)
+        public PracticeViewModel (SettingsService settings, IClock clock, IUiDispatcher dispatcher, IScheduler scheduler, ISoundPlayer sound, INavigator navigator, ISpeaker? speaker = null)
         {
+            this.speaker = speaker;
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.clock = clock ?? throw new ArgumentNullException (nameof (clock));
             this.dispatcher = dispatcher ?? throw new ArgumentNullException (nameof (dispatcher));
@@ -91,10 +94,44 @@ namespace AlertBuddy.ViewModels.Screens
             }
 
             SoundNote = "";
-            if (which == PracticeSound.Gentle)
+            StopAnnouncements ();
+            if (which == PracticeSound.Gentle) {
                 sound.Play (Cue.Practice);
-            else
-                sound.Play (AlertFeedback.CueFor ((AlarmTone)((int)which - 1)), PracticeVolume);
+                return;
+            }
+
+            sound.Play (AlertFeedback.CueFor ((AlarmTone)((int)which - 1)), PracticeVolume);
+            if (which == PracticeSound.VoiceEvacuation)
+                Announce (repeat: false);
+        }
+
+        // The voice evacuation sound is a chime and then a voice saying which place and what to do, in the voice the grown-up picked.
+        private void Announce (bool repeat)
+        {
+            if (speaker is not { IsSupported: true })
+                return;
+
+            void Say ()
+            {
+                if (IsDisposed)
+                    return;
+
+                if (repeat && !alarmSounding)
+                    return;
+
+                speaker.Speak (Words.AlarmAnnouncement (PracticeAlertSource.Source), settings.Current.Voice, PracticeVolume);
+            }
+
+            announcements.Add (scheduler.Schedule (AlertFeedback.AnnounceAfterTone, Say));
+            if (repeat)
+                announcements.Add (scheduler.Every (AlertFeedback.VoiceRepeat, Say));
+        }
+
+        private void StopAnnouncements ()
+        {
+            foreach (var timer in announcements)
+                timer.Dispose ();
+            announcements.Clear ();
         }
 
         private bool CanHearSound () => !IsRunning;
@@ -106,6 +143,7 @@ namespace AlertBuddy.ViewModels.Screens
                 return;
 
             // A fresh pretend house each time, so an earlier run cannot leave anything behind.
+            StopAnnouncements ();
             StopTimers ();
             subscription?.Dispose ();
             hub = new AlertHub ();
@@ -159,16 +197,46 @@ namespace AlertBuddy.ViewModels.Screens
             Step = scripted.Number;
             Caption = scripted.Caption;
 
-            // Quiet and played once, never looped: it is a rehearsal. A grown-up may pick which tone the child rehearses with.
-            var current = settings.Current;
-            if (current.SoundsEnabled) {
-                if (current.PracticeTone is { } tone)
-                    sound.Play (AlertFeedback.CueFor (tone), PracticeVolume);
-                else
-                    sound.Play (Cue.Practice);
+            engine.Handle (new NtfyEvent (NtfyEventKind.Message, scripted.Message, MessageOrigin.Live));
+            Refresh ();
+
+            // The warning and the all clear are one quiet cue. The alarm is not: it keeps sounding until the all clear or Stop, as a real
+            // one does, and Refresh looks after that. A grown-up may pick which tone the child rehearses with.
+            if (!alarmSounding && settings.Current.SoundsEnabled)
+                PlayCue (loop: false);
+        }
+
+        private bool alarmSounding;
+
+        private void PlayCue (bool loop)
+        {
+            var tone = settings.Current.PracticeTone;
+            if (loop) {
+                sound.StartLoop (tone is { } t ? AlertFeedback.CueFor (t) : Cue.Practice, PracticeVolume);
+                if (tone == AlarmTone.VoiceEvacuation)
+                    Announce (repeat: true);
+                return;
             }
 
-            engine.Handle (new NtfyEvent (NtfyEventKind.Message, scripted.Message, MessageOrigin.Live));
+            if (tone is { } chosen)
+                sound.Play (AlertFeedback.CueFor (chosen), PracticeVolume);
+            else
+                sound.Play (Cue.Practice);
+        }
+
+        // The alarm sound runs exactly while the pretend alarm is open and unanswered and the practice is running: the all clear, Stop,
+        // "I told a grown-up" and leaving the screen all end it (the same rule as a real alarm).
+        private void UpdateAlarmSound (bool alarmOpen)
+        {
+            var wanted = IsRunning && alarmOpen && settings.Current.SoundsEnabled;
+            if (wanted && !alarmSounding) {
+                alarmSounding = true;
+                PlayCue (loop: true);
+            } else if (!wanted && alarmSounding) {
+                alarmSounding = false;
+                StopAnnouncements ();
+                sound.StopLoop ();
+            }
         }
 
         private void Finish ()
@@ -197,6 +265,7 @@ namespace AlertBuddy.ViewModels.Screens
             Mood = status.Mood;
             StatusText = status.Text;
             CanTellAGrownUp = snapshot.Active.Any (a => a.Level == AlertLevel.Alarm && a.Status == AlertStatus.Active);
+            UpdateAlarmSound (CanTellAGrownUp);
         }
 
         // Nothing is saved: the engine has no persistence, and the store is its own.
@@ -211,6 +280,12 @@ namespace AlertBuddy.ViewModels.Screens
 
         protected override void OnDisposed ()
         {
+            StopAnnouncements ();
+            if (alarmSounding) {
+                alarmSounding = false;
+                sound.StopLoop ();
+            }
+
             StopTimers ();
             subscription?.Dispose ();
         }

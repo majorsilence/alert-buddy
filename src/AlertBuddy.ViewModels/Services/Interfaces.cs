@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Settings;
 using AlertBuddy.Core.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -49,8 +50,8 @@ namespace AlertBuddy.ViewModels.Services
         /// <summary>Plays a cue once. <paramref name="volume"/> runs from 0 to 1; Practice plays the real tones quietly.</summary>
         void Play (Cue cue, double volume = 1);
 
-        /// <summary>Plays a cue over and over until <see cref="StopLoop"/>. The siren.</summary>
-        void StartLoop (Cue cue);
+        /// <summary>Plays a cue over and over until <see cref="StopLoop"/>. The siren. <paramref name="volume"/> runs from 0 to 1; Practice loops quietly.</summary>
+        void StartLoop (Cue cue, double volume = 1);
 
         /// <summary>Stops a looping cue. Safe to call when nothing is looping.</summary>
         void StopLoop ();
@@ -62,8 +63,8 @@ namespace AlertBuddy.ViewModels.Services
         /// <summary>Whether this device can speak at all.</summary>
         bool IsSupported { get; }
 
-        /// <summary>Says a line and returns at once. Never throws: a device that cannot speak just stays quiet.</summary>
-        void Speak (string text);
+        /// <summary>Says a line and returns at once. Never throws: a device that cannot speak just stays quiet. <paramref name="volume"/> runs from 0 to 1.</summary>
+        void Speak (string text, VoiceType voice = VoiceType.Standard, double volume = 1);
     }
 
     /// <summary>Vibration (F13).</summary>

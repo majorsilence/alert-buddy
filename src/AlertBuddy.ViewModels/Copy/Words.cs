@@ -58,6 +58,12 @@ namespace AlertBuddy.ViewModels.Copy
             _ => "",
         };
 
+        /// <summary>The invented place a voice sample is about.</summary>
+        public const string VoiceSampleSource = "Sample room";
+
+        /// <summary>What the voice says after the tone: which place, and what to do.</summary>
+        public static string AlarmAnnouncement (string source) => $"Alert. {source}. {TellAGrownUpNow}";
+
         /// <summary>Shown when a sound is asked for and a grown-up has switched sounds off.</summary>
         public const string SoundsAreOff = "Sounds are switched off.";
 

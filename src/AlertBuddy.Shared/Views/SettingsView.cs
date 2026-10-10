@@ -73,6 +73,14 @@ namespace AlertBuddy.Shared.Views
             scope.Add (tone.BindSelectedIndex (vm, nameof (SettingsViewModel.AlarmTone), v => (int)v.AlarmTone, (v, i) => v.AlarmTone = (AlarmTone)i));
             var hear = column.Add (new ChunkyButton { Text = "Hear the alarm sound", Height = 56 }.Named ("settings.hearAlarm"));
             scope.Add (hear.BindCommand (vm.PreviewAlarmToneCommand));
+            if (vm.CanReadAloud) {
+                Caption ("Voice");
+                var voice = Choice (nameof (SettingsViewModel.Voice), "Deeper", "Standard", "Lighter");
+                scope.Add (voice.BindSelectedIndex (vm, nameof (SettingsViewModel.Voice), v => (int)v.Voice, (v, i) => v.Voice = (VoiceType)i));
+                var hearVoice = column.Add (new ChunkyButton { Text = "Hear the voice", Height = 56 }.Named ("settings.hearVoice"));
+                scope.Add (hearVoice.BindCommand (vm.PreviewVoiceCommand));
+            }
+
             Caption ("Practice sound");
             var practice = Choice (nameof (SettingsViewModel.PracticeSound), "Gentle", "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
             scope.Add (practice.BindSelectedIndex (vm, nameof (SettingsViewModel.PracticeSound), v => (int)v.PracticeSound, (v, i) => v.PracticeSound = (PracticeSound)i));

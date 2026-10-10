@@ -65,6 +65,19 @@ namespace AlertBuddy.Core.Settings
         VoiceEvacuation,
     }
 
+    /// <summary>The kind of voice that speaks an alert aloud. The platform's own voice is lowered or raised in pitch; a particular installed voice cannot yet be picked (majorsilence/Majorsilence.Forms#456).</summary>
+    public enum VoiceType
+    {
+        /// <summary>A lower voice, nearer a man's. The default for the spoken alarm.</summary>
+        Deep,
+
+        /// <summary>The voice as the device has it.</summary>
+        Standard,
+
+        /// <summary>A higher voice.</summary>
+        Light,
+    }
+
     /// <summary>
     /// Everything a grown-up can configure (PLAN.md sections 4.3 and 7.4). A JSON file in the app data directory. Secrets are not in it:
     /// the password and the token live in the <see cref="ISecretStore"/>.
@@ -121,6 +134,9 @@ namespace AlertBuddy.Core.Settings
 
         /// <summary>The sound Practice plays for each step, quietly; null is the gentle practice cue.</summary>
         public AlarmTone? PracticeTone { get; init; }
+
+        /// <summary>The voice that speaks the alarm announcement and reads alerts aloud.</summary>
+        public VoiceType Voice { get; init; } = VoiceType.Deep;
 
         /// <summary>Whether a new warning or alarm is also read aloud, for a child still learning to read. Off until a grown-up turns it on.</summary>
         public bool ReadAloud { get; init; }

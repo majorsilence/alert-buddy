@@ -18,7 +18,7 @@ namespace AlertBuddy.Shared.Platform
         public void Play (Cue cue, double volume = 1) { }
 
         /// <inheritdoc/>
-        public void StartLoop (Cue cue) { }
+        public void StartLoop (Cue cue, double volume = 1) { }
 
         /// <inheritdoc/>
         public void StopLoop () { }

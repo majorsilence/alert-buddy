@@ -34,15 +34,20 @@ namespace AlertBuddy.ViewModels.Tests
         public List<string> Calls { get; } = [];
         public bool IsSupported => true;
         public void Play (Cue cue, double volume = 1) => Calls.Add (volume < 1 ? $"Play:{cue}@{volume}" : $"Play:{cue}");
-        public void StartLoop (Cue cue) => Calls.Add ($"Loop:{cue}");
+        public void StartLoop (Cue cue, double volume = 1) => Calls.Add (volume < 1 ? $"Loop:{cue}@{volume}" : $"Loop:{cue}");
         public void StopLoop () => Calls.Add ("StopLoop");
     }
 
     internal sealed class RecordingSpeaker : ISpeaker
     {
         public List<string> Said { get; } = [];
+        public List<(VoiceType Voice, double Volume)> Voices { get; } = [];
         public bool IsSupported => true;
-        public void Speak (string text) => Said.Add (text);
+        public void Speak (string text, VoiceType voice = VoiceType.Standard, double volume = 1)
+        {
+            Said.Add (text);
+            Voices.Add ((voice, volume));
+        }
     }
 
     internal sealed class RecordingHaptics : IHaptics

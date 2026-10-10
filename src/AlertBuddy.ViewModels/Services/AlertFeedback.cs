@@ -23,10 +23,14 @@ namespace AlertBuddy.ViewModels.Services
         private readonly ISpeaker? speaker;
         private readonly IScheduler? scheduler;
         private IDisposable? voiceRepeat;
+        private IDisposable? voiceFirst;
         private bool sirenRunning;
 
         /// <summary>How often the spoken evacuation instruction is repeated while the alarm is open.</summary>
         public static readonly TimeSpan VoiceRepeat = TimeSpan.FromSeconds (12);
+
+        /// <summary>How long after the attention chime starts the voice begins: the length of the chime's two notes, so it speaks after the tone.</summary>
+        public static readonly TimeSpan AnnounceAfterTone = TimeSpan.FromSeconds (1.3);
 
         /// <summary>Starts listening to the hub.</summary>
         public AlertFeedback (AlertHub hub, ISoundPlayer sound, IHaptics haptics, IAlertNotifier notifier, SettingsService settings, IClock clock, TimeZoneInfo? zone = null, ISpeaker? speaker = null, IScheduler? scheduler = null)
@@ -62,7 +66,7 @@ namespace AlertBuddy.ViewModels.Services
                     Notify (change);
 
                     var wanted = SoundPolicy.Apply (change.Sound, current.Night, clock.Now, zone);
-                    Play (wanted, current.SoundsEnabled, current.AlarmTone);
+                    Play (wanted, current.SoundsEnabled, current.AlarmTone, change.Alert?.Source ?? "");
                     Speak (change, wanted, current.ReadAloud, current.AlarmTone);
                 }
 
@@ -74,7 +78,7 @@ namespace AlertBuddy.ViewModels.Services
             }
         }
 
-        private void Play (AlertSound wanted, bool friendlySounds, AlarmTone alarmTone)
+        private void Play (AlertSound wanted, bool friendlySounds, AlarmTone alarmTone, string source)
         {
             switch (wanted) {
                 case AlertSound.Alarm:
@@ -83,7 +87,7 @@ namespace AlertBuddy.ViewModels.Services
                         sirenRunning = true;
                         sound.StartLoop (CueFor (alarmTone));
                         haptics.Alarm ();
-                        StartVoice (alarmTone);
+                        StartVoice (alarmTone, source);
                     }
                     break;
                 case AlertSound.Warning when friendlySounds:
@@ -116,7 +120,7 @@ namespace AlertBuddy.ViewModels.Services
             };
 
             if (line is not null)
-                speaker.Speak (line);
+                speaker.Speak (line, settings.Current.Voice);
         }
 
         /// <summary>The cue a tone plays as. Shared with Practice so a rehearsal sounds like the real thing.</summary>
@@ -128,24 +132,31 @@ namespace AlertBuddy.ViewModels.Services
             _ => Cue.Alarm,
         };
 
-        // The chime is a generated file; the words are the device's own voice, said again every few seconds while the alarm is open. A
-        // device with no voice (or no scheduler) just plays the chime, which is still an unmistakable alarm.
-        private void StartVoice (AlarmTone tone)
+        // The chime is a generated file; the words are the device's own voice, in the voice the grown-up picked: which place, and what to do, said
+        // after the tone and again every few seconds while the alarm is open. A device with no voice (or no scheduler) just plays the chime,
+        // which is still an unmistakable alarm.
+        private void StartVoice (AlarmTone tone, string source)
         {
             if (tone != AlarmTone.VoiceEvacuation || speaker is not { IsSupported: true } || scheduler is null)
                 return;
 
-            speaker.Speak (Copy.Words.TellAGrownUpNow);
-            voiceRepeat = scheduler.Every (VoiceRepeat, () => {
+            var line = Copy.Words.AlarmAnnouncement (source);
+            void Say ()
+            {
                 lock (gate) {
                     if (sirenRunning)
-                        speaker.Speak (Copy.Words.TellAGrownUpNow);
+                        speaker.Speak (line, settings.Current.Voice);
                 }
-            });
+            }
+
+            voiceFirst = scheduler.Schedule (AnnounceAfterTone, Say);
+            voiceRepeat = scheduler.Every (VoiceRepeat, Say);
         }
 
         private void StopSiren ()
         {
+            voiceFirst?.Dispose ();
+            voiceFirst = null;
             voiceRepeat?.Dispose ();
             voiceRepeat = null;
 

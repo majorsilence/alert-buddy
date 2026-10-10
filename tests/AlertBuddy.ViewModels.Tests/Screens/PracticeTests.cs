@@ -61,11 +61,11 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             Assert.Empty (rig.Notifier.Shown);                         // no real notification
             Assert.Empty (rig.Haptics.Calls);                          // no vibration
             Assert.Same (practice, rig.Navigator.Current);             // and the real takeover never appeared over it
-            Assert.DoesNotContain ("Loop:Alarm", rig.Sound.Calls);     // a rehearsal never runs the siren
+            Assert.DoesNotContain ("Loop:Alarm", rig.Sound.Calls);     // the default practice sound is the gentle cue, never the real siren
         }
 
         [Fact]
-        public async Task ItUsesTheQuietPracticeCue_OnceForEachStep ()
+        public async Task ItUsesTheQuietPracticeCue_OnceForTheWarningAndTheAllClear_AndLoopsItThroughTheAlarm ()
         {
             await using var rig = new AppRig ();
             var practice = Open (rig);
@@ -73,7 +73,7 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             practice.StartCommand.Execute (null);
             rig.Clock.Advance (TimeSpan.FromSeconds (21));
 
-            Assert.Equal (["Play:Practice", "Play:Practice", "Play:Practice"], rig.Sound.Calls);
+            Assert.Equal (["Play:Practice", "Loop:Practice@0.4", "StopLoop", "Play:Practice"], rig.Sound.Calls);
         }
 
         [Theory]
@@ -81,7 +81,7 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         [InlineData (AlarmTone.MarchTime, "MarchTime")]
         [InlineData (AlarmTone.Continuous, "Continuous")]
         [InlineData (AlarmTone.VoiceEvacuation, "VoiceEvacuation")]
-        public async Task AChosenPracticeTone_PlaysOnceForEachStep_Quietly (AlarmTone tone, string cue)
+        public async Task AChosenPracticeTone_PlaysForTheWarning_LoopsThroughTheAlarm_AndEndsAtTheAllClear_Quietly (AlarmTone tone, string cue)
         {
             await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = tone });
             var practice = Open (rig);
@@ -89,7 +89,7 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             practice.StartCommand.Execute (null);
             rig.Clock.Advance (TimeSpan.FromSeconds (21));
 
-            Assert.Equal (Enumerable.Repeat ($"Play:{cue}@0.4", 3), rig.Sound.Calls);
+            Assert.Equal ([$"Play:{cue}@0.4", $"Loop:{cue}@0.4", "StopLoop", $"Play:{cue}@0.4"], rig.Sound.Calls);
         }
 
         [Theory]
@@ -133,6 +133,110 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             practice.HearSoundCommand.Execute (PracticeSound.Whoop);
 
             Assert.Empty (rig.Sound.Calls);
+        }
+
+        [Fact]
+        public async Task TheAlarmSound_KeepsPlayingUntilTheAllClear ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = AlarmTone.Whoop });
+            var practice = Open (rig);
+
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (7));
+            Assert.Equal (["Play:Alarm@0.4", "Loop:Alarm@0.4"], rig.Sound.Calls);
+
+            rig.Clock.Advance (TimeSpan.FromSeconds (6));                    // still the alarm, 13 seconds in
+            Assert.DoesNotContain ("StopLoop", rig.Sound.Calls);
+
+            rig.Clock.Advance (TimeSpan.FromSeconds (1));                    // the all clear arrives
+            Assert.Equal ("StopLoop", rig.Sound.Calls[2]);
+        }
+
+        [Fact]
+        public async Task Stop_SilencesTheAlarmSoundAtOnce ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = AlarmTone.Whoop });
+            var practice = Open (rig);
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (8));
+
+            practice.StopCommand.Execute (null);
+
+            Assert.Equal ("StopLoop", rig.Sound.Calls[^1]);
+            rig.Clock.Advance (TimeSpan.FromSeconds (30));
+            Assert.Single (rig.Sound.Calls, c => c == "StopLoop");           // and nothing starts it again
+        }
+
+        [Fact]
+        public async Task TellingAGrownUp_SilencesTheAlarmSound_AsItDoesForARealAlarm ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = AlarmTone.Whoop });
+            var practice = Open (rig);
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (8));
+
+            practice.ToldAGrownUpCommand.Execute (null);
+
+            Assert.Equal ("StopLoop", rig.Sound.Calls[^1]);
+        }
+
+        [Fact]
+        public async Task LeavingPractice_WhileTheAlarmSounds_SilencesIt ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = AlarmTone.Whoop });
+            var practice = Open (rig);
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (8));
+
+            practice.BackCommand.Execute (null);
+
+            Assert.Equal ("StopLoop", rig.Sound.Calls[^1]);
+        }
+
+        [Fact]
+        public async Task TheVoiceEvacuationAlarm_SaysWhichPlaceAfterTheTone_UntilTheAllClear ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, PracticeTone = AlarmTone.VoiceEvacuation, Voice = VoiceType.Deep });
+            var practice = Open (rig);
+
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (7));                    // the alarm starts: the chime loops
+            Assert.Empty (rig.Speaker.Said);
+            rig.Clock.Advance (AlertBuddy.ViewModels.Services.AlertFeedback.AnnounceAfterTone);             // and the voice follows the tone
+            Assert.Equal (["Alert. Practice room. Tell a grown-up now."], rig.Speaker.Said);
+            Assert.Equal ((VoiceType.Deep, 0.4), Assert.Single (rig.Speaker.Voices));
+
+            rig.Clock.Advance (TimeSpan.FromSeconds (6));                    // 14 s: the all clear
+            var said = rig.Speaker.Said.Count;
+            rig.Clock.Advance (TimeSpan.FromSeconds (60));
+            Assert.Equal (said, rig.Speaker.Said.Count);                     // and it stops
+        }
+
+        [Fact]
+        public async Task HearingTheVoiceSound_PlaysTheChimeThenTheVoice_Once ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true });
+            var practice = Open (rig);
+
+            practice.HearSoundCommand.Execute (PracticeSound.VoiceEvacuation);
+            Assert.Equal (["Play:VoiceEvacuation@0.4"], rig.Sound.Calls);
+            Assert.Empty (rig.Speaker.Said);
+            rig.Clock.Advance (AlertBuddy.ViewModels.Services.AlertFeedback.AnnounceAfterTone);
+            rig.Clock.Advance (TimeSpan.FromSeconds (60));
+
+            Assert.Single (rig.Speaker.Said);
+        }
+
+        [Fact]
+        public async Task WithSoundsOff_TheAlarmDoesNotLoop ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, SoundsEnabled = false });
+            var practice = Open (rig);
+
+            practice.StartCommand.Execute (null);
+            rig.Clock.Advance (TimeSpan.FromSeconds (21));
+
+            Assert.DoesNotContain (rig.Sound.Calls, c => c.StartsWith ("Loop"));
         }
 
         [Fact]
@@ -200,7 +304,7 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             practice.StartCommand.Execute (null);
             rig.Clock.Advance (TimeSpan.FromSeconds (21));
 
-            Assert.Equal (3, rig.Sound.Calls.Count);                    // one run, not two
+            Assert.Equal (["Play:Practice", "Loop:Practice@0.4", "StopLoop", "Play:Practice"], rig.Sound.Calls);      // one run, not two
         }
 
         [Fact]
@@ -233,9 +337,9 @@ namespace AlertBuddy.ViewModels.Tests.Screens
 
             practice.StartCommand.Execute (null);
             rig.Clock.Advance (TimeSpan.Zero);                          // the second run's step 1
-            rig.Clock.Advance (TimeSpan.FromSeconds (7));               // step 2: once, not once for each run that ever started
+            rig.Clock.Advance (TimeSpan.FromSeconds (7));               // step 2: one alarm sound, not one for each run that ever started
 
-            Assert.Equal (["Play:Practice", "Play:Practice", "Play:Practice"], rig.Sound.Calls);
+            Assert.Equal (["Play:Practice", "Play:Practice", "Loop:Practice@0.4"], rig.Sound.Calls);
             Assert.Equal (2, practice.Step);
         }
 

@@ -21,7 +21,7 @@ namespace AlertBuddy.Shared.Tests
     {
         public bool IsSupported => false;
         public void Play (Cue cue, double volume = 1) { }
-        public void StartLoop (Cue cue) { }
+        public void StartLoop (Cue cue, double volume = 1) { }
         public void StopLoop () { }
     }
 
