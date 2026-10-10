@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Drawing;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
@@ -18,7 +19,7 @@ namespace AlertBuddy.Shared.Views
         private readonly Label timeLine;
         private readonly Label body;
         private readonly Label whatToDo;
-        private readonly HoldButton gotIt;
+        private readonly ChunkyButton gotIt;
 
         /// <summary>Builds the detail screen for <paramref name="vm"/>.</summary>
         public AlertDetailView (AlertDetailViewModel vm)
@@ -27,7 +28,7 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("detail.back");
+            backButton = new ChunkyButton { Text = Loc.T ("Back"), Size = new Size (136, 56), Location = new Point (16, 16) }.Named ("detail.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
@@ -43,8 +44,8 @@ namespace AlertBuddy.Shared.Views
             Controls.Add (body);
             Controls.Add (whatToDo);
 
-            gotIt = new HoldButton { Text = "Got it", Size = new Size (140, 48) }.Named ("detail.gotIt", null, AccessibleNames.HoldHint);
-            gotIt.Held += (_, _) => vm.GotItCommand.Execute (null);
+            gotIt = new ChunkyButton { Text = Loc.T ("Got it"), Size = new Size (140, 48) }.Named ("detail.gotIt");
+            gotIt.Click += (_, _) => vm.GotItCommand.Execute (null);
             Controls.Add (gotIt);
 
             scope.Add (vm.Observe (nameof (AlertDetailViewModel.Source), v => v.Source, s => card.Source = s));

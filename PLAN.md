@@ -215,7 +215,7 @@ and then a PIN made getting in slower for no gain). The PIN is set during first 
 
 **Alarm flow.** Alarm arrives, then the takeover screen, siren, vibration. Big button: "I told a
 grown-up". After it, the beacon calms to a slow amber pulse and the screen says "Thank you. A grown-up is
-on it." A small `HoldButton`, "Got it", is for the grown-up. Both only change local state. The alert
+on it." A small button, "Got it", is for the grown-up (a tap, not a hold). Both only change local state. The alert
 stays until the server sends the all clear.
 
 **Night policy** (grown-up setting, default shown): warnings are silent between 20:00 and 07:00 (notification only, no sound); alarms always sound. Alarms are never muted by quiet hours.
@@ -603,7 +603,7 @@ Alarm takeover (full screen, beam spins, siren, vibration):
 |  |     I told a grown-up      |  |  ChunkyButton, Paper on Cherry, 72 high
 |  +----------------------------+  |
 |                                  |
-|  Grown-ups: hold Got it          |  small HoldButton
+|  Grown-ups: tap Got it           |  small button
 +----------------------------------+
 ```
 
@@ -647,7 +647,7 @@ colours and `AlertPalette` (a static class of the state colours, Day and Night v
 | `TicketCard` | One alert. Source, time, one sentence, temperature glyph | State-coloured left edge, seeded corners |
 | `ThermoGlyph` | A chunky thermometer, filled to the parsed temperature, tick marks at the two levels | Drawn only when a temperature was parsed |
 | `ChunkyButton` | Big pill button, press collapses the hard shadow, plays a boop | 64 high minimum, focus ring in Butter |
-| `HoldButton` | Press and hold, a ring fills, then it fires. The grown-up gate and "Got it" | Cancels cleanly on release |
+| `HoldButton` | Press and hold, a ring fills, then it fires. Only the gate before a PIN is set | Cancels cleanly on release |
 | `PinPad` | Large keys for the gate | 72 keys, no accidental double taps |
 | `PageHost` | Swaps pages with a short slide | Reduced motion means a cut, not a slide |
 | `PaperSurface` | Base class: outline, hard shadow, seeded wobble | Everything above derives from it |
@@ -758,7 +758,7 @@ Each screen is a view over the view model of the same name (section 7.5). The vi
 wiring only; every rule below about what a screen does is implemented and tested in its view model.
 
 - **Home.** The `BeaconBuddy`, one `SpeechBubble`, the connection line, active `TicketCard`s (newest
-  first, scrollable, using the framework's `ScrollGesture`), two `ChunkyButton`s. The gear is a `HoldButton`
+  first, scrollable, using the framework's `ScrollGesture`), two `ChunkyButton`s. The gear is a plain button
   with a 48 target, top-left.
 - **Alarm takeover.** Replaces Home while any alarm is `Active` and not `Acknowledged`. After the child taps,
   return to Home with the calm amber state and the thank-you line.

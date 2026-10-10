@@ -77,7 +77,7 @@ namespace AlertBuddy.ViewModels.Screens
         /// <summary>The child's button: "I told a grown-up".</summary>
         public string ToldButtonText => Words.ToldAGrownUp;
 
-        /// <summary>The grown-up's small hold button: "Got it".</summary>
+        /// <summary>The grown-up's small button: "Got it".</summary>
         public string GotItButtonText => Words.GotIt;
 
         /// <summary>What the screen says after the child has tapped: "Thank you. A grown-up is on it."</summary>

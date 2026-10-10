@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Shared.Theme;
 using AlertBuddy.ViewModels.Screens;
 using AlertBuddy.ViewModels.Services;
@@ -32,6 +33,8 @@ namespace AlertBuddy.Shared.Views
             Register<FirstRunViewModel> (vm => new FirstRunView (vm));
 
             navigator.CurrentChanged += ShowCurrentScreen;
+            // A new language is saved from the screen on show: build it again so it reads in that language at once.
+            Loc.Changed += ShowCurrentScreen;
             ShowCurrentScreen ();
         }
 
@@ -72,6 +75,7 @@ namespace AlertBuddy.Shared.Views
         {
             if (disposing) {
                 navigator.CurrentChanged -= ShowCurrentScreen;
+                Loc.Changed -= ShowCurrentScreen;
                 current?.Dispose ();
             }
 

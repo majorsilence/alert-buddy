@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using AlertBuddy.Core.Interpretation;
@@ -78,6 +79,7 @@ namespace AlertBuddy.ViewModels.Screens
         private readonly ISpeaker? speaker;
         [ObservableProperty] private bool readAloud;
         [ObservableProperty] private VoiceType voice;
+        [ObservableProperty] private AppLanguage language;
         [ObservableProperty] private AlarmTone alarmTone;
         [ObservableProperty] private PracticeSound practiceSound;
         [ObservableProperty] private int silenceMinutes = 10;
@@ -167,7 +169,7 @@ namespace AlertBuddy.ViewModels.Screens
         public string SafetyNote => Words.SafetyNote;
 
         /// <summary>One paragraph of privacy for About (PLAN.md section 4.3).</summary>
-        public string Privacy => "Alert Buddy only talks to the server a grown-up set up. It has no accounts, no ads and no tracking, and its history stays on this device.";
+        public string Privacy => Loc.T ("Alert Buddy only talks to the server a grown-up set up. It has no accounts, no ads and no tracking, and its history stays on this device.");
 
         /// <summary>The problem with the server address, if any.</summary>
         public string? ServerProblem => string.IsNullOrWhiteSpace (ServerUrl) ? Words.NotSetUp : NtfyEndpoint.Check (ServerUrl).Problem;
@@ -250,6 +252,7 @@ namespace AlertBuddy.ViewModels.Screens
                 SoundsEnabled = SoundsEnabled,
                 ReadAloud = ReadAloud,
                 Voice = Voice,
+                Language = Language,
                 AlarmTone = AlarmTone,
                 PracticeTone = PracticeSound == PracticeSound.Gentle ? null : (AlarmTone)((int)PracticeSound - 1),
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
@@ -265,7 +268,7 @@ namespace AlertBuddy.ViewModels.Screens
             NewPin = "";
             NewPinConfirm = "";
             HasStoredSecret = HasSecret (updated.Auth);
-            SavedMessage = "Saved.";
+            SavedMessage = Loc.T ("Saved.");
 
             // Only what changes the connection needs the listener to start over.
             if (serverChanged)
@@ -355,6 +358,7 @@ namespace AlertBuddy.ViewModels.Screens
             SoundsEnabled = s.SoundsEnabled;
             ReadAloud = s.ReadAloud;
             Voice = s.Voice;
+            Language = s.Language;
             AlarmTone = s.AlarmTone;
             PracticeSound = s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 1) : PracticeSound.Gentle;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;

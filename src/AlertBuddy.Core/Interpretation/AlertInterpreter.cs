@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using AlertBuddy.Core.Alerts;
@@ -132,7 +133,7 @@ namespace AlertBuddy.Core.Interpretation
             try {
                 return new Regex (pattern, RegexOptions.CultureInvariant, MatchTimeout);
             } catch (ArgumentException ex) {
-                problems.Add ($"The {name} pattern is not valid ({ex.Message}). The default is used instead.");
+                problems.Add (Loc.F ("The {0} pattern is not valid ({1}). The default is used instead.", Loc.T (name), ex.Message));
                 return new Regex (fallback, RegexOptions.CultureInvariant, MatchTimeout);
             }
         }

@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Core.Abstractions;
 using AlertBuddy.Core.Alerts;
 using AlertBuddy.ViewModels.Copy;
@@ -75,11 +76,11 @@ namespace AlertBuddy.ViewModels.Screens
         // "41 degrees. Keep an eye on it." What to do is always said, because a child reading a card needs to know.
         private static string SentenceFor (Alert alert)
         {
-            var advice = alert.Status == AlertStatus.Resolved ? "All clear."
-                : alert.Level == AlertLevel.Alarm ? "Tell a grown-up."
-                : "Keep an eye on it.";
+            var advice = alert.Status == AlertStatus.Resolved ? Loc.T ("All clear.")
+                : alert.Level == AlertLevel.Alarm ? Loc.T ("Tell a grown-up.")
+                : Loc.T ("Keep an eye on it.");
 
-            return alert.Temperature is { } t ? $"{Words.Degrees (t)}. {advice}" : advice;
+            return alert.Temperature is { } t ? Loc.F ("{0}. {1}", Words.Degrees (t), advice) : advice;
         }
     }
 }

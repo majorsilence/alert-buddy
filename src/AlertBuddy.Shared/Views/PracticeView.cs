@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Drawing;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
@@ -43,7 +44,7 @@ namespace AlertBuddy.Shared.Views
             banner = new Label { AutoSize = true, Text = vm.Banner, ForeColor = AlertPalette.Notice };
             Controls.Add (banner);
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("practice.back");
+            backButton = new ChunkyButton { Text = Loc.T ("Back"), Size = new Size (136, 56), Location = new Point (16, 16) }.Named ("practice.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
@@ -65,14 +66,14 @@ namespace AlertBuddy.Shared.Views
             };
             Controls.Add (startButton);
 
-            toldButton = new ChunkyButton { Text = "I told a grown-up", Height = 64, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("practice.told");
+            toldButton = new ChunkyButton { Text = Loc.T ("I told a grown-up"), Height = 64, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("practice.told");
             scope.Add (toldButton.BindCommand (vm.ToldAGrownUpCommand));
             Controls.Add (toldButton);
 
-            soundsHeading = new Label { AutoSize = true, Text = "Hear the sounds", ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (18) };
+            soundsHeading = new Label { AutoSize = true, Text = Loc.T ("Hear the sounds"), ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (18) };
             Controls.Add (soundsHeading);
             foreach (var (which, label, name) in Sounds) {
-                var button = new ChunkyButton { Text = label, Height = 48 }.Named ($"practice.sound.{which}", name);
+                var button = new ChunkyButton { Text = Loc.T (label), Height = 48 }.Named ($"practice.sound.{which}", Loc.T (name));
                 var chosen = which;
                 button.Click += (_, _) => vm.HearSoundCommand.Execute (chosen);
                 soundButtons.Add (button);
@@ -88,7 +89,7 @@ namespace AlertBuddy.Shared.Views
             scope.Add (vm.Observe (nameof (PracticeViewModel.Step), v => v.Step, _ => UpdateStepLine ()));
             scope.Add (vm.Observe (nameof (PracticeViewModel.Caption), v => v.Caption, _ => UpdateStepLine ()));
             scope.Add (vm.Observe (nameof (PracticeViewModel.IsRunning), v => v.IsRunning, running => {
-                startButton.Text = running ? "Stop" : "Start practice";
+                startButton.Text = running ? Loc.T ("Stop") : Loc.T ("Start practice");
                 PerformCustomLayout ();
             }));
 
@@ -99,7 +100,7 @@ namespace AlertBuddy.Shared.Views
         // Numbered because the steps are a sequence (PLAN.md section 9).
         private void UpdateStepLine ()
         {
-            stepLine.Text = vm.Step > 0 ? $"Step {vm.Step} of 3. {vm.Caption}" : "";
+            stepLine.Text = vm.Step > 0 ? Loc.F ("Step {0} of 3. {1}", vm.Step, vm.Caption) : "";
             PerformCustomLayout ();
         }
 

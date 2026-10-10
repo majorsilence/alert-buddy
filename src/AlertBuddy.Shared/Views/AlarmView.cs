@@ -22,7 +22,7 @@ namespace AlertBuddy.Shared.Views
         private readonly Label stopwatch;
         private readonly ChunkyButton toldButton;
         private readonly Label thankYou;
-        private readonly HoldButton gotItButton;
+        private readonly ChunkyButton gotItButton;
 
         /// <summary>Builds the takeover for <paramref name="vm"/>.</summary>
         public AlarmView (AlarmViewModel vm)
@@ -37,7 +37,7 @@ namespace AlertBuddy.Shared.Views
             Controls.Add (beacon);
 
             // The one instruction on the one screen that must be understood at a glance: big, in the buddy's own face.
-            heading = new Label { AutoSize = true, Text = vm.Heading, ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (24) };
+            heading = new Label { AutoSize = false, Text = vm.Heading, ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (24), TextAlign = ContentAlignment.TopCenter };
             Controls.Add (heading);
 
             detail = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };
@@ -53,8 +53,9 @@ namespace AlertBuddy.Shared.Views
             thankYou = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround, Visible = false, Text = vm.ThankYouText };
             Controls.Add (thankYou);
 
-            gotItButton = new HoldButton { Text = vm.GotItButtonText, Size = new Size (140, 48) }.Named ("alarm.gotIt", null, AccessibleNames.HoldHint);
-            gotItButton.Held += (_, _) => vm.GotItCommand.Execute (null);
+            // A plain tap: it only changes local state, and a hold in front of it made a grown-up wait while the alarm sounded.
+            gotItButton = new ChunkyButton { Text = vm.GotItButtonText, Size = new Size (140, 48) }.Named ("alarm.gotIt");
+            gotItButton.Click += (_, _) => vm.GotItCommand.Execute (null);
             Controls.Add (gotItButton);
 
             scope.Add (vm.Observe (nameof (AlarmViewModel.StopwatchText), v => v.StopwatchText, text => {
@@ -80,6 +81,11 @@ namespace AlertBuddy.Shared.Views
             var centerX = w / 2;
 
             beacon.Location = new Point (centerX - beacon.Width / 2, 32);
+            // The one instruction wraps rather than runs off a narrow screen: a longer language needs a second line.
+            const int headingLine = 36, headingCharWidth = 14;
+            var headingWidth = Math.Max (100, w - 32);
+            var headingLines = Math.Max (1, (heading.Text.Length * headingCharWidth + headingWidth - 1) / headingWidth);
+            heading.Size = new Size (headingWidth, headingLines * headingLine);
             heading.Location = new Point (centerX - heading.Width / 2, beacon.Bottom + 16);
             detail.Location = new Point (centerX - detail.Width / 2, heading.Bottom + 8);
 

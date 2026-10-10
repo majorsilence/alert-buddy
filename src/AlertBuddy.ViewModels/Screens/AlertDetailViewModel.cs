@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Globalization;
 using AlertBuddy.Core.Abstractions;
 using AlertBuddy.Core.Alerts;
@@ -94,9 +95,9 @@ namespace AlertBuddy.ViewModels.Screens
             OnPropertyChanged (nameof (TemperatureText));
             Body = alert.Body;
 
-            LevelWord = alert.Status == AlertStatus.Resolved ? "All clear" : alert.Level == AlertLevel.Alarm ? "Alarm" : "Warning";
-            WhatToDo = alert.Status == AlertStatus.Resolved ? "" : alert.Level == AlertLevel.Alarm ? Words.TellAGrownUpNow : "Keep an eye on it.";
-            TimeAgo = $"{Words.TimeAgo (clock.Now - alert.Time)} ago";
+            LevelWord = alert.Status == AlertStatus.Resolved ? Loc.T ("All clear") : alert.Level == AlertLevel.Alarm ? Loc.T ("Alarm") : Loc.T ("Warning");
+            WhatToDo = alert.Status == AlertStatus.Resolved ? "" : alert.Level == AlertLevel.Alarm ? Words.TellAGrownUpNow : Loc.T ("Keep an eye on it.");
+            TimeAgo = Loc.F ("{0} ago", Words.TimeAgo (clock.Now - alert.Time));
             ClockTime = TimeZoneInfo.ConvertTime (alert.Time, zone).ToString ("HH:mm", CultureInfo.InvariantCulture);
             CanBeHandled = alert.IsOpen && alert.Status != AlertStatus.Handled;
         }

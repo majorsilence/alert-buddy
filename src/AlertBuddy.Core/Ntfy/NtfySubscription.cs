@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Security;
@@ -163,7 +164,7 @@ namespace AlertBuddy.Core.Ntfy
                 return new Attempt (false, null);
             } catch (OperationCanceledException) {
                 // Not the caller's cancellation, so a deadline of ours: the server took too long to answer.
-                Set (ConnectionState.Reconnecting, ConnectionProblem.Silent, "the server did not answer in time");
+                Set (ConnectionState.Reconnecting, ConnectionProblem.Silent, Loc.T ("the server did not answer in time"));
                 return new Attempt (false, null);
             } catch (Exception ex) {
                 // Anything else is a bug or a surprise, and a listener that stops without a word is the worst way for an alert app to
@@ -247,9 +248,9 @@ namespace AlertBuddy.Core.Ntfy
                 }
 
                 // The server ended the stream cleanly: a restart, or a proxy's idle timeout. Reconnect, not an error.
-                Set (ConnectionState.Reconnecting, ConnectionProblem.Unreachable, "the server closed the connection");
+                Set (ConnectionState.Reconnecting, ConnectionProblem.Unreachable, Loc.T ("the server closed the connection"));
             } catch (OperationCanceledException) when (!ct.IsCancellationRequested && watchdog.IsCancellationRequested) {
-                Set (ConnectionState.Reconnecting, ConnectionProblem.Silent, "nothing was heard for too long");
+                Set (ConnectionState.Reconnecting, ConnectionProblem.Silent, Loc.T ("nothing was heard for too long"));
             } catch (IOException ex) {
                 Set (ConnectionState.Reconnecting, ConnectionProblem.Unreachable, Describe (ex));
             }
@@ -291,17 +292,17 @@ namespace AlertBuddy.Core.Ntfy
             }
 
             if (response.StatusCode == HttpStatusCode.NotFound) {
-                Set (ConnectionState.Misconfigured, ConnectionProblem.TopicNotFound, "the topic was not found");
+                Set (ConnectionState.Misconfigured, ConnectionProblem.TopicNotFound, Loc.T ("the topic was not found"));
                 return new Attempt (false, Backoff.SlowRetry);
             }
 
             if (code is >= 300 and < 400) {
-                Set (ConnectionState.Misconfigured, ConnectionProblem.InvalidAddress, "the server redirected the request");
+                Set (ConnectionState.Misconfigured, ConnectionProblem.InvalidAddress, Loc.T ("the server redirected the request"));
                 return new Attempt (false, Backoff.SlowRetry);
             }
 
             if (response.StatusCode == HttpStatusCode.TooManyRequests) {
-                Set (ConnectionState.Reconnecting, ConnectionProblem.RateLimited, "the server asked the app to slow down");
+                Set (ConnectionState.Reconnecting, ConnectionProblem.RateLimited, Loc.T ("the server asked the app to slow down"));
                 return new Attempt (false, RetryAfter (response) ?? Backoff.Delay (3, 0.5));
             }
 
@@ -342,7 +343,7 @@ namespace AlertBuddy.Core.Ntfy
             // The message names what failed ("the remote certificate is invalid ... RemoteCertificateNameMismatch"). It never contains
             // the request headers, so it is safe to show.
             var inner = ex.InnerException?.Message ?? ex.Message;
-            return $"the secure connection failed: {inner}";
+            return Loc.F ("the secure connection failed: {0}", inner);
         }
 
         // A short factual description that is safe to show. Exception messages from the HTTP stack name the failure, not the request.

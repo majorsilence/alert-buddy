@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using Android.Content;
 using Android.Content.PM;
 using Android.Net;
@@ -18,15 +19,15 @@ namespace AlertBuddy.Android.Platform
             get {
                 if (OperatingSystem.IsAndroidVersionAtLeast (33)
                     && context.CheckSelfPermission (global::Android.Manifest.Permission.PostNotifications) != Permission.Granted)
-                    return "Notifications are turned off.";
+                    return Loc.T ("Notifications are turned off.");
 
                 var power = (PowerManager?)context.GetSystemService (Context.PowerService);
                 if (power is not null && !power.IsIgnoringBatteryOptimizations (context.PackageName))
-                    return "Android may stop the app when the screen is off.";
+                    return Loc.T ("Android may stop the app when the screen is off.");
 
                 var connectivity = (ConnectivityManager?)context.GetSystemService (Context.ConnectivityService);
                 if (connectivity?.ActiveNetwork is null)
-                    return "There is no network.";
+                    return Loc.T ("There is no network.");
 
                 return null;
             }

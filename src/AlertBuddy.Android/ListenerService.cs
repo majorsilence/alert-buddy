@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -54,7 +55,7 @@ namespace AlertBuddy.Android
             var launch = PackageManager?.GetLaunchIntentForPackage (PackageName!);
             var tap = launch is null ? null : PendingIntent.GetActivity (this, 0, launch, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
             var name = AppHost.Get (this).Settings.Current.BuddyName;
-            var text = $"{(string.IsNullOrWhiteSpace (name) ? "The buddy" : name)} is listening.";
+            var text = Loc.F ("{0} is listening.", string.IsNullOrWhiteSpace (name) ? Loc.T ("The buddy") : name);
 
             if (!OperatingSystem.IsAndroidVersionAtLeast (26)) {
 #pragma warning disable CS0618 // The builder without a channel is the only one before API 26.
@@ -69,8 +70,8 @@ namespace AlertBuddy.Android
             }
 
             var manager = (NotificationManager)GetSystemService (NotificationService)!;
-            manager.CreateNotificationChannel (new NotificationChannel (ListeningChannel, "Listening", NotificationImportance.Low) {
-                Description = "Shows that Alert Buddy is listening for alerts.",
+            manager.CreateNotificationChannel (new NotificationChannel (ListeningChannel, Loc.T ("Listening"), NotificationImportance.Low) {
+                Description = Loc.T ("Shows that Alert Buddy is listening for alerts."),
             });
 
             return new Notification.Builder (this, ListeningChannel)

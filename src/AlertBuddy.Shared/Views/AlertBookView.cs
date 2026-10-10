@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Collections.Specialized;
 using System.Drawing;
 using AlertBuddy.Shared.Controls;
@@ -25,7 +26,7 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("book.back");
+            backButton = new ChunkyButton { Text = Loc.T ("Back"), Size = new Size (136, 56), Location = new Point (16, 16) }.Named ("book.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
@@ -35,7 +36,7 @@ namespace AlertBuddy.Shared.Views
             empty = new Label { AutoSize = false, Text = vm.EmptyText, ForeColor = AlertPalette.OnGround };
             Controls.Add (empty);
 
-            clear = new ChunkyButton { Text = "Clear", Size = new Size (120, 48) }.Named ("book.clear", "Clear the Alert book");
+            clear = new ChunkyButton { Text = Loc.T ("Clear"), Size = new Size (120, 48) }.Named ("book.clear", Loc.T ("Clear the Alert book"));
             clear.Click += (_, _) => vm.ClearHistoryCommand.Execute (null);
             Controls.Add (clear);
 

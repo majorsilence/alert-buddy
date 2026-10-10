@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
@@ -28,9 +29,9 @@ namespace AlertBuddy.Core.Ntfy
             return status switch {
                 HttpStatusCode.OK => null,
                 HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => (ConnectionState.AuthFailed, ConnectionProblem.Unauthorized, $"HTTP {code}"),
-                HttpStatusCode.NotFound => (ConnectionState.Misconfigured, ConnectionProblem.TopicNotFound, "the topic was not found"),
-                _ when code is >= 300 and < 400 => (ConnectionState.Misconfigured, ConnectionProblem.InvalidAddress, "the server redirected the request"),
-                HttpStatusCode.TooManyRequests => (ConnectionState.Reconnecting, ConnectionProblem.RateLimited, "the server asked the app to slow down"),
+                HttpStatusCode.NotFound => (ConnectionState.Misconfigured, ConnectionProblem.TopicNotFound, Loc.T ("the topic was not found")),
+                _ when code is >= 300 and < 400 => (ConnectionState.Misconfigured, ConnectionProblem.InvalidAddress, Loc.T ("the server redirected the request")),
+                HttpStatusCode.TooManyRequests => (ConnectionState.Reconnecting, ConnectionProblem.RateLimited, Loc.T ("the server asked the app to slow down")),
                 _ => (ConnectionState.Reconnecting, ConnectionProblem.ServerError, $"HTTP {code}"),
             };
         }
@@ -41,7 +42,7 @@ namespace AlertBuddy.Core.Ntfy
             // A bad certificate is a settings problem, not an outage: it will not fix itself until a grown-up acts.
             if (ex.HttpRequestError == HttpRequestError.SecureConnectionError || ex.InnerException is AuthenticationException || ex.InnerException?.InnerException is AuthenticationException) {
                 var inner = ex.InnerException?.Message ?? ex.Message;
-                return (ConnectionState.Misconfigured, ConnectionProblem.Certificate, $"the secure connection failed: {inner}");
+                return (ConnectionState.Misconfigured, ConnectionProblem.Certificate, Loc.F ("the secure connection failed: {0}", inner));
             }
 
             // No route at all is "offline"; a refused or reset connection is a server that is down or restarting.
@@ -79,7 +80,7 @@ namespace AlertBuddy.Core.Ntfy
                 return new ConnectionTestResult (false, ConnectionProblem.InvalidAddress, endpoint.Problem!);
 
             if (!NtfyTopic.IsValid (topic))
-                return new ConnectionTestResult (false, ConnectionProblem.InvalidAddress, "A topic is letters, numbers, - and _, up to 64 characters.");
+                return new ConnectionTestResult (false, ConnectionProblem.InvalidAddress, Loc.T ("A topic is letters, numbers, - and _, up to 64 characters."));
 
             var url = new Uri ($"{endpoint.BaseUri!.GetLeftPart (UriPartial.Path).TrimEnd ('/')}/{Uri.EscapeDataString (topic)}/json?poll=1&since=1m");
 
@@ -95,23 +96,23 @@ namespace AlertBuddy.Core.Ntfy
 
                 if (ConnectionClassifier.FromStatus (response.StatusCode) is not { } failure) {
                     return new ConnectionTestResult (true, ConnectionProblem.None,
-                        endpoint.Unencrypted ? "Connected. The server accepted the sign-in and knows the topic. The connection is not encrypted." : "Connected. The server accepted the sign-in and knows the topic.");
+                        endpoint.Unencrypted ? Loc.T ("Connected. The server accepted the sign-in and knows the topic. The connection is not encrypted.") : Loc.T ("Connected. The server accepted the sign-in and knows the topic."));
                 }
 
                 return new ConnectionTestResult (false, failure.Problem, failure.Problem switch {
-                    ConnectionProblem.Unauthorized => "The server didn't accept the sign-in. Check the user name and password, or the token.",
-                    ConnectionProblem.TopicNotFound => "The server doesn't know this topic. Check the topic name.",
-                    ConnectionProblem.InvalidAddress => "The server redirected the request. Use the address it redirects to.",
-                    ConnectionProblem.RateLimited => "The server asked the app to slow down. Try again in a moment.",
-                    _ => $"The server answered with {failure.Detail}. Try again in a moment.",
+                    ConnectionProblem.Unauthorized => Loc.T ("The server didn't accept the sign-in. Check the user name and password, or the token."),
+                    ConnectionProblem.TopicNotFound => Loc.T ("The server doesn't know this topic. Check the topic name."),
+                    ConnectionProblem.InvalidAddress => Loc.T ("The server redirected the request. Use the address it redirects to."),
+                    ConnectionProblem.RateLimited => Loc.T ("The server asked the app to slow down. Try again in a moment."),
+                    _ => Loc.F ("The server answered with {0}. Try again in a moment.", failure.Detail),
                 });
             } catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) {
-                return new ConnectionTestResult (false, ConnectionProblem.Silent, "The server did not answer. Check the address, and that the server is running.");
+                return new ConnectionTestResult (false, ConnectionProblem.Silent, Loc.T ("The server did not answer. Check the address, and that the server is running."));
             } catch (HttpRequestException ex) {
                 var failure = ConnectionClassifier.FromException (ex);
                 return new ConnectionTestResult (false, failure.Problem, failure.Problem == ConnectionProblem.Certificate
-                    ? $"The secure connection failed ({failure.Detail}). Check the server's certificate."
-                    : $"Could not reach the server ({failure.Detail}). Check the address and the network.");
+                    ? Loc.F ("The secure connection failed ({0}). Check the server's certificate.", failure.Detail)
+                    : Loc.F ("Could not reach the server ({0}). Check the address and the network.", failure.Detail));
             }
         }
     }

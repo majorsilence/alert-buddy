@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Core.Settings;
 using AlertBuddy.ViewModels.Services;
 using Majorsilence.Forms.Essentials;
@@ -33,7 +34,7 @@ namespace AlertBuddy.Shared.Platform
             // Fire and forget: the caller is the alert pipeline and must not wait for a sentence to finish. A failed line is not worth a crash.
             _ = Task.Run (async () => {
                 try {
-                    await Speech.SpeakAsync (text, new SpeechOptions { Pitch = PitchFor (voice), Rate = RateFor (voice), Volume = (float)Math.Clamp (volume, 0, 1) });
+                    await Speech.SpeakAsync (text, new SpeechOptions { Pitch = PitchFor (voice), Rate = RateFor (voice), Volume = (float)Math.Clamp (volume, 0, 1), Locale = Loc.IsFrench ? "fr-FR" : null });
                 } catch (Exception) {
                 }
             });

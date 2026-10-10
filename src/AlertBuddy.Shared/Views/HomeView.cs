@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Collections.Specialized;
 using System.Drawing;
 using AlertBuddy.Shared.Controls;
@@ -37,7 +38,7 @@ namespace AlertBuddy.Shared.Views
             BackColor = AlertPalette.Ground;
 
             // A plain tap: the grown-up gate behind it is the PIN, and a hold in front of that only made Settings slower to reach.
-            gear = new ChunkyButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48) }.Named ("home.settings", "Settings, for grown-ups");
+            gear = new ChunkyButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48) }.Named ("home.settings", Loc.T ("Settings, for grown-ups"));
             gear.Click += (_, _) => vm.OpenSettingsCommand.Execute (null);
             Controls.Add (gear);
 
@@ -56,15 +57,15 @@ namespace AlertBuddy.Shared.Views
             alertList = new Panel { AutoScroll = true };
             Controls.Add (alertList);
 
-            openBookButton = new ChunkyButton { Text = "Alert book" }.Named ("home.alertBook");
+            openBookButton = new ChunkyButton { Text = Loc.T ("Alert book") }.Named ("home.alertBook");
             openBookButton.Click += (_, _) => vm.OpenBookCommand.Execute (null);
             Controls.Add (openBookButton);
 
-            practiceButton = new ChunkyButton { Text = "Practice" }.Named ("home.practice");
+            practiceButton = new ChunkyButton { Text = Loc.T ("Practice") }.Named ("home.practice");
             practiceButton.Click += (_, _) => vm.StartPracticeCommand.Execute (null);
             Controls.Add (practiceButton);
 
-            rightNow = new Label { AutoSize = true, Text = "Right now", ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (20), Visible = false };
+            rightNow = new Label { AutoSize = true, Text = Loc.T ("Right now"), ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (20), Visible = false };
             Controls.Add (rightNow);
 
             bedsideButton = new ChunkyButton { Size = new Size (144, 48), Visible = vm.CanBedside }.Named ("home.bedside");
@@ -75,7 +76,7 @@ namespace AlertBuddy.Shared.Views
                 // Bedside forces Night while it is on (PLAN.md section 8.7). The look is global, so every screen built from now on follows
                 // it, and this one is restyled in place.
                 AlertBuddyTheme.SetBedside (bedside);
-                bedsideButton.Text = bedside ? "Day" : "Bedside";
+                bedsideButton.Text = bedside ? Loc.T ("Light") : Loc.T ("Dark");   // what pressing it does
                 Restyle ();
             }));
 

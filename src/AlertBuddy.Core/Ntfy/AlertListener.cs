@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Core.Settings;
 using AlertBuddy.Core.Store;
 
@@ -67,7 +68,7 @@ namespace AlertBuddy.Core.Ntfy
 
                 var endpoint = NtfyEndpoint.Check (current.ServerUrl);
                 if (!endpoint.IsValid || !NtfyTopic.IsValid (current.Topic)) {
-                    engine.SetConnection (new ConnectionInfo (ConnectionState.Misconfigured, ConnectionProblem.InvalidAddress, endpoint.Problem ?? "the topic is not valid"));
+                    engine.SetConnection (new ConnectionInfo (ConnectionState.Misconfigured, ConnectionProblem.InvalidAddress, endpoint.Problem ?? Loc.T ("the topic is not valid")));
                     return;
                 }
 

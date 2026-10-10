@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AlertBuddy.Core.Abstractions;
@@ -80,10 +81,10 @@ namespace AlertBuddy.ViewModels.Screens
             IsEmpty = groups.Count == 0;
         }
 
-        // Sentence case, no all-caps labels (PLAN.md section 8.2). The date is invariant so it reads the same on every device until strings are translated.
+        // Sentence case, no all-caps labels (PLAN.md section 8.2). The date is written in the language in use.
         private static string Heading (DateTime day, DateTime today)
-            => day == today ? "Today"
-             : day == today.AddDays (-1) ? "Yesterday"
-             : day.ToString ("dddd d MMMM", CultureInfo.InvariantCulture);
+            => day == today ? Loc.T ("Today")
+             : day == today.AddDays (-1) ? Loc.T ("Yesterday")
+             : day.ToString ("dddd d MMMM", Loc.Culture);
     }
 }

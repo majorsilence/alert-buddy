@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Drawing;
 using AlertBuddy.Core.Settings;
 using AlertBuddy.Shared.Controls;
@@ -26,77 +27,80 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56), Location = new Point (16, 16) }.Named ("settings.back");
+            backButton = new ChunkyButton { Text = Loc.T ("Back"), Size = new Size (136, 56), Location = new Point (16, 16) }.Named ("settings.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
             Controls.Add (column);
 
-            column.AddHeading ("Server");
-            Caption ("Server address");
+            column.AddHeading (Loc.T ("Server"));
+            Caption (Loc.T ("Server address"));
             Field (nameof (SettingsViewModel.ServerUrl), v => v.ServerUrl, (v, t) => v.ServerUrl = t);
-            Caption ("Topic");
+            Caption (Loc.T ("Topic"));
             Field (nameof (SettingsViewModel.Topic), v => v.Topic, (v, t) => v.Topic = t);
 
-            Caption ("Sign in");
+            Caption (Loc.T ("Sign in"));
             var auth = Choice (nameof (SettingsViewModel.Auth), "No sign-in", "Username and password", "Access token");
             scope.Add (auth.BindSelectedIndex (vm, nameof (SettingsViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
-            Caption ("Username");
+            Caption (Loc.T ("Username"));
             Field (nameof (SettingsViewModel.Username), v => v.Username, (v, t) => v.Username = t);
-            Caption ("Password or token (leave blank to keep the saved one)", paragraph: true);
+            Caption (Loc.T ("Password or token (leave blank to keep the saved one)"), paragraph: true);
             Field (nameof (SettingsViewModel.Secret), v => v.Secret, (v, t) => v.Secret = t, secret: true);
 
             problems = column.AddParagraph ("", AlertPalette.Notice);
-            var test = column.Add (new ChunkyButton { Text = "Test connection", Height = 56 }.Named ("settings.testConnection"));
+            var test = column.Add (new ChunkyButton { Text = Loc.T ("Test connection"), Height = 56 }.Named ("settings.testConnection"));
             scope.Add (test.BindCommand (vm.TestConnectionCommand));
             var testResult = column.AddParagraph ("");
             scope.Add (vm.Observe (nameof (SettingsViewModel.TestResult), v => v.TestResult, r => { testResult.Text = r ?? ""; column.Relayout (); }));
 
-            column.AddHeading ("Buddy");
-            Caption ("Buddy's name");
+            column.AddHeading (Loc.T ("Buddy"));
+            Caption (Loc.T ("Buddy's name"));
             Field (nameof (SettingsViewModel.BuddyName), v => v.BuddyName, (v, t) => v.BuddyName = t);
-            Caption ("Look");
-            var look = Choice (nameof (SettingsViewModel.Look), "Follow the device", "Day", "Night");
+            Caption (Loc.T ("Language"));
+            var language = Choice (nameof (SettingsViewModel.Language), "Follow the device", "English", "Français");
+            scope.Add (language.BindSelectedIndex (vm, nameof (SettingsViewModel.Language), v => (int)v.Language, (v, i) => v.Language = (AppLanguage)i));
+            Caption (Loc.T ("Look"));
+            var look = Choice (nameof (SettingsViewModel.Look), "Follow the device", "Light", "Dark");
             scope.Add (look.BindSelectedIndex (vm, nameof (SettingsViewModel.Look), v => (int)v.Look, (v, i) => v.Look = (LookPreference)i));
-            Caption ("Movement");
+            Caption (Loc.T ("Movement"));
             var motion = Choice (nameof (SettingsViewModel.Motion), "Follow the device", "Calmer", "Full");
             scope.Add (motion.BindSelectedIndex (vm, nameof (SettingsViewModel.Motion), v => (int)v.Motion, (v, i) => v.Motion = (MotionPreference)i));
 
-            column.AddHeading ("Sounds and quiet time");
-            var sounds = column.Add (new CheckBox { Text = "Play sounds", Height = 48 }.Named ("settings.sounds"));
+            column.AddHeading (Loc.T ("Sounds and quiet time"));
+            var sounds = column.Add (new CheckBox { Text = Loc.T ("Play sounds"), Height = 48 }.Named ("settings.sounds"));
             scope.Add (sounds.BindChecked (vm, nameof (SettingsViewModel.SoundsEnabled), v => v.SoundsEnabled, (v, c) => v.SoundsEnabled = c));
             if (vm.CanReadAloud) {
-                var aloud = column.Add (new CheckBox { Text = "Read alerts aloud", Height = 48 }.Named ("settings.readAloud"));
+                var aloud = column.Add (new CheckBox { Text = Loc.T ("Read alerts aloud"), Height = 48 }.Named ("settings.readAloud"));
                 scope.Add (aloud.BindChecked (vm, nameof (SettingsViewModel.ReadAloud), v => v.ReadAloud, (v, c) => v.ReadAloud = c));
             }
-            Caption ("Alarm sound");
+            Caption (Loc.T ("Alarm sound"));
             var tone = Choice (nameof (SettingsViewModel.AlarmTone), "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
             scope.Add (tone.BindSelectedIndex (vm, nameof (SettingsViewModel.AlarmTone), v => (int)v.AlarmTone, (v, i) => v.AlarmTone = (AlarmTone)i));
-            var hear = column.Add (new ChunkyButton { Text = "Hear the alarm sound", Height = 56 }.Named ("settings.hearAlarm"));
+            var hear = column.Add (new ChunkyButton { Text = Loc.T ("Hear the alarm sound"), Height = 56 }.Named ("settings.hearAlarm"));
             scope.Add (hear.BindCommand (vm.PreviewAlarmToneCommand));
             if (vm.CanReadAloud) {
-                Caption ("Voice");
+                Caption (Loc.T ("Voice"));
                 var voice = Choice (nameof (SettingsViewModel.Voice), "Deeper", "Standard", "Lighter");
                 scope.Add (voice.BindSelectedIndex (vm, nameof (SettingsViewModel.Voice), v => (int)v.Voice, (v, i) => v.Voice = (VoiceType)i));
-                var hearVoice = column.Add (new ChunkyButton { Text = "Hear the voice", Height = 56 }.Named ("settings.hearVoice"));
+                var hearVoice = column.Add (new ChunkyButton { Text = Loc.T ("Hear the voice"), Height = 56 }.Named ("settings.hearVoice"));
                 scope.Add (hearVoice.BindCommand (vm.PreviewVoiceCommand));
             }
 
-            Caption ("Practice sound");
+            Caption (Loc.T ("Practice sound"));
             var practice = Choice (nameof (SettingsViewModel.PracticeSound), "Gentle", "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
             scope.Add (practice.BindSelectedIndex (vm, nameof (SettingsViewModel.PracticeSound), v => (int)v.PracticeSound, (v, i) => v.PracticeSound = (PracticeSound)i));
-            var night = column.Add (new CheckBox { Text = "Quieter at night (8 pm to 7 am)", Height = 48 }.Named ("settings.night"));
+            var night = column.Add (new CheckBox { Text = Loc.T ("Quieter at night (8 pm to 7 am)"), Height = 48 }.Named ("settings.night"));
             scope.Add (night.BindChecked (vm, nameof (SettingsViewModel.NightEnabled), v => v.NightEnabled, (v, c) => v.NightEnabled = c));
-            Caption ("Minutes to stay quiet after \"Got it\"");
+            Caption (Loc.T ("Minutes to stay quiet after \"Got it\""));
             Number (nameof (SettingsViewModel.SilenceMinutes), 1, 240, v => v.SilenceMinutes, (v, n) => v.SilenceMinutes = n);
 
-            column.AddHeading ("Grown-up PIN");
-            Caption ("New PIN (4 digits, leave blank to keep it)");
+            column.AddHeading (Loc.T ("Grown-up PIN"));
+            Caption (Loc.T ("New PIN (4 digits, leave blank to keep it)"));
             Field (nameof (SettingsViewModel.NewPin), v => v.NewPin, (v, t) => v.NewPin = t, secret: true, kind: TextInputKind.Number);
-            Caption ("New PIN again");
+            Caption (Loc.T ("New PIN again"));
             Field (nameof (SettingsViewModel.NewPinConfirm), v => v.NewPinConfirm, (v, t) => v.NewPinConfirm = t, secret: true, kind: TextInputKind.Number);
 
             if (vm.Permissions.Count > 0) {
-                column.AddHeading ("Letting the buddy listen");
+                column.AddHeading (Loc.T ("Letting the buddy listen"));
                 var steps = column.AddSection ();
                 BindingScope? stepScope = null;
                 scope.Add (vm.Observe (nameof (SettingsViewModel.PermissionsRefreshed), v => v.PermissionsRefreshed, _ => {
@@ -108,26 +112,26 @@ namespace AlertBuddy.Shared.Views
                 scope.Add (new Disposer (() => stepScope?.Dispose ()));
             }
 
-            column.AddHeading ("Reading alerts");
-            Caption ("Priority that means an alarm");
+            column.AddHeading (Loc.T ("Reading alerts"));
+            Caption (Loc.T ("Priority that means an alarm"));
             Number (nameof (SettingsViewModel.AlarmPriority), 1, 5, v => v.AlarmPriority, (v, n) => v.AlarmPriority = n);
-            Caption ("Priority that means a warning");
+            Caption (Loc.T ("Priority that means a warning"));
             Number (nameof (SettingsViewModel.WarningPriority), 1, 5, v => v.WarningPriority, (v, n) => v.WarningPriority = n);
-            var emoji = column.Add (new CheckBox { Text = "Ignore a leading emoji in titles", Height = 48 }.Named ("settings.emoji"));
+            var emoji = column.Add (new CheckBox { Text = Loc.T ("Ignore a leading emoji in titles"), Height = 48 }.Named ("settings.emoji"));
             scope.Add (emoji.BindChecked (vm, nameof (SettingsViewModel.StripLeadingEmoji), v => v.StripLeadingEmoji, (v, c) => v.StripLeadingEmoji = c));
-            var reset = column.Add (new ChunkyButton { Text = "Use the usual rules", Height = 56 }.Named ("settings.resetRules"));
+            var reset = column.Add (new ChunkyButton { Text = Loc.T ("Use the usual rules"), Height = 56 }.Named ("settings.resetRules"));
             scope.Add (reset.BindCommand (vm.ResetInterpretationCommand));
 
-            var clear = column.Add (new ChunkyButton { Text = "Clear the Alert book", Height = 56 }.Named ("settings.clearBook"), extraTop: 14);
+            var clear = column.Add (new ChunkyButton { Text = Loc.T ("Clear the Alert book"), Height = 56 }.Named ("settings.clearBook"), extraTop: 14);
             scope.Add (clear.BindCommand (vm.ClearHistoryCommand));
 
-            column.AddHeading ("About");
+            column.AddHeading (Loc.T ("About"));
             column.AddParagraph ($"Alert Buddy {vm.Version}");
             column.AddParagraph (vm.SafetyNote);
             column.AddParagraph (vm.Privacy);
 
             saved = column.AddParagraph ("");
-            var save = column.Add (new ChunkyButton { Text = "Save", Height = 64, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("settings.save"));
+            var save = column.Add (new ChunkyButton { Text = Loc.T ("Save"), Height = 64, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("settings.save"));
             scope.Add (save.BindCommand (vm.SaveCommand));
 
             scope.Add (vm.Observe (nameof (SettingsViewModel.SavedMessage), v => v.SavedMessage, m => { saved.Text = m ?? ""; column.Relayout (); }));
@@ -172,7 +176,7 @@ namespace AlertBuddy.Shared.Views
         {
             var box = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ($"settings.{property}", lastLabel));
             foreach (var item in items)
-                box.Items.Add (item);
+                box.Items.Add (Loc.T (item));
             return box;
         }
 

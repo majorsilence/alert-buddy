@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Net;
 using System.Net.Sockets;
 
@@ -21,20 +22,20 @@ namespace AlertBuddy.Core.Ntfy
         public static EndpointCheck Check (string? address)
         {
             if (string.IsNullOrWhiteSpace (address))
-                return Invalid ("Enter the server address, for example https://ntfy.example.com.");
+                return Invalid (Loc.T ("Enter the server address, for example https://ntfy.example.com."));
 
             if (!Uri.TryCreate (address.Trim (), UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) || string.IsNullOrEmpty (uri.Host))
-                return Invalid ("The address must start with https:// (or http:// for a server on the home network) and name the server.");
+                return Invalid (Loc.T ("The address must start with https:// (or http:// for a server on the home network) and name the server."));
 
             if (!string.IsNullOrEmpty (uri.UserInfo))
-                return Invalid ("Leave the user name and password out of the address. Enter them under sign-in.");
+                return Invalid (Loc.T ("Leave the user name and password out of the address. Enter them under sign-in."));
 
             if (!string.IsNullOrEmpty (uri.Query) || !string.IsNullOrEmpty (uri.Fragment))
-                return Invalid ("The address should be the server only, without anything after a ? or a #.");
+                return Invalid (Loc.T ("The address should be the server only, without anything after a ? or a #."));
 
             var unencrypted = uri.Scheme == Uri.UriSchemeHttp;
             if (unencrypted && !IsPrivateHost (uri.Host))
-                return Invalid ("Plain http is only allowed for this device, the home network and .local names. Use https for a server on the internet.");
+                return Invalid (Loc.T ("Plain http is only allowed for this device, the home network and .local names. Use https for a server on the internet."));
 
             // A server may live under a path such as /ntfy; keep it, drop the trailing slash so joining is uniform.
             var baseUri = new Uri (uri.GetLeftPart (UriPartial.Path).TrimEnd ('/'));

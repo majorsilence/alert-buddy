@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Drawing;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.Shared.Theme;
@@ -31,7 +32,7 @@ namespace AlertBuddy.Shared.Views
             Controls.Add (message);
             Controls.Add (dots);
 
-            hold = new HoldButton { Text = "Hold", Size = new Size (140, 72), HoldDuration = TimeSpan.FromSeconds (2) }.Named ("gate.hold", "Hold to continue", AccessibleNames.HoldHint);
+            hold = new HoldButton { Text = Loc.T ("Hold"), Size = new Size (140, 72), HoldDuration = TimeSpan.FromSeconds (2) }.Named ("gate.hold", Loc.T ("Hold to continue"), AccessibleNames.HoldHint);
             hold.Held += (_, _) => vm.HoldCompletedCommand.Execute (null);
             Controls.Add (hold);
 
@@ -43,11 +44,11 @@ namespace AlertBuddy.Shared.Views
                 Controls.Add (key);
             }
 
-            backspace = new ChunkyButton { Text = "⌫", Size = new Size (72, 64) }.Named ("gate.backspace", "Delete the last digit");
+            backspace = new ChunkyButton { Text = "⌫", Size = new Size (72, 64) }.Named ("gate.backspace", Loc.T ("Delete the last digit"));
             scope.Add (backspace.BindCommand (vm.BackspaceCommand));
             Controls.Add (backspace);
 
-            cancel = new ChunkyButton { Text = "Cancel", Size = new Size (140, 56) }.Named ("gate.cancel");
+            cancel = new ChunkyButton { Text = Loc.T ("Cancel"), Size = new Size (140, 56) }.Named ("gate.cancel");
             scope.Add (cancel.BindCommand (vm.CancelCommand));
             Controls.Add (cancel);
 

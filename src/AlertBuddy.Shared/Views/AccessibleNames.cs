@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using Majorsilence.Forms;
 
 namespace AlertBuddy.Shared.Views
@@ -33,6 +34,6 @@ namespace AlertBuddy.Shared.Views
         }
 
         /// <summary>The extra line for a button that has to be held, which a screen reader would otherwise present as an ordinary press.</summary>
-        public const string HoldHint = "Press and hold for two seconds.";
+        public static string HoldHint => Loc.T ("Press and hold for two seconds.");
     }
 }

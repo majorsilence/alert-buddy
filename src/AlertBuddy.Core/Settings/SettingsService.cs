@@ -1,3 +1,6 @@
+using System.Globalization;
+using AlertBuddy.Core.Localization;
+
 namespace AlertBuddy.Core.Settings
 {
     /// <summary>
@@ -16,7 +19,11 @@ namespace AlertBuddy.Core.Settings
         {
             this.store = store ?? throw new ArgumentNullException (nameof (store));
             current = store.Load ();
+            ApplyLanguage (current);
         }
+
+        // The language is global: every layer asks Loc, so saving a new one is all it takes.
+        private static void ApplyLanguage (AppSettings settings) => Loc.Use (settings.Language, CultureInfo.CurrentUICulture.Name);
 
         /// <summary>The settings as they are now.</summary>
         public AppSettings Current {
@@ -39,6 +46,7 @@ namespace AlertBuddy.Core.Settings
             lock (gate)
                 current = settings;
 
+            ApplyLanguage (settings);
             Changed?.Invoke ();
         }
     }

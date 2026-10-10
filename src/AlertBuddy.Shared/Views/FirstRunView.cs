@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using System.Drawing;
 using AlertBuddy.Core.Settings;
 using AlertBuddy.Shared.Controls;
@@ -37,7 +38,7 @@ namespace AlertBuddy.Shared.Views
             problem = new Label { AutoSize = false, ForeColor = AlertPalette.Notice, Name = "firstRun.reason" };
             Controls.Add (problem);
 
-            backButton = new ChunkyButton { Text = "Back", Size = new Size (120, 56) }.Named ("firstRun.back");
+            backButton = new ChunkyButton { Text = Loc.T ("Back"), Size = new Size (136, 56) }.Named ("firstRun.back");
             scope.Add (backButton.BindCommand (vm.BackCommand));
             Controls.Add (backButton);
 
@@ -69,52 +70,52 @@ namespace AlertBuddy.Shared.Views
 
         private void BuildNameStep ()
         {
-            var column = NewStep (FirstRunStep.NameBuddy, "Name your buddy");
-            column.AddLabel ("What should the buddy be called?");
-            var name = column.Add (new TextBox { Height = 48 }.Named ("firstRun.buddyName", "What should the buddy be called?"));
+            var column = NewStep (FirstRunStep.NameBuddy, Loc.T ("Name your buddy"));
+            column.AddLabel (Loc.T ("What should the buddy be called?"));
+            var name = column.Add (new TextBox { Height = 48 }.Named ("firstRun.buddyName", Loc.T ("What should the buddy be called?")));
             scope.Add (name.BindText (vm, nameof (FirstRunViewModel.BuddyName), v => v.BuddyName, (v, t) => v.BuddyName = t));
-            column.AddLabel ("Colour");
-            var colour = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("firstRun.buddyColour", "Colour"));
+            column.AddLabel (Loc.T ("Colour"));
+            var colour = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("firstRun.buddyColour", Loc.T ("Colour")));
             foreach (var option in Enum.GetNames<BuddyColour> ())
-                colour.Items.Add (option);
+                colour.Items.Add (Loc.T (option));
             scope.Add (colour.BindSelectedIndex (vm, nameof (FirstRunViewModel.BuddyColour), v => (int)v.BuddyColour, (v, i) => v.BuddyColour = (BuddyColour)i));
         }
 
         private void BuildPinStep ()
         {
-            var column = NewStep (FirstRunStep.GrownUpGate, "A grown-up sets a PIN");
-            column.AddParagraph ("The PIN keeps little fingers out of settings. It is a gate, not a lock.");
-            column.AddLabel ("PIN (4 digits)");
-            var pin = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true, InputKind = TextInputKind.Number }.Named ("firstRun.pin", "PIN, 4 digits"));
+            var column = NewStep (FirstRunStep.GrownUpGate, Loc.T ("A grown-up sets a PIN"));
+            column.AddParagraph (Loc.T ("The PIN keeps little fingers out of settings. It is a gate, not a lock."));
+            column.AddLabel (Loc.T ("PIN (4 digits)"));
+            var pin = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true, InputKind = TextInputKind.Number }.Named ("firstRun.pin", Loc.T ("PIN, 4 digits")));
             scope.Add (pin.BindText (vm, nameof (FirstRunViewModel.Pin), v => v.Pin, (v, t) => v.Pin = t));
-            column.AddLabel ("PIN again");
-            var again = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true, InputKind = TextInputKind.Number }.Named ("firstRun.pinAgain", "PIN again"));
+            column.AddLabel (Loc.T ("PIN again"));
+            var again = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true, InputKind = TextInputKind.Number }.Named ("firstRun.pinAgain", Loc.T ("PIN again")));
             scope.Add (again.BindText (vm, nameof (FirstRunViewModel.PinConfirm), v => v.PinConfirm, (v, t) => v.PinConfirm = t));
         }
 
         private void BuildServerStep ()
         {
-            var column = NewStep (FirstRunStep.Server, "Server and sign-in");
-            column.AddLabel ("Server address");
-            var url = column.Add (new TextBox { Height = 48 }.Named ("firstRun.serverUrl", "Server address"));
+            var column = NewStep (FirstRunStep.Server, Loc.T ("Server and sign-in"));
+            column.AddLabel (Loc.T ("Server address"));
+            var url = column.Add (new TextBox { Height = 48 }.Named ("firstRun.serverUrl", Loc.T ("Server address")));
             scope.Add (url.BindText (vm, nameof (FirstRunViewModel.ServerUrl), v => v.ServerUrl, (v, t) => v.ServerUrl = t));
-            column.AddLabel ("Topic");
-            var topic = column.Add (new TextBox { Height = 48 }.Named ("firstRun.topic", "Topic"));
+            column.AddLabel (Loc.T ("Topic"));
+            var topic = column.Add (new TextBox { Height = 48 }.Named ("firstRun.topic", Loc.T ("Topic")));
             scope.Add (topic.BindText (vm, nameof (FirstRunViewModel.Topic), v => v.Topic, (v, t) => v.Topic = t));
 
-            column.AddLabel ("Sign in");
-            var auth = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("firstRun.signIn", "Sign in"));
+            column.AddLabel (Loc.T ("Sign in"));
+            var auth = column.Add (new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 48 }.Named ("firstRun.signIn", Loc.T ("Sign in")));
             foreach (var option in new[] { "No sign-in", "Username and password", "Access token" })
-                auth.Items.Add (option);
+                auth.Items.Add (Loc.T (option));
             scope.Add (auth.BindSelectedIndex (vm, nameof (FirstRunViewModel.Auth), v => (int)v.Auth, (v, i) => v.Auth = (AuthMode)i));
-            column.AddLabel ("Username");
-            var user = column.Add (new TextBox { Height = 48 }.Named ("firstRun.username", "Username"));
+            column.AddLabel (Loc.T ("Username"));
+            var user = column.Add (new TextBox { Height = 48 }.Named ("firstRun.username", Loc.T ("Username")));
             scope.Add (user.BindText (vm, nameof (FirstRunViewModel.Username), v => v.Username, (v, t) => v.Username = t));
-            column.AddLabel ("Password or token");
-            var secret = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.secret", "Password or token"));
+            column.AddLabel (Loc.T ("Password or token"));
+            var secret = column.Add (new TextBox { Height = 48, UseSystemPasswordChar = true }.Named ("firstRun.secret", Loc.T ("Password or token")));
             scope.Add (secret.BindText (vm, nameof (FirstRunViewModel.Secret), v => v.Secret, (v, t) => v.Secret = t));
 
-            var test = column.Add (new ChunkyButton { Text = "Test connection", Height = 56 }.Named ("firstRun.testConnection"));
+            var test = column.Add (new ChunkyButton { Text = Loc.T ("Test connection"), Height = 56 }.Named ("firstRun.testConnection"));
             scope.Add (test.BindCommand (vm.TestConnectionCommand));
             var result = column.AddParagraph ("");
             scope.Add (vm.Observe (nameof (FirstRunViewModel.TestResult), v => v.TestResult, r => { result.Text = r ?? ""; column.Relayout (); }));
@@ -122,10 +123,10 @@ namespace AlertBuddy.Shared.Views
 
         private void BuildPermissionsStep ()
         {
-            var column = NewStep (FirstRunStep.Permissions, "Letting the buddy listen");
+            var column = NewStep (FirstRunStep.Permissions, Loc.T ("Letting the buddy listen"));
             var problem = column.AddParagraph ("");
             var section = column.AddSection ();
-            var later = column.Add (new ChunkyButton { Text = "Later", Height = 56 }.Named ("firstRun.later"), extraTop: 10);
+            var later = column.Add (new ChunkyButton { Text = Loc.T ("Later"), Height = 56 }.Named ("firstRun.later"), extraTop: 10);
             scope.Add (later.BindCommand (vm.LaterCommand));
 
             // The steps change when the person comes back from system settings, so the section is drawn again each time the view model
@@ -134,7 +135,7 @@ namespace AlertBuddy.Shared.Views
             scope.Add (vm.Observe (nameof (FirstRunViewModel.PermissionsProblem), v => v.PermissionsProblem, _ => {
                 rowScope?.Dispose ();
                 rowScope = new BindingScope ();
-                problem.Text = vm.PermissionsProblem ?? (vm.Permissions.Count == 0 ? "Nothing more is needed on this device." : "");
+                problem.Text = vm.PermissionsProblem ?? (vm.Permissions.Count == 0 ? Loc.T ("Nothing more is needed on this device.") : "");
                 PermissionStepsView.Fill (section, vm.Permissions, rowScope);
                 column.Relayout ();
             }));
@@ -148,9 +149,9 @@ namespace AlertBuddy.Shared.Views
 
         private void BuildPracticeStep ()
         {
-            var column = NewStep (FirstRunStep.Practice, "A practice run");
-            column.AddParagraph ("Try a pretend alert so you both know what to expect.");
-            var practice = column.Add (new ChunkyButton { Text = "Practice", Height = 56 }.Named ("firstRun.practice"));
+            var column = NewStep (FirstRunStep.Practice, Loc.T ("A practice run"));
+            column.AddParagraph (Loc.T ("Try a pretend alert so you both know what to expect."));
+            var practice = column.Add (new ChunkyButton { Text = Loc.T ("Practice"), Height = 56 }.Named ("firstRun.practice"));
             scope.Add (practice.BindCommand (vm.TryPracticeCommand));
             column.AddParagraph (vm.SafetyNote);
         }
@@ -160,8 +161,8 @@ namespace AlertBuddy.Shared.Views
             foreach (var (step, column) in steps)
                 column.Visible = step == current;
 
-            stepLine.Text = $"Step {vm.StepNumber} of {vm.StepCount}";
-            nextButton.Text = current == FirstRunStep.Practice ? "Finish" : "Next";
+            stepLine.Text = Loc.F ("Step {0} of {1}", vm.StepNumber, vm.StepCount);
+            nextButton.Text = current == FirstRunStep.Practice ? Loc.T ("Finish") : Loc.T ("Next");
             PerformCustomLayout ();
         }
 

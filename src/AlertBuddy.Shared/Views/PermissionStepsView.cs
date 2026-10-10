@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Shared.Controls;
 using AlertBuddy.ViewModels.Screens;
 using Majorsilence.Forms.Mvvm;
@@ -16,9 +17,9 @@ namespace AlertBuddy.Shared.Views
             section.TrimTo (0);
             var index = 0;
             foreach (var row in rows) {
-                section.AddLabel (row.StatusText.Length > 0 ? $"{row.Title}: {row.StatusText}" : row.Title);
+                section.AddLabel (row.StatusText.Length > 0 ? Loc.F ("{0}: {1}", row.Title, row.StatusText) : row.Title);
                 section.AddParagraph (row.Why);
-                var button = section.Add (new ChunkyButton { Text = row.ButtonText, Height = 56 }.Named ($"permission.{index++}", $"{row.ButtonText}: {row.Title}"));
+                var button = section.Add (new ChunkyButton { Text = row.ButtonText, Height = 56 }.Named ($"permission.{index++}", Loc.F ("{0}: {1}", row.ButtonText, row.Title)));
                 scope.Add (button.BindCommand (row.OpenCommand));
             }
 

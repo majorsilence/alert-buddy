@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Core.Ntfy;
 
 namespace AlertBuddy.Core.Practice
@@ -17,7 +18,7 @@ namespace AlertBuddy.Core.Practice
     public static class PracticeAlertSource
     {
         /// <summary>The invented room every practice message is about.</summary>
-        public const string Source = "Practice room";
+        public static string Source => Loc.T ("Practice room");
 
         /// <summary>How long a run takes from the first step to the end.</summary>
         public static readonly TimeSpan Length = TimeSpan.FromSeconds (20);
@@ -31,12 +32,12 @@ namespace AlertBuddy.Core.Practice
                 => new ($"practice-{run}-{n}", now, "practice", title, body, priority, ["practice"]);
 
             return [
-                new PracticeStep (1, TimeSpan.Zero, "A warning arrives.",
-                    Message (1, 4, $"{Source}: temperature warning", $"{Source} is at 38 °C")),
-                new PracticeStep (2, TimeSpan.FromSeconds (7), "An alarm arrives. Tell a grown-up.",
-                    Message (2, 5, $"{Source}: temperature alarm", $"{Source} is at 46 °C")),
-                new PracticeStep (3, TimeSpan.FromSeconds (14), "All clear.",
-                    Message (3, 3, $"{Source}: temperature back to normal", $"{Source} is at 24 °C")),
+                new PracticeStep (1, TimeSpan.Zero, Loc.T ("A warning arrives."),
+                    Message (1, 4, $"{Source}: {Loc.T ("temperature warning")}", Loc.F ("{0} is at 38 °C", Source))),
+                new PracticeStep (2, TimeSpan.FromSeconds (7), Loc.T ("An alarm arrives. Tell a grown-up."),
+                    Message (2, 5, $"{Source}: {Loc.T ("temperature alarm")}", Loc.F ("{0} is at 46 °C", Source))),
+                new PracticeStep (3, TimeSpan.FromSeconds (14), Loc.T ("All clear."),
+                    Message (3, 3, $"{Source}: {Loc.T ("temperature back to normal")}", Loc.F ("{0} is at 24 °C", Source))),
             ];
         }
     }

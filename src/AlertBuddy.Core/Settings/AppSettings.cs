@@ -1,4 +1,5 @@
 using AlertBuddy.Core.Interpretation;
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Core.Security;
 using AlertBuddy.Core.Store;
 
@@ -134,6 +135,9 @@ namespace AlertBuddy.Core.Settings
 
         /// <summary>The sound Practice plays for each step, quietly; null is the gentle practice cue.</summary>
         public AlarmTone? PracticeTone { get; init; }
+
+        /// <summary>The language of the app: follow the device, or English, or French.</summary>
+        public AppLanguage Language { get; init; } = AppLanguage.System;
 
         /// <summary>The voice that speaks the alarm announcement and reads alerts aloud.</summary>
         public VoiceType Voice { get; init; } = VoiceType.Deep;

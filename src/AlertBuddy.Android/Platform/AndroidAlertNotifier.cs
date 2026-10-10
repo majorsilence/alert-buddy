@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.Core.Alerts;
 using AlertBuddy.ViewModels.Copy;
 using AlertBuddy.ViewModels.Services;
@@ -23,9 +24,9 @@ namespace AlertBuddy.Android.Platform
         {
             EnsureChannels ();
 
-            var (channel, title) = alert.Status == AlertStatus.Resolved ? (CalmChannel, "All clear")
-                : alert.Level == AlertLevel.Alarm ? (AlarmChannel, "Alarm")
-                : (WarningChannel, "Warning");
+            var (channel, title) = alert.Status == AlertStatus.Resolved ? (CalmChannel, Loc.T ("All clear"))
+                : alert.Level == AlertLevel.Alarm ? (AlarmChannel, Loc.T ("Alarm"))
+                : (WarningChannel, Loc.T ("Warning"));
 
             // Posting again under the same id does not move a notification to another channel on Android (seen on API 36: an ongoing alarm
             // stayed ongoing through its all clear), so the old one is removed first. An upgrade stays on its own channel, so it can update.
@@ -35,7 +36,7 @@ namespace AlertBuddy.Android.Platform
             LocalNotifications.Show (IdFor (alert.Id), new LocalNotification {
                 ChannelId = channel,
                 Title = $"{title}: {alert.Source}",
-                Text = alert.Status == AlertStatus.Resolved ? "All clear." : alert.Level == AlertLevel.Alarm ? Words.TellAGrownUpNow : "Keep an eye on it.",
+                Text = alert.Status == AlertStatus.Resolved ? Loc.T ("All clear.") : alert.Level == AlertLevel.Alarm ? Words.TellAGrownUpNow : Loc.T ("Keep an eye on it."),
                 // An open alarm stays until it is answered or resolved, and may take over the screen when Android allows it.
                 Ongoing = alert.Level == AlertLevel.Alarm && alert.Status == AlertStatus.Active,
                 FullScreen = alert.Level == AlertLevel.Alarm && alert.Status == AlertStatus.Active,
@@ -50,18 +51,18 @@ namespace AlertBuddy.Android.Platform
                 return;
 
             channelsRegistered = true;
-            LocalNotifications.RegisterChannel (new FormsChannel (AlarmChannel, "Alarms") {
-                Description = "A temperature alarm. A grown-up needs to know now.",
+            LocalNotifications.RegisterChannel (new FormsChannel (AlarmChannel, Loc.T ("Alarms")) {
+                Description = Loc.T ("A temperature alarm. A grown-up needs to know now."),
                 Importance = FormsImportance.High,
                 Sound = false,
             });
-            LocalNotifications.RegisterChannel (new FormsChannel (WarningChannel, "Warnings") {
-                Description = "Something is getting warm.",
+            LocalNotifications.RegisterChannel (new FormsChannel (WarningChannel, Loc.T ("Warnings")) {
+                Description = Loc.T ("Something is getting warm."),
                 Importance = FormsImportance.High,
                 Sound = false,
             });
-            LocalNotifications.RegisterChannel (new FormsChannel (CalmChannel, "All clear") {
-                Description = "Things are back to normal.",
+            LocalNotifications.RegisterChannel (new FormsChannel (CalmChannel, Loc.T ("All clear")) {
+                Description = Loc.T ("Things are back to normal."),
                 Importance = FormsImportance.Low,
                 Sound = false,
             });

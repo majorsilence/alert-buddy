@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using AlertBuddy.ViewModels.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -33,10 +34,10 @@ namespace AlertBuddy.ViewModels.Screens
         /// "Done" or "Not yet", in words and not only colour (PLAN.md section 8.11); empty for a check that is not a permission, so
         /// the screen never claims something it cannot know.
         /// </summary>
-        public string StatusText => Granted switch { true => "Done", false => "Not yet", null => "" };
+        public string StatusText => Granted switch { true => Loc.T ("Done"), false => Loc.T ("Not yet"), null => "" };
 
         /// <summary>The button's words: "Allow" until it is done, then "Change" so a grown-up can still get to the setting.</summary>
-        public string ButtonText => Kind == PermissionKind.AlarmVolume ? "Play a test sound" : Granted == true ? "Change" : "Allow";
+        public string ButtonText => Kind == PermissionKind.AlarmVolume ? Loc.T ("Play a test sound") : Granted == true ? Loc.T ("Change") : Loc.T ("Allow");
 
         /// <summary>Shows a newer state of the same step.</summary>
         public void Update (PermissionItem item)

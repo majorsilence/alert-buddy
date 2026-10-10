@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Localization;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -20,23 +21,23 @@ namespace AlertBuddy.Android.Platform
         public IReadOnlyList<PermissionItem> Items {
             get {
                 var items = new List<PermissionItem> {
-                    new (PermissionKind.Notifications, "Notifications",
-                        "So an alarm can show up on the screen.", NotificationsAllowed),
+                    new (PermissionKind.Notifications, Loc.T ("Notifications"),
+                        Loc.T ("So an alarm can show up on the screen."), NotificationsAllowed),
                 };
 
                 // Before Android 14 the app may take over the screen without being asked.
                 if (OperatingSystem.IsAndroidVersionAtLeast (34))
-                    items.Add (new (PermissionKind.FullScreenAlarm, "Alarm on the whole screen",
-                        "So an alarm can take over a locked screen. Android asks grown-ups to allow this one.", Manager?.CanUseFullScreenIntent ()));
+                    items.Add (new (PermissionKind.FullScreenAlarm, Loc.T ("Alarm on the whole screen"),
+                        Loc.T ("So an alarm can take over a locked screen. Android asks grown-ups to allow this one."), Manager?.CanUseFullScreenIntent ()));
 
-                items.Add (new (PermissionKind.AlarmVolume, "Alarm volume",
-                    "The alarm has its own volume. Turn it up with the buttons while the test sound plays.", null));
+                items.Add (new (PermissionKind.AlarmVolume, Loc.T ("Alarm volume"),
+                    Loc.T ("The alarm has its own volume. Turn it up with the buttons while the test sound plays."), null));
 
-                items.Add (new (PermissionKind.BatteryOptimisation, "Keep listening with the screen off",
-                    "Some phones stop apps they think are idle. Choose Alert Buddy and \"Don't optimise\" or \"Unrestricted\".", BatteryUnrestricted));
+                items.Add (new (PermissionKind.BatteryOptimisation, Loc.T ("Keep listening with the screen off"),
+                    Loc.T ("Some phones stop apps they think are idle. Choose Alert Buddy and \"Don't optimise\" or \"Unrestricted\"."), BatteryUnrestricted));
 
-                items.Add (new (PermissionKind.DoNotDisturb, "Ring through Do Not Disturb",
-                    "So an alarm is heard at night, when quiet time is on.", Manager?.IsNotificationPolicyAccessGranted));
+                items.Add (new (PermissionKind.DoNotDisturb, Loc.T ("Ring through Do Not Disturb"),
+                    Loc.T ("So an alarm is heard at night, when quiet time is on."), Manager?.IsNotificationPolicyAccessGranted));
 
                 return items;
             }
