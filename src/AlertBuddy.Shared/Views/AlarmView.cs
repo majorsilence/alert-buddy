@@ -19,6 +19,7 @@ namespace AlertBuddy.Shared.Views
         private readonly BeaconBuddy beacon;
         private readonly Label heading;
         private readonly Label detail;
+        private readonly Label stopwatch;
         private readonly ChunkyButton toldButton;
         private readonly Label thankYou;
         private readonly HoldButton gotItButton;
@@ -42,6 +43,9 @@ namespace AlertBuddy.Shared.Views
             detail = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround };
             Controls.Add (detail);
 
+            stopwatch = new Label { AutoSize = true, ForeColor = AlertPalette.OnGround, Font = AlertFonts.Display (20) }.Named ("alarm.stopwatch");
+            Controls.Add (stopwatch);
+
             toldButton = new ChunkyButton { Text = vm.ToldButtonText, Height = 72, FillColor = AlertPalette.Cherry, OutlineColor = AlertPalette.GrapeInk, TextColor = AlertPalette.Paper }.Named ("alarm.told");
             toldButton.Click += (_, _) => vm.ToldAGrownUpCommand.Execute (null);
             Controls.Add (toldButton);
@@ -53,6 +57,10 @@ namespace AlertBuddy.Shared.Views
             gotItButton.Held += (_, _) => vm.GotItCommand.Execute (null);
             Controls.Add (gotItButton);
 
+            scope.Add (vm.Observe (nameof (AlarmViewModel.StopwatchText), v => v.StopwatchText, text => {
+                stopwatch.Text = text;
+                PerformCustomLayout ();
+            }));
             scope.Add (vm.Observe (nameof (AlarmViewModel.Detail), v => v.Detail, text => detail.Text = text));
             scope.Add (vm.Observe (nameof (AlarmViewModel.IsAcknowledged), v => v.IsAcknowledged, acknowledged => {
                 beacon.Level = acknowledged ? BeaconMood.Reassured : BeaconMood.Alarm;
@@ -75,11 +83,13 @@ namespace AlertBuddy.Shared.Views
             heading.Location = new Point (centerX - heading.Width / 2, beacon.Bottom + 16);
             detail.Location = new Point (centerX - detail.Width / 2, heading.Bottom + 8);
 
+            stopwatch.Location = new Point (centerX - stopwatch.Width / 2, detail.Bottom + 12);
+
             if (!vm.IsAcknowledged) {
                 toldButton.Size = new Size (Math.Min (420, w - 48), 72);
-                toldButton.Location = new Point (centerX - toldButton.Width / 2, detail.Bottom + 40);
+                toldButton.Location = new Point (centerX - toldButton.Width / 2, stopwatch.Bottom + 28);
             } else {
-                thankYou.Location = new Point (centerX - thankYou.Width / 2, detail.Bottom + 40);
+                thankYou.Location = new Point (centerX - thankYou.Width / 2, stopwatch.Bottom + 28);
             }
 
             gotItButton.Location = new Point (centerX - gotItButton.Width / 2, Height - gotItButton.Height - 24);

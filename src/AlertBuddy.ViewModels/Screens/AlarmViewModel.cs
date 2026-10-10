@@ -1,3 +1,4 @@
+using AlertBuddy.Core.Abstractions;
 using AlertBuddy.Core.Alerts;
 using AlertBuddy.Core.Store;
 using AlertBuddy.ViewModels.Copy;
@@ -16,6 +17,8 @@ namespace AlertBuddy.ViewModels.Screens
     {
         private readonly AlertEngine engine;
         private readonly AlertHub hub;
+        private readonly IClock clock;
+        private readonly DateTimeOffset soundingSince;
 
         [ObservableProperty]
         private string detail = "";
@@ -26,15 +29,40 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty]
         private double? temperature;
 
+        [ObservableProperty]
+        private string stopwatchText = "";
+
         /// <summary>Creates the takeover for one alarm.</summary>
-        public AlarmViewModel (Alert alert, AlertEngine engine, AlertHub hub, IUiDispatcher dispatcher)
+        public AlarmViewModel (Alert alert, AlertEngine engine, AlertHub hub, IUiDispatcher dispatcher, IClock clock, IScheduler scheduler)
         {
+            this.clock = clock ?? throw new ArgumentNullException (nameof (clock));
+            // The siren starts with this screen, so this is when the alarm began sounding.
+            soundingSince = clock.Now;
+
             Alert = alert ?? throw new ArgumentNullException (nameof (alert));
             this.engine = engine ?? throw new ArgumentNullException (nameof (engine));
             this.hub = hub ?? throw new ArgumentNullException (nameof (hub));
 
             Own (new HubSubscription (hub, dispatcher, _ => Refresh ()));
+            Own (scheduler.Every (TimeSpan.FromSeconds (1), UpdateStopwatch));
             Apply (alert);
+            UpdateStopwatch ();
+        }
+
+        // "Sounding for 00:42". The takeover closes as soon as the alarm is answered or clears, so the time only ever runs.
+        private void UpdateStopwatch ()
+        {
+            if (IsDisposed)
+                return;
+
+            var elapsed = clock.Now - soundingSince;
+            if (elapsed < TimeSpan.Zero)
+                elapsed = TimeSpan.Zero;
+
+            var clockText = elapsed.TotalHours >= 1
+                ? $"{(int)elapsed.TotalHours}:{elapsed.Minutes:00}:{elapsed.Seconds:00}"
+                : $"{elapsed.Minutes:00}:{elapsed.Seconds:00}";
+            StopwatchText = Words.AlarmSounding + " " + clockText;
         }
 
         /// <summary>The alarm shown, as of the latest change.</summary>

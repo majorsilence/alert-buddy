@@ -51,6 +51,25 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
+        public async Task TheTakeover_ShowsAStopwatch_OfHowLongTheAlarmHasBeenSounding ()
+        {
+            await using var rig = new AppRig ();
+            rig.GoLive ();
+            rig.Alarm ();
+            var alarm = rig.Current<AlarmViewModel> ();
+            Assert.Equal ("Sounding for 00:00", alarm.StopwatchText);
+
+            rig.Clock.Advance (TimeSpan.FromSeconds (42));
+            Assert.Equal ("Sounding for 00:42", alarm.StopwatchText);
+
+            rig.Clock.Advance (TimeSpan.FromSeconds (90));
+            Assert.Equal ("Sounding for 02:12", alarm.StopwatchText);
+
+            rig.Clock.Advance (TimeSpan.FromHours (1));
+            Assert.Equal ("Sounding for 1:02:12", alarm.StopwatchText);
+        }
+
+        [Fact]
         public async Task TheTicket_KeepsItsIdentity_AsTheWarningBecomesAnAlarm ()
         {
             await using var rig = new AppRig ();
