@@ -41,6 +41,25 @@ namespace AlertBuddy.Shared.Tests
         }
 
         [Fact]
+        public async Task OnHome_TheDarkButton_IsNotCoveredByTheBuddy ()
+        {
+            var app = SmokeTests.CreateApp ();
+            try {
+                var form = new MainForm (app);
+                Render (form);
+
+                // The first control added is the topmost in WinForms' z-order, and the buddy reaches up beside the button's bottom corner.
+                var button = Find<Control> (form, "home.bedside");
+                var buddy = Find<Control> (form, "home.buddy");
+                Assert.Same (button.Parent, buddy.Parent);
+                Assert.True (button.Bounds.IntersectsWith (buddy.Bounds), "the test needs the two to overlap to mean anything");
+                Assert.True (button.Parent!.Controls.GetChildIndex (button) < button.Parent.Controls.GetChildIndex (buddy), "the buddy is painted over the Dark button");
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
+
+        [Fact]
         public async Task PressingPractice_OnHome_ReachesTheCommand ()
         {
             var app = SmokeTests.CreateApp ();

@@ -71,6 +71,9 @@ namespace AlertBuddy.Shared.Views
             bedsideButton = new ChunkyButton { Size = new Size (144, 48), Visible = vm.CanBedside }.Named ("home.bedside");
             scope.Add (bedsideButton.BindCommand (vm.ToggleBedsideCommand));
             Controls.Add (bedsideButton);
+            // The first control added is the topmost in WinForms' z-order, and the buddy reaches up beside this button's bottom corner: the
+            // button is raised so the buddy's empty corner is not painted over its outline.
+            bedsideButton.BringToFront ();
 
             scope.Add (vm.Observe (nameof (MainViewModel.IsBedside), v => v.IsBedside, bedside => {
                 // Bedside forces Night while it is on (PLAN.md section 8.7). The look is global, so every screen built from now on follows
