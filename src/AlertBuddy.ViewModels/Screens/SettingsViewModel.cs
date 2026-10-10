@@ -125,7 +125,7 @@ namespace AlertBuddy.ViewModels.Screens
             var context = SynchronizationContext.Current;
             IReadOnlyList<VoiceOption> installed;
             try {
-                installed = await speaker.ListVoicesAsync ();
+                installed = await speaker.ListVoicesAsync (Loc.Code);
             } catch (Exception) {
                 return;
             }

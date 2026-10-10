@@ -16,12 +16,12 @@ namespace AlertBuddy.Shared.Platform
         public bool IsSupported => Speech.IsSupported;
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<VoiceOption>> ListVoicesAsync ()
+        public async Task<IReadOnlyList<VoiceOption>> ListVoicesAsync (string? language)
         {
             if (!IsSupported)
                 return [];
 
-            return (await Speech.GetVoicesAsync ())
+            return (await Speech.GetVoicesAsync (language, estimateGender: true))
                 .Select (v => new VoiceOption (v.Id, v.Name, v.Locale, v.Gender switch { VoiceGender.Male => VoiceSex.Male, VoiceGender.Female => VoiceSex.Female, _ => VoiceSex.Unknown }, v.RequiresNetwork))
                 .ToList ();
         }

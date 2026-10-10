@@ -30,6 +30,7 @@ app **found** that was not in the register.
 | #456 | Alert Buddy (2026-10-10) | `Speech` can only speak in the default voice for a language, so a man's voice for the spoken alarm can only be approximated by lowering the pitch | Settings, Voice | Pitch presets (Deeper, Standard, Lighter) stay for the device's own voice | Fixed in 26.11.1: list installed voices and speak with a chosen one |
 | #462 | Linux desktop (2026-10-10) | `Speech` on Linux needed an `espeak` binary, so a desktop with only speech-dispatcher (`spd-say`) said nothing | Practice, Voice evacuation sound, on a stock Linux desktop | None | Fixed in 26.11.1 |
 | #464 | Android emulator (2026-10-10) | After a file picker was shown the form stayed short by the keyboard's height (the input pane's Closed event was never delivered): the next screen was built too small and the old one stayed painted under it | Restore the settings from a file on First run | None | Fixed in 26.11.1 |
+| #467 | Android emulator (2026-10-10) | `Speech` voices on Android have no sex, so Settings could not sort or label them | Settings, Voice | None | Fix open as framework PR #468 |
 
 Evidence added to existing issues:
 

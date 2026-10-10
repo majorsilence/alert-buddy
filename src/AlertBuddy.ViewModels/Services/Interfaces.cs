@@ -101,7 +101,7 @@ namespace AlertBuddy.ViewModels.Services
         bool IsSupported { get; }
 
         /// <summary>The voices installed on this device, or none when the device cannot list them.</summary>
-        Task<IReadOnlyList<VoiceOption>> ListVoicesAsync ();
+        Task<IReadOnlyList<VoiceOption>> ListVoicesAsync (string? language);
 
         /// <summary>
         /// Says a line and returns at once. Never throws: a device that cannot speak just stays quiet. <paramref name="volume"/> runs from 0 to 1.

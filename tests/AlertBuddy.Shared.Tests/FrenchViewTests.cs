@@ -89,7 +89,7 @@ namespace AlertBuddy.Shared.Tests
         {
             public bool IsSupported => true;
             public string? LastVoiceId { get; private set; }
-            public Task<IReadOnlyList<AlertBuddy.ViewModels.Services.VoiceOption>> ListVoicesAsync () => Task.FromResult<IReadOnlyList<AlertBuddy.ViewModels.Services.VoiceOption>> ([
+            public Task<IReadOnlyList<AlertBuddy.ViewModels.Services.VoiceOption>> ListVoicesAsync (string? language) => Task.FromResult<IReadOnlyList<AlertBuddy.ViewModels.Services.VoiceOption>> ([
                 new ("en-gb-x-rp", "English RP", "en-GB", AlertBuddy.ViewModels.Services.VoiceSex.Female),
                 new ("en-us-x-iom", "English US", "en-US", AlertBuddy.ViewModels.Services.VoiceSex.Male),
             ]);
