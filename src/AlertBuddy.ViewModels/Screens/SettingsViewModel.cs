@@ -80,6 +80,7 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty] private bool soundsEnabled = true;
         private readonly ISoundPlayer? sound;
         private readonly ISpeaker? speaker;
+        private readonly ISettingsTransfer? transfer;
         [ObservableProperty] private bool readAloud;
         [ObservableProperty] private VoiceType voice;
         [ObservableProperty] private AppLanguage language;
@@ -162,10 +163,12 @@ namespace AlertBuddy.ViewModels.Screens
             IPermissionGuide? permissions = null,
             ILifecycle? lifecycle = null,
             ISpeaker? speaker = null,
-            ISoundPlayer? sound = null)
+            ISoundPlayer? sound = null,
+            ISettingsTransfer? transfer = null)
         {
             this.sound = sound;
             this.speaker = speaker;
+            this.transfer = transfer;
             CanReadAloud = speaker is { IsSupported: true };
             _ = LoadVoicesAsync ();
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
@@ -262,6 +265,54 @@ namespace AlertBuddy.ViewModels.Screens
             SaveCommand.NotifyCanExecuteChanged ();
             TestConnectionCommand.NotifyCanExecuteChanged ();
             SavedMessage = null;
+        }
+
+        /// <summary>Whether the device can save the settings to a file and load them again.</summary>
+        public bool CanTransferSettings => transfer is { IsSupported: true };
+
+        /// <summary>What happened to the last file saved or loaded.</summary>
+        [ObservableProperty]
+        private string? transferMessage;
+
+        /// <summary>Saves the settings as they are saved, not as they are half-edited on screen, to a file the person picks.</summary>
+        [RelayCommand]
+        private async Task SaveSettingsFileAsync ()
+        {
+            if (transfer is null)
+                return;
+
+            var saved = await transfer.SaveAsync (SettingsBackup.FileName, SettingsBackup.Write (settings.Current));
+            TransferMessage = saved ? Loc.T ("Settings saved to the file.") : Loc.T ("Nothing was saved.");
+        }
+
+        /// <summary>Loads the settings from a file the person picks, and applies them at once.</summary>
+        [RelayCommand]
+        private async Task LoadSettingsFileAsync ()
+        {
+            if (transfer is null)
+                return;
+
+            var text = await transfer.LoadAsync ();
+            if (text is null) {
+                TransferMessage = Loc.T ("Nothing was loaded.");
+                return;
+            }
+
+            if (SettingsBackup.TryRead (text) is not { } loaded) {
+                TransferMessage = Loc.T ("That is not an Alert Buddy settings file.");
+                return;
+            }
+
+            // The password and token are not in a file, so the one this device had is dropped with the server it belonged to.
+            secrets.Remove (SecretKeys.Password);
+            secrets.Remove (SecretKeys.Token);
+            settings.Save (loaded);
+            engine.SetInterpreter (new AlertInterpreter (loaded.Interpretation));
+            LoadFrom (loaded);
+            HasStoredSecret = false;
+            SavedMessage = null;
+            TransferMessage = loaded.Auth == AuthMode.None ? Loc.T ("Settings loaded.") : Loc.T ("Settings loaded. Enter the password or token again.");
+            await listener.RestartAsync ().ConfigureAwait (false);
         }
 
         /// <summary>Applies every edit: settings, secrets, PIN, the interpreter and the listener.</summary>

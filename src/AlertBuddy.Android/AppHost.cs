@@ -37,6 +37,7 @@ namespace AlertBuddy.Android
                     Haptics = new AndroidHaptics (),
                     Notifier = new AndroidAlertNotifier (),
                     Speaker = new PlatformSpeaker (),
+                    SettingsTransfer = new AndroidSettingsTransfer (),
                     Background = new AndroidBackgroundListener (appContext),
                     Dispatcher = new AndroidUiDispatcher (),
                     Secrets = new PlatformSecretStore (),

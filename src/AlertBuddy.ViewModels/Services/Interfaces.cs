@@ -57,6 +57,22 @@ namespace AlertBuddy.ViewModels.Services
         void StopLoop ();
     }
 
+    /// <summary>
+    /// Lets a person keep the settings in a file of their own choosing and load them again: the one thing that survives removing the app. The
+    /// platform's own file picker does it, so no storage permission is asked for. Null where a device has no such picker.
+    /// </summary>
+    public interface ISettingsTransfer
+    {
+        /// <summary>Whether this device can pick a file to save to or load from.</summary>
+        bool IsSupported { get; }
+
+        /// <summary>Asks where to save <paramref name="text"/> and writes it there. False when the person cancelled or it could not be written.</summary>
+        Task<bool> SaveAsync (string suggestedName, string text);
+
+        /// <summary>Asks for a file and reads it. Null when the person cancelled or it could not be read.</summary>
+        Task<string?> LoadAsync ();
+    }
+
     /// <summary>What a platform says about a voice's sex. Android and macOS do not say.</summary>
     public enum VoiceSex
     {

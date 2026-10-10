@@ -120,5 +120,48 @@ namespace AlertBuddy.Shared.Tests
                 await app.DisposeAsync ();
             }
         }
+
+        private sealed class FakeTransfer : AlertBuddy.ViewModels.Services.ISettingsTransfer
+        {
+            public bool IsSupported => true;
+            public Task<bool> SaveAsync (string suggestedName, string text) => Task.FromResult (true);
+            public Task<string?> LoadAsync () => Task.FromResult<string?> (null);
+        }
+
+        [Fact]
+        public async Task TheSettingsCopy_IsOffered_OnlyWhereTheDeviceCanPickAFile ()
+        {
+            foreach (var supported in new[] { false, true }) {
+                var app = SmokeTests.CreateApp (transfer: supported ? new FakeTransfer () : null);
+                try {
+                    var form = new MainForm (app);
+                    app.Main.OpenSettingsCommand.Execute (null);
+                    Assert.IsType<GateViewModel> (app.Navigator.Current).HoldCompletedCommand.Execute (null);
+                    HeadlessRenderer.CapturePng (form, 420, 2600);
+
+                    var present = AccessibilityTests.Descendants (form.Controls.Cast<Control> ()).Any (c => c.Name == "settings.saveFile");
+                    Assert.Equal (supported, present);
+                    if (supported)
+                        Assert.Contains (AccessibilityTests.Descendants (form.Controls.Cast<Control> ()), c => c.Name == "settings.loadFile");
+                } finally {
+                    await app.DisposeAsync ();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task FirstRun_OffersToRestoreFromAFile_WhereTheDeviceCanPickOne ()
+        {
+            var app = SmokeTests.CreateApp (transfer: new FakeTransfer ());
+            try {
+                var form = new MainForm (app);
+                app.Navigator.GoTo<FirstRunViewModel> ();
+                HeadlessRenderer.CapturePng (form, 420, 720);
+
+                Assert.Contains (AccessibilityTests.Descendants (form.Controls.Cast<Control> ()), c => c.Name == "firstRun.restore");
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
     }
 }

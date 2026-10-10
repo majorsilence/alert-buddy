@@ -133,6 +133,17 @@ namespace AlertBuddy.Shared.Views
             var clear = column.Add (new ChunkyButton { Text = Loc.T ("Clear the Alert book"), Height = 56 }.Named ("settings.clearBook"), extraTop: 14);
             scope.Add (clear.BindCommand (vm.ClearHistoryCommand));
 
+            // The one copy that survives removing the app: a file the person keeps, picked with the device's own file picker.
+            if (vm.CanTransferSettings) {
+                column.AddHeading (Loc.T ("Keep a copy of the settings"));
+                var saveFile = column.Add (new ChunkyButton { Text = Loc.T ("Save the settings to a file"), Height = 56 }.Named ("settings.saveFile"));
+                scope.Add (saveFile.BindCommand (vm.SaveSettingsFileCommand));
+                var loadFile = column.Add (new ChunkyButton { Text = Loc.T ("Load the settings from a file"), Height = 56 }.Named ("settings.loadFile"));
+                scope.Add (loadFile.BindCommand (vm.LoadSettingsFileCommand));
+                var transferMessage = column.AddParagraph ("");
+                scope.Add (vm.Observe (nameof (SettingsViewModel.TransferMessage), v => v.TransferMessage, m => { transferMessage.Text = m ?? ""; column.Relayout (); }));
+            }
+
             column.AddHeading (Loc.T ("About"));
             column.AddParagraph ($"Alert Buddy {vm.Version}");
             column.AddParagraph (vm.SafetyNote);

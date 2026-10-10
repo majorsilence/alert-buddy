@@ -71,15 +71,16 @@ namespace AlertBuddy.Shared.Tests
     public class SmokeTests
     {
         // The heads apply the theme before they build a window; so do the renders, or they show the framework's default look.
-        internal static AlertBuddyApp CreateApp (ISoundPlayer? sound = null, ISpeaker? speaker = null)
+        internal static AlertBuddyApp CreateApp (ISoundPlayer? sound = null, ISpeaker? speaker = null, ISettingsTransfer? transfer = null)
         {
             AlertBuddy.Shared.Theme.AlertBuddyTheme.Apply (AlertBuddy.Core.Settings.LookPreference.Day);
-            return CreateAppCore (sound, speaker);
+            return CreateAppCore (sound, speaker, transfer);
         }
 
-        private static AlertBuddyApp CreateAppCore (ISoundPlayer? sound = null, ISpeaker? speaker = null) => AlertBuddyApp.Create (new PlatformServices {
+        private static AlertBuddyApp CreateAppCore (ISoundPlayer? sound = null, ISpeaker? speaker = null, ISettingsTransfer? transfer = null) => AlertBuddyApp.Create (new PlatformServices {
             Sound = sound ?? new NoOpSound (),
             Speaker = speaker,
+            SettingsTransfer = transfer,
             Haptics = new NoOpHaptics (),
             Notifier = new NoOpNotifier (),
             Background = new AlwaysListening (),

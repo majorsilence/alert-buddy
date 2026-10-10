@@ -38,6 +38,27 @@ namespace AlertBuddy.ViewModels.Tests
         public void StopLoop () => Calls.Add ("StopLoop");
     }
 
+    internal sealed class FakeSettingsTransfer : ISettingsTransfer
+    {
+        public bool IsSupported { get; set; } = true;
+        public string? SavedName { get; private set; }
+        public string? SavedText { get; private set; }
+        public string? FileToLoad { get; set; }
+        public bool Cancel { get; set; }
+
+        public Task<bool> SaveAsync (string suggestedName, string text)
+        {
+            if (Cancel)
+                return Task.FromResult (false);
+
+            SavedName = suggestedName;
+            SavedText = text;
+            return Task.FromResult (true);
+        }
+
+        public Task<string?> LoadAsync () => Task.FromResult (Cancel ? null : FileToLoad);
+    }
+
     internal sealed class RecordingSpeaker : ISpeaker
     {
         public List<string> Said { get; } = [];
@@ -273,6 +294,13 @@ namespace AlertBuddy.ViewModels.Tests
             Navigator.SetRoot (Root);
         }
 
+        public FirstRunViewModel FirstRunWith (ISettingsTransfer transfer)
+        {
+            var vm = new FirstRunViewModel (Settings, Secrets, Tester, Listener, Navigator, Background, transfer: transfer);
+            Navigator.Show (vm);
+            return vm;
+        }
+
         public FirstRunViewModel FirstRun ()
         {
             var vm = new FirstRunViewModel (Settings, Secrets, Tester, Listener, Navigator, Background);
@@ -280,9 +308,9 @@ namespace AlertBuddy.ViewModels.Tests
             return vm;
         }
 
-        public SettingsViewModel SettingsScreen (string version = "1.2.3", ISpeaker? speaker = null)
+        public SettingsViewModel SettingsScreen (string version = "1.2.3", ISpeaker? speaker = null, ISettingsTransfer? transfer = null)
         {
-            var vm = new SettingsViewModel (Settings, Secrets, Tester, Listener, Engine, Navigator, version, speaker: speaker);
+            var vm = new SettingsViewModel (Settings, Secrets, Tester, Listener, Engine, Navigator, version, speaker: speaker, transfer: transfer);
             Navigator.Show (vm);
             return vm;
         }
