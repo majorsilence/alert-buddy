@@ -108,10 +108,10 @@ namespace AlertBuddy.ViewModels.Screens
         [RelayCommand]
         private void StartPractice () => navigator.GoTo<PracticeViewModel> ();
 
-        /// <summary>The gear. The view holds it for about two seconds first; then this asks for the PIN, then opens settings.</summary>
+        /// <summary>The gear. A tap asks for the PIN, then opens settings.</summary>
         [RelayCommand]
-        // The gear is itself a press-and-hold, so the gate does not ask for a second hold: it opens on the PIN pad.
-        private void OpenSettings () => navigator.Show (screens.Gate (() => navigator.GoTo<SettingsViewModel> (), holdDone: true));
+        // A tap on the gear opens the gate, which is the PIN: one step, not a hold and then a PIN.
+        private void OpenSettings () => navigator.Show (screens.Gate (() => navigator.GoTo<SettingsViewModel> ()));
 
         private void OnChange (AlertChange? change)
         {

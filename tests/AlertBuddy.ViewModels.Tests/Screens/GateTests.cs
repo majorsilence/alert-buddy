@@ -70,21 +70,7 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
-        public async Task AGateOpenedByAButton_StartsWithAHold_AndPinKeysDoNothingYet ()
-        {
-            await using var rig = new AppRig (WithPin ());
-            rig.Main.OpenBookCommand.Execute (null);
-            rig.Current<AlertBookViewModel> ().ClearHistoryCommand.Execute (null);
-            var gate = rig.Current<GateViewModel> ();
-
-            Enter (gate, "4821");
-
-            Assert.Equal ((GatePhase.Hold, 0, "Press and hold. This part is for grown-ups."), (gate.Phase, gate.EnteredCount, gate.Message));
-            Assert.IsType<GateViewModel> (rig.Navigator.Current);
-        }
-
-        [Fact]
-        public async Task TheGear_IsAHoldAlready_SoTheGateOpensOnThePinPad ()
+        public async Task TheGate_IsOneStep_ThePin_WithNoHoldBeforeIt ()
         {
             await using var rig = new AppRig (WithPin ());
             var gate = OpenGate (rig);
@@ -95,7 +81,19 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
-        public async Task TheHold_LeadsToThePinPad ()
+        public async Task AnyGatedAction_OpensOnThePinPad ()
+        {
+            await using var rig = new AppRig (WithPin ());
+            rig.Main.OpenBookCommand.Execute (null);
+            rig.Current<AlertBookViewModel> ().ClearHistoryCommand.Execute (null);
+
+            var gate = rig.Current<GateViewModel> ();
+
+            Assert.Equal (GatePhase.Pin, gate.Phase);
+        }
+
+        [Fact]
+        public async Task ALateHoldCompleted_ChangesNothing_OnThePinPad ()
         {
             await using var rig = new AppRig (WithPin ());
             var gate = OpenGate (rig);
@@ -197,17 +195,17 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
-        public async Task After30Seconds_TheGateIsOfferedAgain_FromTheStart ()
+        public async Task After30Seconds_ThePinPadIsOfferedAgain ()
         {
             await using var rig = new AppRig (WithPin ());
             var gate = OpenGate (rig);
-            gate.HoldCompletedCommand.Execute (null);
             for (var i = 0; i < 5; i++)
                 Enter (gate, "0000");
+            Assert.Equal (GatePhase.Locked, gate.Phase);
 
             rig.Clock.Advance (TimeSpan.FromSeconds (30));
 
-            Assert.Equal ((GatePhase.Hold, "Press and hold. This part is for grown-ups."), (gate.Phase, gate.Message));
+            Assert.Equal ((GatePhase.Pin, "Enter the PIN."), (gate.Phase, gate.Message));
         }
 
         [Fact]

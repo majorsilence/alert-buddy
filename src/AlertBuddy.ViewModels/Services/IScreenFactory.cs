@@ -16,8 +16,6 @@ namespace AlertBuddy.ViewModels.Services
         AlarmViewModel Alarm (Alert alert);
 
         /// <summary>The grown-up gate, which runs <paramref name="onUnlocked"/> once the PIN is right.</summary>
-        /// <param name="onUnlocked">What to run once the PIN is right.</param>
-        /// <param name="holdDone">True when the control that opened the gate was itself a press-and-hold, so the gate goes straight to the PIN pad rather than asking for a second hold.</param>
-        GateViewModel Gate (Action onUnlocked, bool holdDone = false);
+        GateViewModel Gate (Action onUnlocked);
     }
 }

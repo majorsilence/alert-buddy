@@ -210,8 +210,8 @@ notification permission wizard, sounds and volume, night policy, alert interpret
 name and colour, Day/Night/Auto look, reduced motion, PIN, clear history, About (version, licences, one
 paragraph of privacy).
 
-**The grown-up gate.** A `HoldButton` (press and hold about 2 seconds, a ring fills), then a PIN pad. The
-PIN is set during first run and stored hashed. A 4-digit PIN is fine: it is a child gate, not security.
+**The grown-up gate.** A PIN pad, and nothing in front of it (a tap on the gear or Clear opens it; a hold
+and then a PIN made getting in slower for no gain). The PIN is set during first run and stored hashed. A 4-digit PIN is fine: it is a child gate, not security.
 
 **Alarm flow.** Alarm arrives, then the takeover screen, siren, vibration. Big button: "I told a
 grown-up". After it, the beacon calms to a slow amber pulse and the screen says "Thank you. A grown-up is
@@ -552,7 +552,7 @@ Home, calm (phone, compact):
 
 ```
 +----------------------------------+
-| [gear]                           |  hold about 2 seconds for grown-up settings
+| [gear]                           |  tap for grown-up settings (PIN)
 |                                  |
 |              .--""--.            |
 |             /  o  o  \           |  Pip, the beacon: dome, eyes that follow a touch

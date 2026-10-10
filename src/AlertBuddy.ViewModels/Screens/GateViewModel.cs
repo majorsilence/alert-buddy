@@ -21,8 +21,9 @@ namespace AlertBuddy.ViewModels.Screens
     }
 
     /// <summary>
-    /// The grown-up gate (PLAN.md section 4.3): press and hold about two seconds, then a PIN pad. It is a gate against a curious child, not
-    /// security. The hold is timed by the view's hold button, which calls <see cref="HoldCompletedCommand"/> when its ring is full.
+    /// The grown-up gate (PLAN.md section 4.3): the PIN pad, and nothing in front of it. It is a gate against a curious child, not
+    /// security. Before first run has set a PIN there is nothing to ask for, and a press-and-hold (timed by the view's hold button, which
+    /// calls <see cref="HoldCompletedCommand"/> when its ring is full) opens it.
     /// </summary>
     public sealed partial class GateViewModel : ScreenViewModel
     {
@@ -44,8 +45,7 @@ namespace AlertBuddy.ViewModels.Screens
 
         /// <summary>Creates the gate in front of one action.</summary>
         /// <param name="onUnlocked">What to do once the PIN is right. Runs after the gate has been closed.</param>
-        /// <param name="holdDone">The control that opened the gate was itself a press-and-hold, so start on the PIN pad.</param>
-        public GateViewModel (SettingsService settings, INavigator navigator, IScheduler scheduler, GateLock gateLock, Action onUnlocked, bool holdDone = false)
+        public GateViewModel (SettingsService settings, INavigator navigator, IScheduler scheduler, GateLock gateLock, Action onUnlocked)
         {
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.navigator = navigator ?? throw new ArgumentNullException (nameof (navigator));
@@ -55,7 +55,9 @@ namespace AlertBuddy.ViewModels.Screens
 
             if (gateLock.IsLocked)
                 EnterLocked ();
-            else if (holdDone && settings.Current.Pin is not null) {
+            else if (settings.Current.Pin is not null) {
+                // The gate is the PIN alone: a press-and-hold in front of it only made getting in slower. The hold remains only for the
+                // moment before first run has set a PIN, when there is nothing to ask for.
                 Phase = GatePhase.Pin;
                 Message = Words.GateEnterPin;
             }
@@ -137,11 +139,12 @@ namespace AlertBuddy.ViewModels.Screens
             entered = "";
             EnteredCount = 0;
 
-            // When the wait is over the gate is offered again, from the start: another hold, then the PIN.
+            // When the wait is over the gate is offered again.
             Own (scheduler.Schedule (GateLock.LockedFor, () => {
                 if (!IsDisposed && Phase == GatePhase.Locked && !gateLock.IsLocked) {
-                    Phase = GatePhase.Hold;
-                    Message = Words.GateHold;
+                    var hasPin = settings.Current.Pin is not null;
+                    Phase = hasPin ? GatePhase.Pin : GatePhase.Hold;
+                    Message = hasPin ? Words.GateEnterPin : Words.GateHold;
                 }
             }));
         }

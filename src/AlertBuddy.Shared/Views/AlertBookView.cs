@@ -16,7 +16,7 @@ namespace AlertBuddy.Shared.Views
         private readonly ChunkyButton backButton;
         private readonly Panel list;
         private readonly Label empty;
-        private readonly HoldButton clear;
+        private readonly ChunkyButton clear;
 
         /// <summary>Builds the Alert Book for <paramref name="vm"/>.</summary>
         public AlertBookView (AlertBookViewModel vm)
@@ -35,8 +35,8 @@ namespace AlertBuddy.Shared.Views
             empty = new Label { AutoSize = false, Text = vm.EmptyText, ForeColor = AlertPalette.OnGround };
             Controls.Add (empty);
 
-            clear = new HoldButton { Text = "Clear", Size = new Size (120, 48) }.Named ("book.clear", "Clear the Alert book", AccessibleNames.HoldHint);
-            clear.Held += (_, _) => vm.ClearHistoryCommand.Execute (null);
+            clear = new ChunkyButton { Text = "Clear", Size = new Size (120, 48) }.Named ("book.clear", "Clear the Alert book");
+            clear.Click += (_, _) => vm.ClearHistoryCommand.Execute (null);
             Controls.Add (clear);
 
             vm.Groups.CollectionChanged += OnGroupsChanged;

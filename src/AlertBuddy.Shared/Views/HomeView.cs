@@ -18,7 +18,7 @@ namespace AlertBuddy.Shared.Views
         private readonly BindingScope scope = new ();
         private readonly Dictionary<AlertItemViewModel, TicketCard> cards = [];
 
-        private readonly HoldButton gear;
+        private readonly ChunkyButton gear;
         private readonly BeaconBuddy beacon;
         private readonly SpeechBubble bubble;
         private readonly Label connectionLine;
@@ -36,9 +36,9 @@ namespace AlertBuddy.Shared.Views
             Dock = DockStyle.Fill;
             BackColor = AlertPalette.Ground;
 
-            gear = new HoldButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48), HoldDuration = TimeSpan.FromSeconds (2) }
-                .Named ("home.settings", "Settings, for grown-ups", AccessibleNames.HoldHint);
-            gear.Held += (_, _) => vm.OpenSettingsCommand.Execute (null);
+            // A plain tap: the grown-up gate behind it is the PIN, and a hold in front of that only made Settings slower to reach.
+            gear = new ChunkyButton { Text = "⚙", Location = new Point (16, 16), Size = new Size (48, 48) }.Named ("home.settings", "Settings, for grown-ups");
+            gear.Click += (_, _) => vm.OpenSettingsCommand.Execute (null);
             Controls.Add (gear);
 
             beacon = new BeaconBuddy { Size = new Size (200, 200) }.Named ("home.buddy");
