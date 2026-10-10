@@ -85,9 +85,12 @@ namespace AlertBuddy.ViewModels.Services
                     // The siren is not one of the "friendly sounds": muting those never mutes an alarm.
                     if (!sirenRunning) {
                         sirenRunning = true;
-                        sound.StartLoop (CueFor (alarmTone));
                         haptics.Alarm ();
-                        StartVoice (alarmTone, source, hot);
+
+                        // The voice evacuation sound is a chime and then a voice: they take turns rather than the chime looping under the
+                        // voice, which drowned it. A device with no voice just loops the chime, which is still an unmistakable alarm.
+                        if (!StartVoice (alarmTone, source, hot))
+                            sound.StartLoop (CueFor (alarmTone));
                     }
                     break;
                 case AlertSound.Warning when friendlySounds:
@@ -132,13 +135,13 @@ namespace AlertBuddy.ViewModels.Services
             _ => Cue.Alarm,
         };
 
-        // The chime is a generated file; the words are the device's own voice, in the voice the grown-up picked: which place, and what to do, said
-        // after the tone and again every few seconds while the alarm is open. A device with no voice (or no scheduler) just plays the chime,
-        // which is still an unmistakable alarm.
-        private void StartVoice (AlarmTone tone, string source, bool hot)
+        // The chime is a generated file; the words are the device's own voice, in the voice the grown-up picked: the alert itself, and what to do.
+        // The chime plays once, the voice follows it, and the pair repeats every few seconds while the alarm is open. Returns false when this
+        // alarm is not a voice one or the device cannot speak, and the caller loops the chime instead.
+        private bool StartVoice (AlarmTone tone, string source, bool hot)
         {
             if (tone != AlarmTone.VoiceEvacuation || speaker is not { IsSupported: true } || scheduler is null)
-                return;
+                return false;
 
             var line = Copy.Words.AlarmAnnouncement (source, hot);
             void Say ()
@@ -149,8 +152,21 @@ namespace AlertBuddy.ViewModels.Services
                 }
             }
 
-            voiceFirst = scheduler.Schedule (AnnounceAfterTone, Say);
-            voiceRepeat = scheduler.Every (VoiceRepeat, Say);
+            void Cycle ()
+            {
+                lock (gate) {
+                    if (!sirenRunning)
+                        return;
+
+                    sound.Play (Cue.VoiceEvacuation);
+                    voiceFirst?.Dispose ();
+                    voiceFirst = scheduler.Schedule (AnnounceAfterTone, Say);
+                }
+            }
+
+            Cycle ();
+            voiceRepeat = scheduler.Every (VoiceRepeat, Cycle);
+            return true;
         }
 
         private void StopSiren ()

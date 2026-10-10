@@ -281,7 +281,6 @@ namespace AlertBuddy.ViewModels.Tests.Services
         [InlineData (AlarmTone.Code3, "Code3")]
         [InlineData (AlarmTone.MarchTime, "MarchTime")]
         [InlineData (AlarmTone.Continuous, "Continuous")]
-        [InlineData (AlarmTone.VoiceEvacuation, "VoiceEvacuation")]
         public async Task TheAlarm_LoopsTheChosenTone (AlarmTone tone, string cue)
         {
             await using var rig = new AppRig (Settings () with { AlarmTone = tone });
@@ -289,6 +288,34 @@ namespace AlertBuddy.ViewModels.Tests.Services
             rig.Alarm ();
 
             Assert.Equal ([$"Loop:{cue}"], rig.Sound.Calls);
+        }
+
+        [Fact]
+        public async Task VoiceEvacuation_PlaysTheChimeThenTheVoice_ThenRepeatsBoth_NotAChimeThatDrownsTheVoice ()
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation });
+
+            rig.Alarm ();
+            Assert.Equal (["Play:VoiceEvacuation"], rig.Sound.Calls);           // the chime once, not a loop under the voice
+
+            rig.Clock.Advance (AlertFeedback.VoiceRepeat);
+            Assert.Equal (["Play:VoiceEvacuation", "Play:VoiceEvacuation"], rig.Sound.Calls);   // and again with the repeat
+
+            rig.AllClear ();
+            rig.Clock.Advance (AlertFeedback.VoiceRepeat);
+            Assert.DoesNotContain ("Loop:VoiceEvacuation", rig.Sound.Calls);
+            Assert.Equal (2, rig.Sound.Calls.Count (c => c == "Play:VoiceEvacuation"));         // none after the all clear
+        }
+
+        [Fact]
+        public async Task VoiceEvacuation_OnADeviceWithNoVoice_StillLoopsTheChime ()
+        {
+            await using var rig = new AppRig (Settings () with { AlarmTone = AlarmTone.VoiceEvacuation });
+            rig.Speaker.IsSupported = false;
+
+            rig.Alarm ();
+
+            Assert.Equal (["Loop:VoiceEvacuation"], rig.Sound.Calls);           // the chime alone is still an unmistakable alarm
         }
 
         [Fact]

@@ -133,8 +133,14 @@ namespace AlertBuddy.Core.Settings
         /// <summary>The sound the alarm makes. Warnings and all clears keep their own friendly cues.</summary>
         public AlarmTone AlarmTone { get; init; } = AlarmTone.Whoop;
 
-        /// <summary>The sound Practice plays for each step, quietly; null is the gentle practice cue.</summary>
+        /// <summary>
+        /// The sound Practice plays for each step, quietly. Null follows the alarm: the real warning sound, the alarm tone, and the all clear
+        /// sound, so Practice rehearses what will happen. <see cref="PracticeGentle"/> picks the short practice cue instead.
+        /// </summary>
         public AlarmTone? PracticeTone { get; init; }
+
+        /// <summary>Whether Practice plays only its short, gentle cue.</summary>
+        public bool PracticeGentle { get; init; }
 
         /// <summary>The installed voice that speaks, by its platform id; null lets the platform choose, with the <see cref="Voice"/> pitch applied.</summary>
         public string? VoiceId { get; init; }

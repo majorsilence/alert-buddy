@@ -94,7 +94,7 @@ namespace AlertBuddy.Shared.Views
             }
 
             Caption (Loc.T ("Practice sound"));
-            var practice = Choice (nameof (SettingsViewModel.PracticeSound), "Gentle", "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
+            var practice = Choice (nameof (SettingsViewModel.PracticeSound), "Same as the alarm", "Gentle", "Whoop", "Code 3", "March time", "Continuous", "Voice evacuation");
             scope.Add (practice.BindSelectedIndex (vm, nameof (SettingsViewModel.PracticeSound), v => (int)v.PracticeSound, (v, i) => v.PracticeSound = (PracticeSound)i));
             var night = column.Add (new CheckBox { Text = Loc.T ("Quieter at night (8 pm to 7 am)"), Height = 48 }.Named ("settings.night"));
             scope.Add (night.BindChecked (vm, nameof (SettingsViewModel.NightEnabled), v => v.NightEnabled, (v, c) => v.NightEnabled = c));

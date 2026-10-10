@@ -199,6 +199,7 @@ namespace AlertBuddy.Core.Localization
             ["English"] = "English",
             ["Français"] = "Français",
             ["This device has no voice to read alerts aloud."] = "Cet appareil n’a pas de voix pour lire les alertes à voix haute.",
+            ["Same as the alarm"] = "Comme l’alarme",
             ["Automatic"] = "Automatique",
             ["man"] = "homme",
             ["woman"] = "femme",

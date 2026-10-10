@@ -26,9 +26,12 @@ namespace AlertBuddy.ViewModels.Screens
         Full,
     }
 
-    /// <summary>What Practice plays: the gentle cue it always had, or one of the alarm tones. Order matches <see cref="AlarmTone"/> after Gentle.</summary>
+    /// <summary>What Practice plays: the same as the alarm, the gentle cue, or one of the alarm tones. Order matches <see cref="AlarmTone"/> after Gentle.</summary>
     public enum PracticeSound
     {
+        /// <summary>What a real alert sounds like: the warning sound, the alarm tone, then the all clear.</summary>
+        SameAsAlarm,
+
         /// <summary>The short, quiet practice cue.</summary>
         Gentle,
 
@@ -107,7 +110,7 @@ namespace AlertBuddy.ViewModels.Screens
         [RelayCommand]
         private void PreviewVoice ()
             // A picked voice is spoken as it is; the pitch presets belong to the device's own voice.
-            => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource, hot: true), VoiceId is null ? Voice : VoiceType.Standard, PracticeViewModel.PracticeVolume, VoiceId);
+            => speaker?.Speak (Words.AlarmAnnouncement (Words.VoiceSampleSource, hot: true), VoiceId is null ? Voice : VoiceType.Standard, 1, VoiceId);
 
         /// <summary>The installed voices for the language in use, men's first (a platform that does not say a voice's sex lists it after them), so a grown-up can pick one by ear.</summary>
         public ObservableCollection<VoiceOption> AvailableVoices { get; } = [];
@@ -293,7 +296,8 @@ namespace AlertBuddy.ViewModels.Screens
                 Language = Language,
                 VoiceId = VoiceId,
                 AlarmTone = AlarmTone,
-                PracticeTone = PracticeSound == PracticeSound.Gentle ? null : (AlarmTone)((int)PracticeSound - 1),
+                PracticeTone = PracticeSound >= PracticeSound.Whoop ? (AlarmTone)((int)PracticeSound - 2) : null,
+                PracticeGentle = PracticeSound == PracticeSound.Gentle,
                 SilenceWindow = TimeSpan.FromMinutes (Math.Clamp (SilenceMinutes, 1, 240)),
                 Night = new NightPolicy { Enabled = NightEnabled, Start = NightStart, End = NightEnd },
                 Interpretation = BuildInterpretation (),
@@ -400,7 +404,7 @@ namespace AlertBuddy.ViewModels.Screens
             Language = s.Language;
             VoiceId = s.VoiceId;
             AlarmTone = s.AlarmTone;
-            PracticeSound = s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 1) : PracticeSound.Gentle;
+            PracticeSound = s.PracticeGentle ? PracticeSound.Gentle : s.PracticeTone is { } tone ? (PracticeSound)((int)tone + 2) : PracticeSound.SameAsAlarm;
             SilenceMinutes = (int)s.SilenceWindow.TotalMinutes;
             NightEnabled = s.Night.Enabled;
             NightStart = s.Night.Start;

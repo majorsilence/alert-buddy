@@ -100,7 +100,7 @@ namespace AlertBuddy.Shared.Tests
                 Press (form, whoop);
 
                 Assert.Equal ([Cue.Alarm], sound.Played);
-                foreach (var which in Enum.GetValues<PracticeSound> ())
+                foreach (var which in Enum.GetValues<PracticeSound> ().Where (w => w != PracticeSound.SameAsAlarm))     // that one is a setting, not a button
                     Assert.True (Find<Control> (form, $"practice.sound.{which}").Visible, which.ToString ());
             } finally {
                 await app.DisposeAsync ();
