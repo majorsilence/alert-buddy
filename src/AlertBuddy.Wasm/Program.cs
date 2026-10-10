@@ -18,7 +18,7 @@ namespace AlertBuddy.Wasm
         private static Task Main (string[] args) => Application.RunBrowserAsync (() => {
             MainForm? form = null;
             var app = AlertBuddyApp.Create (new PlatformServices {
-                Sound = new QuietSoundPlayer (),
+                Sound = new BrowserSoundPlayer (),
                 Haptics = new QuietHaptics (),
                 Notifier = new QuietNotifier (),
                 Background = new ForegroundOnlyListener ("This is a demo in a browser. It does not receive real alerts."),

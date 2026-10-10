@@ -1,4 +1,5 @@
 using Android.Content;
+using AlertBuddy.Shared.Platform;
 using AlertBuddy.ViewModels.Services;
 using Majorsilence.Forms.Media;
 
@@ -55,24 +56,11 @@ namespace AlertBuddy.Android.Platform
 
         private AudioPlayer Create (Cue cue, bool loop)
         {
-            var stream = context.Assets!.Open ($"sounds/{FileFor (cue)}.wav");
+            var stream = context.Assets!.Open ($"sounds/{SoundFiles.FileName (cue)}");
             return new AudioPlayer (stream) {
                 Loop = loop,
                 Usage = cue is Cue.Alarm or Cue.Code3 or Cue.MarchTime or Cue.Continuous or Cue.VoiceEvacuation ? AudioUsage.Alarm : cue is Cue.Warning or Cue.AllClear ? AudioUsage.Notification : AudioUsage.Effect,
             };
         }
-
-        private static string FileFor (Cue cue) => cue switch {
-            Cue.Boop => "boop",
-            Cue.Warning => "warning",
-            Cue.Alarm => "alarm",
-            Cue.AllClear => "allclear",
-            Cue.Cheer => "cheer",
-            Cue.Code3 => "code3",
-            Cue.MarchTime => "marchtime",
-            Cue.Continuous => "continuous",
-            Cue.VoiceEvacuation => "voice",
-            _ => "practice",
-        };
     }
 }

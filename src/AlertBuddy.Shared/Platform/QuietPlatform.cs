@@ -6,8 +6,9 @@ using AlertBuddy.ViewModels.Services;
 namespace AlertBuddy.Shared.Platform
 {
     /// <summary>
-    /// What a head uses for a platform service it does not have yet, so the app runs and says so honestly instead of failing: no sound,
-    /// no buzz, no notification. The Android head replaces each with the real thing in milestone 4 (PLAN.md section 12).
+    /// What a head uses for a platform service it does not have, so the app runs and says so honestly instead of failing: no buzz, no
+    /// notification. Sound is real on every head: <see cref="DesktopSoundPlayer"/>, the Android player and the browser's. The quiet sound player
+    /// remains for a head with none.
     /// </summary>
     public sealed class QuietSoundPlayer : ISoundPlayer
     {
