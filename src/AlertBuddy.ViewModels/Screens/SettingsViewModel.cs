@@ -312,7 +312,7 @@ namespace AlertBuddy.ViewModels.Screens
             HasStoredSecret = false;
             SavedMessage = null;
             TransferMessage = loaded.Auth == AuthMode.None ? Loc.T ("Settings loaded.") : Loc.T ("Settings loaded. Enter the password or token again.");
-            await listener.RestartAsync ().ConfigureAwait (false);
+            await listener.RestartAsync ();
         }
 
         /// <summary>Applies every edit: settings, secrets, PIN, the interpreter and the listener.</summary>

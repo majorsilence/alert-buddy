@@ -135,9 +135,11 @@ namespace AlertBuddy.ViewModels.Screens
             }
 
             // The password and token are not in a file: if the server needs one, Home says the sign-in was refused and Settings has the field.
+            // No ConfigureAwait (false) here: the screen changes after this, and it must change on the thread that owns it. Carrying on from the
+            // listener's thread left the old screen half painted under Home.
             settings.Save (loaded);
-            await listener.RestartAsync ().ConfigureAwait (false);
             navigator.GoHome ();
+            await listener.RestartAsync ();
         }
 
         /// <summary>The permission steps, in order. Empty on a platform with nothing to allow.</summary>

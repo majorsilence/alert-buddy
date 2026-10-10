@@ -136,9 +136,9 @@ namespace AlertBuddy.Shared.Views
             // The one copy that survives removing the app: a file the person keeps, picked with the device's own file picker.
             if (vm.CanTransferSettings) {
                 column.AddHeading (Loc.T ("Keep a copy of the settings"));
-                var saveFile = column.Add (new ChunkyButton { Text = Loc.T ("Save the settings to a file"), Height = 56 }.Named ("settings.saveFile"));
+                var saveFile = column.Add (new ChunkyButton { Text = Loc.T ("Save the settings to a file"), Height = 72 }.Named ("settings.saveFile"));
                 scope.Add (saveFile.BindCommand (vm.SaveSettingsFileCommand));
-                var loadFile = column.Add (new ChunkyButton { Text = Loc.T ("Load the settings from a file"), Height = 56 }.Named ("settings.loadFile"));
+                var loadFile = column.Add (new ChunkyButton { Text = Loc.T ("Load the settings from a file"), Height = 72 }.Named ("settings.loadFile"));
                 scope.Add (loadFile.BindCommand (vm.LoadSettingsFileCommand));
                 var transferMessage = column.AddParagraph ("");
                 scope.Add (vm.Observe (nameof (SettingsViewModel.TransferMessage), v => v.TransferMessage, m => { transferMessage.Text = m ?? ""; column.Relayout (); }));

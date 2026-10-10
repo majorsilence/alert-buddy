@@ -82,7 +82,7 @@ namespace AlertBuddy.Shared.Views
 
             // A new install after the app was removed can be set up from the copy kept before, instead of typing it all again.
             if (vm.CanRestoreSettings) {
-                var restore = column.Add (new ChunkyButton { Text = Loc.T ("Restore the settings from a file"), Height = 56 }.Named ("firstRun.restore"), extraTop: 14);
+                var restore = column.Add (new ChunkyButton { Text = Loc.T ("Restore the settings from a file"), Height = 72 }.Named ("firstRun.restore"), extraTop: 14);
                 scope.Add (restore.BindCommand (vm.RestoreFromFileCommand));
                 var restoreMessage = column.AddParagraph ("");
                 scope.Add (vm.Observe (nameof (FirstRunViewModel.RestoreMessage), v => v.RestoreMessage, m => { restoreMessage.Text = m ?? ""; column.Relayout (); }));

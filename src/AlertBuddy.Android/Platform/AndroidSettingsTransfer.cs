@@ -74,12 +74,22 @@ namespace AlertBuddy.Android.Platform
             pending?.TrySetResult (null);
             pending = source;
             activity.RunOnUiThread (() => {
+                // The keyboard goes first. Left up (or about to come up for the focused text box), the window loses focus to the picker with a
+                // keyboard-opened event the layout never sees closed, and the page stays short by the keyboard's height afterwards.
+                if (activity.GetSystemService (Context.InputMethodService) is global::Android.Views.InputMethods.InputMethodManager keyboard
+                    && activity.Window?.DecorView?.WindowToken is { } token)
+                    keyboard.HideSoftInputFromWindow (token, 0);
+
 #pragma warning disable CA1422, CS0618 // The activity-result callbacks are deprecated for new code but are what an AvaloniaMainActivity forwards.
                 activity.StartActivityForResult (intent, requestCode);
 #pragma warning restore CA1422, CS0618
             });
             return source.Task;
         }
+
+        // The answer is held until the activity has resumed: Android delivers it while the window is still paused, and a screen changed then
+        // (a restore goes Home) is left half painted when the window comes back.
+        private static (TaskCompletionSource<global::Android.Net.Uri?> Source, global::Android.Net.Uri? Uri)? answered;
 
         /// <summary>The picker's answer, from <see cref="MainActivity"/>.</summary>
         public static void OnActivityResult (int requestCode, Result resultCode, Intent? data)
@@ -89,7 +99,18 @@ namespace AlertBuddy.Android.Platform
 
             var source = pending;
             pending = null;
-            source?.TrySetResult (resultCode == Result.Ok ? data?.Data : null);
+            if (source is not null)
+                answered = (source, resultCode == Result.Ok ? data?.Data : null);
+        }
+
+        /// <summary>Hands the held answer on. Called from <see cref="MainActivity"/> once it has resumed.</summary>
+        public static void OnResumed ()
+        {
+            if (answered is not { } held)
+                return;
+
+            answered = null;
+            held.Source.TrySetResult (held.Uri);
         }
     }
 }

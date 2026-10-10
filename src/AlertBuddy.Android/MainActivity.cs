@@ -47,6 +47,12 @@ namespace AlertBuddy.Android
             base.OnDestroy ();
         }
 
+        protected override void OnResume ()
+        {
+            base.OnResume ();
+            Platform.AndroidSettingsTransfer.OnResumed ();
+        }
+
         protected override void OnActivityResult (int requestCode, Result resultCode, Intent? data)
         {
             base.OnActivityResult (requestCode, resultCode, data);
