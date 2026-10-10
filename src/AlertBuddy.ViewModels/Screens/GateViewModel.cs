@@ -44,7 +44,8 @@ namespace AlertBuddy.ViewModels.Screens
 
         /// <summary>Creates the gate in front of one action.</summary>
         /// <param name="onUnlocked">What to do once the PIN is right. Runs after the gate has been closed.</param>
-        public GateViewModel (SettingsService settings, INavigator navigator, IScheduler scheduler, GateLock gateLock, Action onUnlocked)
+        /// <param name="holdDone">The control that opened the gate was itself a press-and-hold, so start on the PIN pad.</param>
+        public GateViewModel (SettingsService settings, INavigator navigator, IScheduler scheduler, GateLock gateLock, Action onUnlocked, bool holdDone = false)
         {
             this.settings = settings ?? throw new ArgumentNullException (nameof (settings));
             this.navigator = navigator ?? throw new ArgumentNullException (nameof (navigator));
@@ -54,6 +55,10 @@ namespace AlertBuddy.ViewModels.Screens
 
             if (gateLock.IsLocked)
                 EnterLocked ();
+            else if (holdDone && settings.Current.Pin is not null) {
+                Phase = GatePhase.Pin;
+                Message = Words.GateEnterPin;
+            }
         }
 
         /// <summary>The press-and-hold finished.</summary>

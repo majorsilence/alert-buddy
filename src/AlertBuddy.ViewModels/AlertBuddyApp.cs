@@ -151,7 +151,7 @@ namespace AlertBuddy.ViewModels
             screens.Wire (
                 alert => new AlertDetailViewModel (alert, engine, hub, navigator, clock, platform.Dispatcher, platform.Zone),
                 alert => new AlarmViewModel (alert, engine, hub, platform.Dispatcher),
-                onUnlocked => new GateViewModel (settings, navigator, scheduler, gateLock, onUnlocked));
+                (onUnlocked, holdDone) => new GateViewModel (settings, navigator, scheduler, gateLock, onUnlocked, holdDone));
 
             var feedback = new AlertFeedback (hub, platform.Sound, platform.Haptics, platform.Notifier, settings, clock, platform.Zone, platform.Speaker, scheduler);
             var takeover = new TakeoverCoordinator (hub, navigator, screens, platform.Dispatcher);
@@ -192,9 +192,9 @@ namespace AlertBuddy.ViewModels
         {
             private Func<Core.Alerts.Alert, AlertDetailViewModel>? detail;
             private Func<Core.Alerts.Alert, AlarmViewModel>? alarm;
-            private Func<Action, GateViewModel>? gate;
+            private Func<Action, bool, GateViewModel>? gate;
 
-            public void Wire (Func<Core.Alerts.Alert, AlertDetailViewModel> detail, Func<Core.Alerts.Alert, AlarmViewModel> alarm, Func<Action, GateViewModel> gate)
+            public void Wire (Func<Core.Alerts.Alert, AlertDetailViewModel> detail, Func<Core.Alerts.Alert, AlarmViewModel> alarm, Func<Action, bool, GateViewModel> gate)
             {
                 this.detail = detail;
                 this.alarm = alarm;
@@ -205,7 +205,7 @@ namespace AlertBuddy.ViewModels
 
             public AlarmViewModel Alarm (Core.Alerts.Alert alert) => alarm!.Invoke (alert);
 
-            public GateViewModel Gate (Action onUnlocked) => gate!.Invoke (onUnlocked);
+            public GateViewModel Gate (Action onUnlocked, bool holdDone = false) => gate!.Invoke (onUnlocked, holdDone);
         }
     }
 }

@@ -70,15 +70,28 @@ namespace AlertBuddy.ViewModels.Tests.Screens
         }
 
         [Fact]
-        public async Task ItStartsWithAHold_AndPinKeysDoNothingYet ()
+        public async Task AGateOpenedByAButton_StartsWithAHold_AndPinKeysDoNothingYet ()
         {
             await using var rig = new AppRig (WithPin ());
-            var gate = OpenGate (rig);
+            rig.Main.OpenBookCommand.Execute (null);
+            rig.Current<AlertBookViewModel> ().ClearHistoryCommand.Execute (null);
+            var gate = rig.Current<GateViewModel> ();
 
             Enter (gate, "4821");
 
             Assert.Equal ((GatePhase.Hold, 0, "Press and hold. This part is for grown-ups."), (gate.Phase, gate.EnteredCount, gate.Message));
             Assert.IsType<GateViewModel> (rig.Navigator.Current);
+        }
+
+        [Fact]
+        public async Task TheGear_IsAHoldAlready_SoTheGateOpensOnThePinPad ()
+        {
+            await using var rig = new AppRig (WithPin ());
+            var gate = OpenGate (rig);
+
+            Assert.Equal ((GatePhase.Pin, "Enter the PIN."), (gate.Phase, gate.Message));
+            Enter (gate, "4821");
+            Assert.IsType<SettingsViewModel> (rig.Navigator.Current);
         }
 
         [Fact]
