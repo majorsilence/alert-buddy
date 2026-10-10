@@ -92,6 +92,49 @@ namespace AlertBuddy.ViewModels.Tests.Screens
             Assert.Equal (Enumerable.Repeat ($"Play:{cue}@0.4", 3), rig.Sound.Calls);
         }
 
+        [Theory]
+        [InlineData (PracticeSound.Gentle, "Play:Practice")]
+        [InlineData (PracticeSound.Whoop, "Play:Alarm@0.4")]
+        [InlineData (PracticeSound.Code3, "Play:Code3@0.4")]
+        [InlineData (PracticeSound.MarchTime, "Play:MarchTime@0.4")]
+        [InlineData (PracticeSound.Continuous, "Play:Continuous@0.4")]
+        [InlineData (PracticeSound.VoiceEvacuation, "Play:VoiceEvacuation@0.4")]
+        public async Task TheChildCanHearEachSound_OnceAndQuietly (PracticeSound which, string call)
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true });
+            var practice = Open (rig);
+
+            practice.HearSoundCommand.Execute (which);
+
+            Assert.Equal ([call], rig.Sound.Calls);
+        }
+
+        [Fact]
+        public async Task HearingASound_WithSoundsOff_IsSilent_AndSaysWhy ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true, SoundsEnabled = false });
+            var practice = Open (rig);
+
+            practice.HearSoundCommand.Execute (PracticeSound.Whoop);
+
+            Assert.Empty (rig.Sound.Calls);
+            Assert.Equal (AlertBuddy.ViewModels.Copy.Words.SoundsAreOff, practice.SoundNote);
+        }
+
+        [Fact]
+        public async Task HearingASound_IsNotOfferedWhileThePracticeRuns ()
+        {
+            await using var rig = new AppRig (new AppSettings { FirstRunComplete = true });
+            var practice = Open (rig);
+            practice.StartCommand.Execute (null);
+            rig.Sound.Calls.Clear ();
+
+            Assert.False (practice.HearSoundCommand.CanExecute (PracticeSound.Whoop));
+            practice.HearSoundCommand.Execute (PracticeSound.Whoop);
+
+            Assert.Empty (rig.Sound.Calls);
+        }
+
         [Fact]
         public async Task WithSoundsOff_ItIsSilent ()
         {

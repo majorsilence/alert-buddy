@@ -1,6 +1,7 @@
 using System.Drawing;
 using AlertBuddy.Core.Ntfy;
 using AlertBuddy.ViewModels.Screens;
+using AlertBuddy.ViewModels.Services;
 using Majorsilence.Forms;
 using Majorsilence.Forms.Headless;
 using SkiaSharp;
@@ -50,6 +51,38 @@ namespace AlertBuddy.Shared.Tests
                 Press (form, Find<Control> (form, "home.practice"));
 
                 Assert.IsType<PracticeViewModel> (app.Navigator.Current);
+            } finally {
+                await app.DisposeAsync ();
+            }
+        }
+
+        private sealed class CountingSound : ISoundPlayer
+        {
+            public List<Cue> Played { get; } = [];
+            public bool IsSupported => true;
+            public void Play (Cue cue, double volume = 1) => Played.Add (cue);
+            public void StartLoop (Cue cue) { }
+            public void StopLoop () { }
+        }
+
+        [Fact]
+        public async Task PracticeOffersEachSound_AndPressingOnePlaysIt ()
+        {
+            var sound = new CountingSound ();
+            var app = SmokeTests.CreateApp (sound);
+            try {
+                var form = new MainForm (app);
+                app.Main.StartPracticeCommand.Execute (null);
+                Render (form);
+
+                var whoop = Find<Control> (form, "practice.sound.Whoop");
+                Assert.True (whoop.Visible);
+                Assert.True (whoop.Bottom <= Find<Control> (form, "practice.told").Top);
+                Press (form, whoop);
+
+                Assert.Equal ([Cue.Alarm], sound.Played);
+                foreach (var which in Enum.GetValues<PracticeSound> ())
+                    Assert.True (Find<Control> (form, $"practice.sound.{which}").Visible, which.ToString ());
             } finally {
                 await app.DisposeAsync ();
             }

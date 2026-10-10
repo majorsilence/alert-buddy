@@ -58,6 +58,9 @@ namespace AlertBuddy.ViewModels.Copy
             _ => "",
         };
 
+        /// <summary>Shown when a sound is asked for and a grown-up has switched sounds off.</summary>
+        public const string SoundsAreOff = "Sounds are switched off.";
+
         /// <summary>Practice mode's banner.</summary>
         public const string PracticeBanner = "Practice. Nothing is really hot.";
 

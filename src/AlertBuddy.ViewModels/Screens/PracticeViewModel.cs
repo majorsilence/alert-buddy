@@ -42,6 +42,7 @@ namespace AlertBuddy.ViewModels.Screens
         private string caption = "";
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor (nameof (HearSoundCommand))]
         private bool isRunning;
 
         [ObservableProperty]
@@ -50,6 +51,9 @@ namespace AlertBuddy.ViewModels.Screens
         [ObservableProperty]
         [NotifyCanExecuteChangedFor (nameof (ToldAGrownUpCommand))]
         private bool canTellAGrownUp;
+
+        [ObservableProperty]
+        private string soundNote = "";
 
         /// <summary>How loud a chosen tone is in Practice, against the real alarm.</summary>
         public const double PracticeVolume = 0.4;
@@ -70,6 +74,30 @@ namespace AlertBuddy.ViewModels.Screens
             engine = NewEngine ();
             Refresh ();
         }
+
+        /// <summary>
+        /// Plays one of the sounds once, quietly, so a child can learn what each one means before it matters. Not offered while the pretend
+        /// alert is running, and silent (with a line saying why) when a grown-up has switched sounds off.
+        /// </summary>
+        [RelayCommand (CanExecute = nameof (CanHearSound))]
+        private void HearSound (PracticeSound which)
+        {
+            if (!CanHearSound ())
+                return;
+
+            if (!settings.Current.SoundsEnabled) {
+                SoundNote = Words.SoundsAreOff;
+                return;
+            }
+
+            SoundNote = "";
+            if (which == PracticeSound.Gentle)
+                sound.Play (Cue.Practice);
+            else
+                sound.Play (AlertFeedback.CueFor ((AlarmTone)((int)which - 1)), PracticeVolume);
+        }
+
+        private bool CanHearSound () => !IsRunning;
 
         [RelayCommand]
         private void Start ()
