@@ -12,6 +12,7 @@ line here: the version, the date, what it unlocked, what it broke. CI never uses
 | 26.8.0 | 2026-10-03 | `Card` and `RichListBox`, mouse-wheel scrolling of a `ScrollableControl`, `AutoScroll` in `FlowLayoutPanel`/`TableLayoutPanel`, a `SoundPlayer.Stop` that ends the loop, the Pin kind mapped to Digits on Android, Android back-button forwarding in the template, steadier audio tests | None found yet | none |
 | 26.8.1 | 2026-10-05 | Android keyboard raises reliably and fields stay clear of it, touch scroll bars on Android, a terminal host (`Majorsilence.Forms.Terminal`), ReportDesigner parity fixes | None found yet | none |
 | 26.9.0 | 2026-10-08 | See the framework release notes | `AutoScrollPosition` setter takes the positive distance (WinForms); `Invalidate` does nothing on a form that was never shown, so tests call `form.Show ()` before checking a repaint; the framework `StackPanel`. No framework bugs | none |
+| 26.10.0 | 2026-10-10 | `ComboBox` opens a native item picker on Android (#438); a swipe that starts on a text box no longer raises the keyboard (#449); touch drags scroll the full distance (#450) | None found yet | none |
 
 Released items: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F23, F24, F26, F27, F28
 
