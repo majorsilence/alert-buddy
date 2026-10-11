@@ -15,6 +15,7 @@ line here: the version, the date, what it unlocked, what it broke. CI never uses
 | 26.10.0 | 2026-10-10 | `ComboBox` opens a native item picker on Android (#438); a swipe that starts on a text box no longer raises the keyboard (#449); touch drags scroll the full distance (#450) | None found yet | none |
 | 26.10.1 | 2026-10-10 | The scroll bar thumb follows the content and the touch indicator leaves no trail (#454); a second finger no longer leaves the first control pressed (#458) | None found yet | none |
 | 26.11.1 | 2026-10-10 | `Speech` lists the installed voices and speaks with a chosen one (#456); Linux speech falls back to speech-dispatcher (#462); a keyboard inset the input pane no longer has is cleared (#464) | None found yet | none |
+| 26.11.2 | 2026-10-10 | `Speech.GetVoicesAsync` takes a language and can estimate the sex of Android voices from a spoken sample (#467) | None found yet | none |
 
 Released items: F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F23, F24, F26, F27, F28
 
